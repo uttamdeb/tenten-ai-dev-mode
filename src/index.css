@@ -2,95 +2,149 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* TenTen Chat Design System - Academic AI Chat Interface
+Beautiful blue/purple gradient theme with LaTeX support
+All colors MUST be HSL for consistency
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    /* Core backgrounds */
+    --background: 248 100% 99%;
+    --foreground: 230 15% 15%;
+    
+    /* UI surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 230 15% 15%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --popover-foreground: 230 15% 15%;
+    
+    /* Brand colors - Blue/Purple gradient theme */
+    --primary: 240 95% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 250 100% 75%;
+    
+    /* Chat specific colors */
+    --chat-user: 240 95% 65%;
+    --chat-ai: 250 85% 70%;
+    --chat-bg: 248 100% 98%;
+    --chat-input: 0 0% 100%;
+    
+    /* Secondary colors */
+    --secondary: 240 20% 96%;
+    --secondary-foreground: 230 15% 25%;
+    
+    /* Muted elements */
+    --muted: 240 10% 96%;
+    --muted-foreground: 230 10% 50%;
+    
+    /* Accent */
+    --accent: 250 85% 95%;
+    --accent-foreground: 240 95% 65%;
+    
+    /* Status colors */
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Interactive elements */
+    --border: 240 20% 90%;
+    --input: 240 20% 95%;
+    --ring: 240 95% 65%;
+    
+    /* Design system tokens */
+    --radius: 12px;
+    --shadow-elegant: 0 4px 20px -4px hsl(240 95% 65% / 0.15);
+    --shadow-glow: 0 0 30px hsl(250 100% 75% / 0.3);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(240 95% 65%), hsl(250 100% 75%));
+    --gradient-subtle: linear-gradient(180deg, hsl(248 100% 99%), hsl(248 100% 97%));
+    --gradient-chat: linear-gradient(135deg, hsl(248 100% 98%), hsl(240 30% 98%));
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* Sidebar theme */
+    --sidebar-background: 248 50% 97%;
+    --sidebar-foreground: 230 15% 30%;
+    --sidebar-primary: 240 95% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 30% 95%;
+    --sidebar-accent-foreground: 230 15% 25%;
+    --sidebar-border: 240 20% 90%;
+    --sidebar-ring: 240 95% 65%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    /* Dark mode backgrounds */
+    --background: 230 25% 8%;
+    --foreground: 0 0% 95%;
+    
+    /* UI surfaces */
+    --card: 230 25% 10%;
+    --card-foreground: 0 0% 95%;
+    
+    --popover: 230 25% 10%;
+    --popover-foreground: 0 0% 95%;
+    
+    /* Brand colors remain vibrant in dark mode */
+    --primary: 240 95% 70%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 250 100% 80%;
+    
+    /* Chat specific colors for dark mode */
+    --chat-user: 240 95% 70%;
+    --chat-ai: 250 85% 75%;
+    --chat-bg: 230 25% 9%;
+    --chat-input: 230 25% 12%;
+    
+    /* Secondary colors */
+    --secondary: 230 15% 15%;
+    --secondary-foreground: 0 0% 90%;
+    
+    /* Muted elements */
+    --muted: 230 15% 15%;
+    --muted-foreground: 0 0% 65%;
+    
+    /* Accent */
+    --accent: 230 15% 15%;
+    --accent-foreground: 240 95% 70%;
+    
+    /* Status colors */
+    --destructive: 0 85% 65%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 76% 50%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Interactive elements */
+    --border: 230 15% 20%;
+    --input: 230 15% 15%;
+    --ring: 240 95% 70%;
+    
+    /* Enhanced shadows for dark mode */
+    --shadow-elegant: 0 8px 30px -8px hsl(240 95% 70% / 0.3);
+    --shadow-glow: 0 0 40px hsl(250 100% 80% / 0.4);
+    
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(240 95% 70%), hsl(250 100% 80%));
+    --gradient-subtle: linear-gradient(180deg, hsl(230 25% 8%), hsl(230 25% 10%));
+    --gradient-chat: linear-gradient(135deg, hsl(230 25% 9%), hsl(230 20% 11%));
+    
+    /* Sidebar dark theme */
+    --sidebar-background: 230 25% 9%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 240 95% 70%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 230 15% 15%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 230 15% 20%;
+    --sidebar-ring: 240 95% 70%;
   }
 }
 
@@ -100,6 +154,107 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
   }
+  
+  /* KaTeX styles */
+  .katex {
+    font-size: 1em !important;
+  }
+  
+  .katex-display {
+    margin: 1em 0 !important;
+  }
+  
+  /* Custom scrollbar for chat */
+  .chat-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .chat-scroll::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  
+  .chat-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+  
+  .chat-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+@layer components {
+  /* Chat specific component styles */
+  .message-bubble {
+    @apply rounded-2xl px-4 py-3 max-w-[80%] break-words;
+    transition: var(--transition-smooth);
+  }
+  
+  .message-bubble.user {
+    @apply bg-gradient-to-br from-primary to-primary-glow text-primary-foreground ml-auto;
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .message-bubble.ai {
+    @apply bg-card border border-border text-card-foreground;
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .typing-indicator {
+    @apply flex space-x-1 items-center px-4 py-3;
+  }
+  
+  .typing-dot {
+    @apply w-2 h-2 bg-muted-foreground/50 rounded-full;
+    animation: typing 1.4s infinite ease-in-out;
+  }
+  
+  .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+  .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+  .typing-dot:nth-child(3) { animation-delay: 0s; }
+  
+  .chat-input {
+    @apply bg-chat-input border-border focus:ring-2 focus:ring-primary/20 focus:border-primary;
+    transition: var(--transition-smooth);
+  }
+  
+  .subject-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    @apply bg-accent text-accent-foreground border border-border;
+    transition: var(--transition-smooth);
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent;
+  }
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
 }
