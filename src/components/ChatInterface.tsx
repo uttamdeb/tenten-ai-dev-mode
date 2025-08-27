@@ -115,7 +115,13 @@ export function ChatInterface() {
         const responseText = await response.text();
         if (responseText.trim()) {
           data = JSON.parse(responseText);
-          if (data.response) {
+          
+          // Handle n8n workflow response format
+          const responseData = Array.isArray(data) ? data[0] : data;
+          
+          if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
+            aiResponse = responseData.ai_response.content_blocks[0].data.content;
+          } else if (data.response) {
             aiResponse = data.response;
           } else if (data.message) {
             aiResponse = data.message;
