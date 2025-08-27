@@ -86,10 +86,14 @@ export function ChatInterface() {
     try {
       // Prepare webhook payload
       const webhookPayload = {
-        message: userMessage.content,
-        subject: selectedSubject?.value || "general",
-        timestamp: new Date().toISOString(),
-        messageHistory: messages.slice(-5), // Send last 5 messages for context
+        auth_user_id: "623a3187fb492fa5df0c2277", // Static for now
+        user_name: "Abdullah Abyad Raied 1111", // Static for now  
+        session_id: Date.now().toString().slice(-6), // Generate session ID
+        live_class_id: "NoVKlRff9E", // Static for now
+        date: Date.now(),
+        question: userMessage.content,
+        messageId: userMessage.id,
+        program_name: selectedSubject?.label || "General"
       };
 
       const response = await fetch(webhookUrl, {
