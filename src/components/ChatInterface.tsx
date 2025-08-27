@@ -104,16 +104,25 @@ export function ChatInterface() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      
-      // Handle streaming response or direct response
+      let data;
       let aiResponse = "";
       
-      if (data.response) {
-        aiResponse = data.response;
-      } else if (data.message) {
-        aiResponse = data.message;
-      } else {
+      try {
+        const responseText = await response.text();
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+          if (data.response) {
+            aiResponse = data.response;
+          } else if (data.message) {
+            aiResponse = data.message;
+          } else {
+            aiResponse = "I received your message and processed it through the n8n workflow.";
+          }
+        } else {
+          aiResponse = "I received your message and processed it through the n8n workflow.";
+        }
+      } catch (parseError) {
+        console.warn("Failed to parse webhook response as JSON:", parseError);
         aiResponse = "I received your message and processed it through the n8n workflow.";
       }
 
