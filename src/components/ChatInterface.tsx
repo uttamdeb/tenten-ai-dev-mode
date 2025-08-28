@@ -19,6 +19,8 @@ interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   reasoning?: string;
+  debugData?: any;
+  waitingTime?: number;
 }
 
 export function ChatInterface() {
@@ -186,10 +188,11 @@ export function ChatInterface() {
         }
       }
 
-      // Final update to remove streaming indicator
+      // Final update to remove streaming indicator and store debug data
+      const finalWaitingTime = waitingTime;
       setMessages(prev => prev.map(msg => 
         msg.id === aiMessageId 
-          ? { ...msg, content: aiResponse, isStreaming: false, reasoning: aiReasoning }
+          ? { ...msg, content: aiResponse, isStreaming: false, reasoning: aiReasoning, debugData: data, waitingTime: finalWaitingTime }
           : msg
       ));
 
