@@ -10,6 +10,7 @@ import { SubjectSelector, Subject } from "./SubjectSelector";
 import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import tentenIcon from "@/assets/tenten-icon.png";
 
 interface Message {
   id: string;
@@ -24,20 +25,39 @@ export function ChatInterface() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState("https://n8n-prod.10minuteschool.com/webhook/superAssist-Ai");
   const [showSettings, setShowSettings] = useState(false);
+  const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isAutoScrollEnabled) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isAutoScrollEnabled]);
+
+  // Handle scroll behavior - disable auto-scroll when user scrolls up
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current;
+    if (!chatContainer) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainer;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      setIsAutoScrollEnabled(isAtBottom);
+    };
+
+    chatContainer.addEventListener('scroll', handleScroll);
+    return () => chatContainer.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -198,8 +218,12 @@ export function ChatInterface() {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-elegant">
-              <span className="text-xl font-bold text-primary-foreground">T</span>
+            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
+              <img 
+                src={tentenIcon} 
+                alt="TenTen AI" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <h1 className="text-lg font-semibold gradient-text">TenTen Chat</h1>
@@ -266,11 +290,15 @@ export function ChatInterface() {
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto chat-scroll">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow mb-4">
-              <span className="text-2xl font-bold text-primary-foreground">T</span>
+            <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
+              <img 
+                src={tentenIcon} 
+                alt="TenTen AI" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <h2 className="text-xl font-semibold mb-2 gradient-text">
               Hello! I'm TenTen
