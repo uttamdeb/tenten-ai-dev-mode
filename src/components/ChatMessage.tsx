@@ -1,6 +1,9 @@
-import { Bot, User } from "lucide-react";
+import { Bot, User, ChevronDown, ChevronUp } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface ChatMessageProps {
   message: {
@@ -9,12 +12,14 @@ interface ChatMessageProps {
     content: string;
     timestamp: Date;
     isStreaming?: boolean;
+    reasoning?: string;
   };
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isStreaming = message.isStreaming;
+  const [isReasoningOpen, setIsReasoningOpen] = useState(false);
 
   return (
     <div className={cn(
@@ -39,6 +44,27 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </p>
         ) : (
           <div className="text-sm">
+            {message.reasoning && (
+              <Collapsible open={isReasoningOpen} onOpenChange={setIsReasoningOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 text-xs text-muted-foreground hover:text-foreground mb-2 p-1"
+                  >
+                    {isReasoningOpen ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                    Show thinking
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mb-3">
+                  <div className="p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
+                    <p className="text-xs text-muted-foreground italic">
+                      {message.reasoning}
+                    </p>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
             <MarkdownRenderer>
               {message.content}
             </MarkdownRenderer>

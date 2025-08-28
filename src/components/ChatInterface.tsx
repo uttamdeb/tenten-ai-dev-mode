@@ -18,6 +18,7 @@ interface Message {
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  reasoning?: string;
 }
 
 export function ChatInterface() {
@@ -28,9 +29,11 @@ export function ChatInterface() {
   const [webhookUrl, setWebhookUrl] = useState("https://n8n-prod.10minuteschool.com/webhook/superAssist-Ai");
   const [showSettings, setShowSettings] = useState(false);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
+  const [waitingTime, setWaitingTime] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   // Auto-scroll to bottom when new messages arrive
@@ -103,6 +106,12 @@ export function ChatInterface() {
 
     setMessages(prev => [...prev, aiMessage]);
 
+    // Start waiting timer
+    setWaitingTime(0);
+    waitingTimerRef.current = setInterval(() => {
+      setWaitingTime(prev => prev + 1);
+    }, 1000);
+
     try {
       // Prepare webhook payload
       const webhookPayload = {
@@ -130,6 +139,7 @@ export function ChatInterface() {
 
       let data;
       let aiResponse = "";
+      let aiReasoning = "";
       
       try {
         const responseText = await response.text();
@@ -141,6 +151,7 @@ export function ChatInterface() {
           
           if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
             aiResponse = responseData.ai_response.content_blocks[0].data.content;
+            aiReasoning = responseData.ai_reasoning || "";
           } else if (data.response) {
             aiResponse = data.response;
           } else if (data.message) {
@@ -165,7 +176,7 @@ export function ChatInterface() {
         
         setMessages(prev => prev.map(msg => 
           msg.id === aiMessageId 
-            ? { ...msg, content: currentResponse, isStreaming: i < words.length - 1 }
+            ? { ...msg, content: currentResponse, isStreaming: i < words.length - 1, reasoning: aiReasoning }
             : msg
         ));
         
@@ -178,7 +189,7 @@ export function ChatInterface() {
       // Final update to remove streaming indicator
       setMessages(prev => prev.map(msg => 
         msg.id === aiMessageId 
-          ? { ...msg, content: aiResponse, isStreaming: false }
+          ? { ...msg, content: aiResponse, isStreaming: false, reasoning: aiReasoning }
           : msg
       ));
 
@@ -202,6 +213,12 @@ export function ChatInterface() {
       });
     } finally {
       setIsLoading(false);
+      // Clear waiting timer
+      if (waitingTimerRef.current) {
+        clearInterval(waitingTimerRef.current);
+        waitingTimerRef.current = null;
+      }
+      setWaitingTime(0);
     }
   };
 
@@ -226,7 +243,7 @@ export function ChatInterface() {
               />
             </div>
             <div>
-              <h1 className="text-lg font-semibold gradient-text">TenTen Chat</h1>
+              <h1 className="text-lg font-semibold gradient-text">TenTen AI</h1>
               <p className="text-sm text-muted-foreground">AI-powered academic assistant</p>
             </div>
           </div>
@@ -307,6 +324,11 @@ export function ChatInterface() {
               I'm here to help you solve your doubts and understand complex concepts. 
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
+            {isLoading && waitingTime > 0 && (
+              <p className="text-sm text-primary mt-2">
+                Thinking... {waitingTime}s
+              </p>
+            )}
             {!webhookUrl && (
               <p className="text-sm text-destructive mt-3">
                 Configure your n8n webhook URL in settings to get started
