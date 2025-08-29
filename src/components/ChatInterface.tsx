@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Settings, Zap } from "lucide-react";
+import { Send, Settings, Zap, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -161,6 +161,9 @@ export function ChatInterface() {
           } else {
             aiResponse = "I received your message and processed it through the n8n workflow.";
           }
+          
+          // Remove any leading "0" or whitespace
+          aiResponse = aiResponse.replace(/^0\s*/, '').trim();
         } else {
           aiResponse = "I received your message and processed it through the n8n workflow.";
         }
@@ -310,7 +313,7 @@ export function ChatInterface() {
       </header>
 
       {/* Messages */}
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
@@ -328,9 +331,11 @@ export function ChatInterface() {
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
             {isLoading && waitingTime > 0 && (
-              <p className="text-sm text-primary mt-2">
-                Thinking... {waitingTime}s
-              </p>
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
+                <p className="text-sm text-primary font-medium">
+                  🤔 Thinking... {waitingTime}s
+                </p>
+              </div>
             )}
             {!webhookUrl && (
               <p className="text-sm text-destructive mt-3">
@@ -339,17 +344,33 @@ export function ChatInterface() {
             )}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 px-4">
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
+            {isLoading && waitingTime > 0 && (
+              <div className="flex gap-3 p-4">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-elegant">
+                    <Bot className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                </div>
+                <div className="message-bubble ai max-w-[85%] sm:max-w-[70%]">
+                  <div className="p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
+                    <p className="text-sm text-primary font-medium">
+                      🤔 Thinking... {waitingTime}s
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4">
+      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0">
         <div className="flex gap-3 items-end max-w-4xl mx-auto">
           <div className="flex-1 relative">
             <Textarea

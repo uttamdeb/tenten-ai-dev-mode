@@ -1,4 +1,4 @@
-import { Bot, User, ChevronDown, ChevronUp, Bug } from "lucide-react";
+import { Bot, User, ChevronDown, ChevronUp, Bug, Brain } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -62,7 +62,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     size="sm" 
                     className="h-6 text-xs text-muted-foreground hover:text-foreground mb-2 p-1"
                   >
-                    {isReasoningOpen ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                    <Brain className="h-3 w-3 mr-1" />
+                    {isReasoningOpen ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
                     Show thinking
                   </Button>
                 </CollapsibleTrigger>
