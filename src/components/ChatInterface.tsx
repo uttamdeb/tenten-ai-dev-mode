@@ -145,26 +145,56 @@ export function ChatInterface() {
       
       try {
         const responseText = await response.text();
+        console.log("Raw webhook response:", responseText); // Debug log
+        
         if (responseText.trim()) {
           data = JSON.parse(responseText);
+          console.log("Parsed webhook data:", data); // Debug log
           
           // Handle n8n workflow response format
           const responseData = Array.isArray(data) ? data[0] : data;
           
+          // Extract AI response from content_blocks structure
           if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
             aiResponse = responseData.ai_response.content_blocks[0].data.content;
             aiReasoning = responseData.ai_reasoning || "";
-          } else if (data.response) {
+          } 
+          // Fallback to other possible response formats
+          else if (responseData?.ai_response?.content) {
+            aiResponse = responseData.ai_response.content;
+            aiReasoning = responseData.ai_reasoning || "";
+          }
+          else if (data.response) {
             aiResponse = data.response;
-          } else if (data.message) {
+          } 
+          else if (data.message) {
             aiResponse = data.message;
-          } else {
+          } 
+          else if (data.ai_response) {
+            aiResponse = typeof data.ai_response === 'string' ? data.ai_response : JSON.stringify(data.ai_response);
+            aiReasoning = data.ai_reasoning || "";
+          }
+          else {
             aiResponse = "I received your message and processed it through the n8n workflow.";
           }
           
-          // Clean the response - remove leading "0", numbers, or unwanted characters
-          aiResponse = aiResponse.replace(/^[0-9]+\s*/, '').replace(/^\W+/, '').trim();
-          aiReasoning = aiReasoning.replace(/^[0-9]+\s*/, '').replace(/^\W+/, '').trim();
+          // Clean the response - only remove leading numbers and excessive whitespace, preserve valid content
+          if (aiResponse) {
+            aiResponse = aiResponse.replace(/^[0-9]+\s*/, '').trim();
+            // Only remove leading non-alphanumeric if it's just punctuation, preserve meaningful characters
+            if (aiResponse.match(/^[^\w\u0980-\u09FF]/)) {
+              aiResponse = aiResponse.replace(/^[^\w\u0980-\u09FF]+/, '').trim();
+            }
+          }
+          
+          if (aiReasoning) {
+            aiReasoning = aiReasoning.replace(/^[0-9]+\s*/, '').trim();
+            if (aiReasoning.match(/^[^\w\u0980-\u09FF]/)) {
+              aiReasoning = aiReasoning.replace(/^[^\w\u0980-\u09FF]+/, '').trim();
+            }
+          }
+          
+          console.log("Final AI response:", aiResponse); // Debug log
         } else {
           aiResponse = "I received your message and processed it through the n8n workflow.";
         }
