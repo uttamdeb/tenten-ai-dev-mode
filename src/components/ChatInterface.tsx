@@ -158,7 +158,12 @@ export function ChatInterface() {
           if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
             aiResponse = responseData.ai_response.content_blocks[0].data.content;
             aiReasoning = responseData.ai_reasoning || "";
-          } 
+          }
+          // Handle content_blocks at root level (second response format)
+          else if (responseData?.content_blocks?.[0]?.data?.content) {
+            aiResponse = responseData.content_blocks[0].data.content;
+            aiReasoning = responseData.ai_reasoning || "";
+          }
           // Fallback to other possible response formats
           else if (responseData?.ai_response?.content) {
             aiResponse = responseData.ai_response.content;
