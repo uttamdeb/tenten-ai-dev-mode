@@ -162,8 +162,9 @@ export function ChatInterface() {
             aiResponse = "I received your message and processed it through the n8n workflow.";
           }
           
-          // Remove any leading "0" or whitespace
-          aiResponse = aiResponse.replace(/^0\s*/, '').trim();
+          // Clean the response - remove leading "0", numbers, or unwanted characters
+          aiResponse = aiResponse.replace(/^[0-9]+\s*/, '').replace(/^\W+/, '').trim();
+          aiReasoning = aiReasoning.replace(/^[0-9]+\s*/, '').replace(/^\W+/, '').trim();
         } else {
           aiResponse = "I received your message and processed it through the n8n workflow.";
         }
