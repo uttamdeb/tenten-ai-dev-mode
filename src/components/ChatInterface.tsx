@@ -183,20 +183,17 @@ export function ChatInterface() {
             aiResponse = "I received your message and processed it through the n8n workflow.";
           }
           
-          // Clean the response - only remove leading numbers and excessive whitespace, preserve valid content
+          // Clean the response - remove leading numbers, zeros, and unwanted characters
           if (aiResponse) {
-            aiResponse = aiResponse.replace(/^[0-9]+\s*/, '').trim();
-            // Only remove leading non-alphanumeric if it's just punctuation, preserve meaningful characters
-            if (aiResponse.match(/^[^\w\u0980-\u09FF]/)) {
-              aiResponse = aiResponse.replace(/^[^\w\u0980-\u09FF]+/, '').trim();
-            }
+            // More aggressive cleaning - remove any leading digits, zeros, and whitespace
+            aiResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
+            // Remove leading punctuation except meaningful characters for Bengali/other languages
+            aiResponse = aiResponse.replace(/^[^\w\u0980-\u09FF\u4e00-\u9fff\u0600-\u06ff]+/, '').trim();
           }
           
           if (aiReasoning) {
-            aiReasoning = aiReasoning.replace(/^[0-9]+\s*/, '').trim();
-            if (aiReasoning.match(/^[^\w\u0980-\u09FF]/)) {
-              aiReasoning = aiReasoning.replace(/^[^\w\u0980-\u09FF]+/, '').trim();
-            }
+            aiReasoning = aiReasoning.replace(/^[0-9\s]+/, '').trim();
+            aiReasoning = aiReasoning.replace(/^[^\w\u0980-\u09FF\u4e00-\u9fff\u0600-\u06ff]+/, '').trim();
           }
           
           console.log("Final AI response:", aiResponse); // Debug log
