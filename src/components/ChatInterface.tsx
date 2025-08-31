@@ -282,7 +282,7 @@ export function ChatInterface() {
               />
             </div>
             <div>
-              <h1 className="text-lg font-semibold gradient-text">TenTen AI</h1>
+              <h1 className="text-lg font-semibold gradient-text">TenTen AI - Dev Mode</h1>
               <p className="text-sm text-muted-foreground">AI-powered academic assistant</p>
             </div>
           </div>
