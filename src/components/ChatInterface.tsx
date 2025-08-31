@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChatMessage } from "./ChatMessage";
 import { SubjectSelector, Subject } from "./SubjectSelector";
 import { ThemeToggle } from "./ThemeToggle";
+import UserMenu from "./UserMenu";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import tentenIcon from "@/assets/tenten-icon.png";
@@ -297,6 +298,7 @@ export function ChatInterface() {
               <Settings className="h-4 w-4" />
             </Button>
             <ThemeToggle />
+            <UserMenu />
           </div>
         </div>
 
