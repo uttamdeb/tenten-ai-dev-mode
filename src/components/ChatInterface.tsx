@@ -140,7 +140,7 @@ export function ChatInterface() {
         question: userMessage.content,
         messageId: userMessage.id,
         program_name: selectedSubject?.label || "General",
-        attachments: userMessage.attachments?.map(att => att.url) || []
+        attachments: userMessage.attachments?.map(att => ({ file_url: att.url })) || []
       };
 
       const response = await fetch(webhookUrl, {
