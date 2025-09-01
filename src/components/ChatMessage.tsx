@@ -15,6 +15,12 @@ interface ChatMessageProps {
     reasoning?: string;
     debugData?: any;
     waitingTime?: number;
+    attachments?: {
+      id: string;
+      url: string;
+      name: string;
+      size: number;
+    }[];
   };
 }
 
@@ -42,9 +48,28 @@ export function ChatMessage({ message }: ChatMessageProps) {
         isUser ? "user" : "ai"
       )}>
         {isUser ? (
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {message.content}
-          </p>
+          <>
+            {/* Attachments for user messages */}
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="mb-2">
+                <div className="flex flex-wrap gap-2">
+                  {message.attachments.map((attachment) => (
+                    <div key={attachment.id} className="w-24 h-24 rounded-lg overflow-hidden border border-border bg-muted/20">
+                      <img 
+                        src={attachment.url} 
+                        alt={attachment.name}
+                        className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => window.open(attachment.url, '_blank')}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              {message.content}
+            </p>
+          </>
         ) : (
           <div className="text-sm">
             {message.waitingTime && message.waitingTime > 0 && (

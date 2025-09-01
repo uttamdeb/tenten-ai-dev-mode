@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Settings, Zap, Bot } from "lucide-react";
+import { Send, Settings, Zap, Bot, Paperclip, X, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,16 @@ import { SubjectSelector, Subject } from "./SubjectSelector";
 import { ThemeToggle } from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 import { useToast } from "@/hooks/use-toast";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import { cn } from "@/lib/utils";
 import tentenIcon from "@/assets/tenten-icon.png";
+
+interface ImageAttachment {
+  id: string;
+  url: string;
+  name: string;
+  size: number;
+}
 
 interface Message {
   id: string;
@@ -22,6 +30,7 @@ interface Message {
   reasoning?: string;
   debugData?: any;
   waitingTime?: number;
+  attachments?: ImageAttachment[];
 }
 
 export function ChatInterface() {
@@ -29,15 +38,18 @@ export function ChatInterface() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  const [webhookUrl, setWebhookUrl] = useState("https://n8n-prod.10minuteschool.com/webhook/superAssist-Ai");
+  const [webhookUrl, setWebhookUrl] = useState("https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1");
   const [showSettings, setShowSettings] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<ImageAttachment[]>([]);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
   const [waitingTime, setWaitingTime] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { uploadImage, isUploading } = useImageUpload();
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -74,7 +86,7 @@ export function ChatInterface() {
   }, [inputValue]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() && pendingAttachments.length === 0) return;
     
     if (!webhookUrl.trim()) {
       toast({
@@ -91,10 +103,12 @@ export function ChatInterface() {
       role: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
+      attachments: pendingAttachments.length > 0 ? [...pendingAttachments] : undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue("");
+    setPendingAttachments([]);
     setIsLoading(true);
 
     // Create streaming AI message
@@ -125,7 +139,8 @@ export function ChatInterface() {
         date: Date.now(),
         question: userMessage.content,
         messageId: userMessage.id,
-        program_name: selectedSubject?.label || "General"
+        program_name: selectedSubject?.label || "General",
+        attachments: userMessage.attachments?.map(att => att.url) || []
       };
 
       const response = await fetch(webhookUrl, {
@@ -269,6 +284,32 @@ export function ChatInterface() {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const uploadedImage = await uploadImage(file);
+      if (uploadedImage) {
+        setPendingAttachments(prev => [...prev, uploadedImage]);
+      }
+    }
+    
+    // Clear the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removePendingAttachment = (id: string) => {
+    setPendingAttachments(prev => prev.filter(att => att.id !== id));
+  };
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gradient-chat">
       {/* Header */}
@@ -406,16 +447,53 @@ export function ChatInterface() {
 
       {/* Input */}
       <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0">
+        {/* Pending Attachments */}
+        {pendingAttachments.length > 0 && (
+          <div className="mb-3 max-w-4xl mx-auto">
+            <div className="flex flex-wrap gap-2">
+              {pendingAttachments.map((attachment) => (
+                <div key={attachment.id} className="relative group">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-border bg-muted">
+                    <img 
+                      src={attachment.url} 
+                      alt={attachment.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removePendingAttachment(attachment.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-3 items-end max-w-4xl mx-auto">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleAttachClick}
+            disabled={isLoading || isUploading}
+            className="h-11 w-11 shrink-0"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+          
           <div className="flex-1 relative">
             <Textarea
               ref={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything... (Shift+Enter for new line, Ctrl+V to paste images)"
+              placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
-                "chat-input resize-none min-h-[44px] max-h-32 pr-12",
+                "chat-input resize-none min-h-[44px] max-h-32",
                 "placeholder:text-muted-foreground/70"
               )}
               disabled={isLoading}
@@ -424,13 +502,22 @@ export function ChatInterface() {
           
           <Button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
-            className="h-11 w-11 p-0 bg-gradient-primary hover:shadow-glow transition-all duration-300"
+            disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
+            className="h-11 w-11 p-0 bg-gradient-primary hover:shadow-glow transition-all duration-300 shrink-0"
             size="icon"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileSelect}
+          className="hidden"
+        />
         
         <p className="text-xs text-muted-foreground text-center mt-2">
           TenTen can make mistakes. Please verify important information.
