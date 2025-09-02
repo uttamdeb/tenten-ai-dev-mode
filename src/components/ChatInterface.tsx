@@ -143,13 +143,24 @@ export function ChatInterface() {
         attachments: userMessage.attachments?.map(att => ({ file_url: att.url })) || []
       };
 
+      // Create AbortController with 10 minute timeout for image processing
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 10 * 60 * 1000); // 10 minutes
+
       const response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(webhookPayload),
+        signal: controller.signal,
+        // Add keep-alive to prevent connection timeouts
+        keepalive: true,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
