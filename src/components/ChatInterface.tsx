@@ -166,193 +166,90 @@ export function ChatInterface() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Check if response is streaming
-      const contentType = response.headers.get('content-type') || '';
-      const isStreaming = contentType.includes('text/stream') || contentType.includes('application/stream');
-      
       let data;
       let aiResponse = "";
       let aiReasoning = "";
-      let fullResponse = "";
-
-      if (isStreaming && response.body) {
-        console.log("Processing streaming response...");
+      
+      try {
+        const responseText = await response.text();
+        console.log("Raw webhook response:", responseText); // Debug log
         
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            
-            if (done) break;
-            
-            // Decode chunk and add to buffer
-            const chunk = decoder.decode(value, { stream: true });
-            buffer += chunk;
-            fullResponse += chunk;
-            
-            // Try to parse complete JSON objects from buffer
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || ''; // Keep incomplete line in buffer
-            
-            for (const line of lines) {
-              if (line.trim()) {
-                try {
-                  // Handle different streaming formats
-                  let parsedChunk;
-                  
-                  // Check if it's server-sent events format
-                  if (line.startsWith('data: ')) {
-                    const jsonStr = line.slice(6).trim();
-                    if (jsonStr === '[DONE]') continue;
-                    parsedChunk = JSON.parse(jsonStr);
-                  } else {
-                    parsedChunk = JSON.parse(line);
-                  }
-                  
-                  // Extract content from different possible structures
-                  let chunkContent = "";
-                  
-                  if (parsedChunk.content) {
-                    chunkContent = parsedChunk.content;
-                  } else if (parsedChunk.delta?.content) {
-                    chunkContent = parsedChunk.delta.content;
-                  } else if (parsedChunk.choices?.[0]?.delta?.content) {
-                    chunkContent = parsedChunk.choices[0].delta.content;
-                  } else if (parsedChunk.text) {
-                    chunkContent = parsedChunk.text;
-                  }
-                  
-                  if (chunkContent) {
-                    aiResponse += chunkContent;
-                    
-                    // Update UI in real-time
-                    setMessages(prev => prev.map(msg => 
-                      msg.id === aiMessageId 
-                        ? { ...msg, content: aiResponse, isStreaming: true }
-                        : msg
-                    ));
-                  }
-                  
-                  // Handle reasoning updates
-                  if (parsedChunk.reasoning) {
-                    aiReasoning = parsedChunk.reasoning;
-                  }
-                  
-                } catch (parseError) {
-                  // Skip malformed JSON chunks
-                  console.warn("Failed to parse streaming chunk:", line, parseError);
-                }
-              }
-            }
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+          console.log("Parsed webhook data:", data); // Debug log
+          
+          // Handle n8n workflow response format
+          const responseData = Array.isArray(data) ? data[0] : data;
+          
+          // Extract AI response from content_blocks structure
+          if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
+            aiResponse = responseData.ai_response.content_blocks[0].data.content;
+            aiReasoning = responseData.ai_reasoning || "";
           }
-          
-          // Process any remaining buffer
-          if (buffer.trim()) {
-            try {
-              const parsedChunk = JSON.parse(buffer);
-              if (parsedChunk.content) {
-                aiResponse += parsedChunk.content;
-              }
-            } catch (e) {
-              console.warn("Failed to parse final buffer:", buffer);
-            }
+          // Handle content_blocks at root level (second response format)
+          else if (responseData?.content_blocks?.[0]?.data?.content) {
+            aiResponse = responseData.content_blocks[0].data.content;
+            aiReasoning = responseData.ai_reasoning || "";
           }
-          
-        } catch (streamError) {
-          console.error("Error reading stream:", streamError);
-          throw streamError;
-        }
-        
-        data = { ai_response: aiResponse, ai_reasoning: aiReasoning, fullResponse };
-        
-      } else {
-        // Handle non-streaming response (existing logic)
-        console.log("Processing non-streaming response...");
-        
-        try {
-          const responseText = await response.text();
-          console.log("Raw webhook response:", responseText);
-          
-          if (responseText.trim()) {
-            data = JSON.parse(responseText);
-            console.log("Parsed webhook data:", data);
-            
-            // Handle n8n workflow response format
-            const responseData = Array.isArray(data) ? data[0] : data;
-            
-            // Extract AI response from content_blocks structure
-            if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
-              aiResponse = responseData.ai_response.content_blocks[0].data.content;
-              aiReasoning = responseData.ai_reasoning || "";
-            }
-            // Handle content_blocks at root level (second response format)
-            else if (responseData?.content_blocks?.[0]?.data?.content) {
-              aiResponse = responseData.content_blocks[0].data.content;
-              aiReasoning = responseData.ai_reasoning || "";
-            }
-            // Fallback to other possible response formats
-            else if (responseData?.ai_response?.content) {
-              aiResponse = responseData.ai_response.content;
-              aiReasoning = responseData.ai_reasoning || "";
-            }
-            else if (data.response) {
-              aiResponse = data.response;
-            } 
-            else if (data.message) {
-              aiResponse = data.message;
-            } 
-            else if (data.ai_response) {
-              aiResponse = typeof data.ai_response === 'string' ? data.ai_response : JSON.stringify(data.ai_response);
-              aiReasoning = data.ai_reasoning || "";
-            }
-            else {
-              aiResponse = "I received your message and processed it through the n8n workflow.";
-            }
-          } else {
+          // Fallback to other possible response formats
+          else if (responseData?.ai_response?.content) {
+            aiResponse = responseData.ai_response.content;
+            aiReasoning = responseData.ai_reasoning || "";
+          }
+          else if (data.response) {
+            aiResponse = data.response;
+          } 
+          else if (data.message) {
+            aiResponse = data.message;
+          } 
+          else if (data.ai_response) {
+            aiResponse = typeof data.ai_response === 'string' ? data.ai_response : JSON.stringify(data.ai_response);
+            aiReasoning = data.ai_reasoning || "";
+          }
+          else {
             aiResponse = "I received your message and processed it through the n8n workflow.";
           }
-        } catch (parseError) {
-          console.warn("Failed to parse webhook response as JSON:", parseError);
+          
+          // Clean the response - remove leading numbers, zeros, and unwanted characters
+          if (aiResponse) {
+            // More aggressive cleaning - remove any leading digits, zeros, and whitespace
+            aiResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
+            // Remove leading punctuation except meaningful characters for Bengali/other languages
+            aiResponse = aiResponse.replace(/^[^\w\u0980-\u09FF\u4e00-\u9fff\u0600-\u06ff]+/, '').trim();
+          }
+          
+          if (aiReasoning) {
+            aiReasoning = aiReasoning.replace(/^[0-9\s]+/, '').trim();
+            aiReasoning = aiReasoning.replace(/^[^\w\u0980-\u09FF\u4e00-\u9fff\u0600-\u06ff]+/, '').trim();
+          }
+          
+          console.log("Final AI response:", aiResponse); // Debug log
+        } else {
           aiResponse = "I received your message and processed it through the n8n workflow.";
         }
+      } catch (parseError) {
+        console.warn("Failed to parse webhook response as JSON:", parseError);
+        aiResponse = "I received your message and processed it through the n8n workflow.";
+      }
 
-        // Simulate streaming effect for non-streaming responses
-        const words = aiResponse.split(" ");
-        let currentResponse = "";
+      // Simulate streaming effect for better UX
+      const words = aiResponse.split(" ");
+      let currentResponse = "";
+      
+      for (let i = 0; i < words.length; i++) {
+        currentResponse += (i > 0 ? " " : "") + words[i];
         
-        for (let i = 0; i < words.length; i++) {
-          currentResponse += (i > 0 ? " " : "") + words[i];
-          
-          setMessages(prev => prev.map(msg => 
-            msg.id === aiMessageId 
-              ? { ...msg, content: currentResponse, isStreaming: i < words.length - 1, reasoning: aiReasoning }
-              : msg
-          ));
-          
-          // Add small delay for streaming effect
-          if (i < words.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 50));
-          }
+        setMessages(prev => prev.map(msg => 
+          msg.id === aiMessageId 
+            ? { ...msg, content: currentResponse, isStreaming: i < words.length - 1, reasoning: aiReasoning }
+            : msg
+        ));
+        
+        // Add small delay for streaming effect
+        if (i < words.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
       }
-
-      // Clean the response - remove leading numbers, zeros, and unwanted characters
-      if (aiResponse) {
-        // More aggressive cleaning - remove any leading digits, zeros, and whitespace
-        aiResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
-        // Remove leading punctuation except meaningful characters for Bengali/other languages
-        aiResponse = aiResponse.replace(/^[^\w\u0980-\u09FF\u4e00-\u9fff\u0600-\u06ff]+/, '').trim();
-      }
-      
-      if (aiReasoning) {
-        aiReasoning = aiReasoning.replace(/^[0-9\s]+/, '').trim();
-        aiReasoning = aiReasoning.replace(/^[^\w\u0980-\u09FF\u4e00-\u9fff\u0600-\u06ff]+/, '').trim();
-      }
-
-      console.log("Final AI response:", aiResponse);
 
       // Final update to remove streaming indicator and store debug data
       const finalWaitingTime = waitingTime;
