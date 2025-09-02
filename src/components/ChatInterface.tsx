@@ -139,7 +139,8 @@ export function ChatInterface() {
         date: Date.now(),
         question: userMessage.content,
         messageId: userMessage.id,
-        program_name: selectedSubject?.label || "General"
+        program_name: selectedSubject?.label || "General",
+        attachments: userMessage.attachments?.map(att => ({ file_url: att.url })) || []
       };
 
       // Create AbortController with 10 minute timeout for image processing
