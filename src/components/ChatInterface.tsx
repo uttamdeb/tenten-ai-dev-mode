@@ -258,11 +258,25 @@ export function ChatInterface() {
     } catch (error) {
       console.error("Error calling n8n webhook:", error);
       
+      let errorMessage = "Sorry, I encountered an error while processing your request.";
+      let toastDescription = "An error occurred while processing your request.";
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = "The request took longer than expected to process. This can happen with image uploads. Please try again.";
+          toastDescription = "Request timeout - this can happen with image processing. Please try again.";
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = "Unable to connect to the AI service. Please check your internet connection and try again.";
+          toastDescription = "Network connection error. Please check your connection and try again.";
+        }
+      }
+      
       setMessages(prev => prev.map(msg => 
         msg.id === aiMessageId 
           ? { 
               ...msg, 
-              content: "Sorry, I encountered an error while processing your request. Please check your webhook URL and try again.",
+              content: errorMessage,
               isStreaming: false 
             }
           : msg
@@ -270,7 +284,7 @@ export function ChatInterface() {
 
       toast({
         title: "Error",
-        description: "Failed to connect to n8n webhook. Please check your configuration.",
+        description: toastDescription,
         variant: "destructive",
       });
     } finally {
