@@ -167,16 +167,20 @@ export function ChatInterface() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Check if response is streaming
+      // Check if response is streaming - n8n might not set specific content-type headers
       const contentType = response.headers.get('content-type') || '';
-      const isStreaming = contentType.includes('text/stream') || contentType.includes('application/stream');
+      const transferEncoding = response.headers.get('transfer-encoding') || '';
+      const isStreaming = contentType.includes('text/stream') || 
+                         contentType.includes('application/stream') ||
+                         transferEncoding.includes('chunked') ||
+                         response.body; // Assume streaming if we have a readable stream
       
       let data;
       let aiResponse = "";
       let aiReasoning = "";
       let fullResponse = "";
 
-      if (isStreaming && response.body) {
+      if (response.body) {
         console.log("Processing streaming response...");
         
         const reader = response.body.getReader();
@@ -216,7 +220,14 @@ export function ChatInterface() {
                   // Extract content from different possible structures
                   let chunkContent = "";
                   
-                  if (parsedChunk.content) {
+                  // Handle n8n output format first (most specific)
+                  if (parsedChunk.output) {
+                    chunkContent = parsedChunk.output;
+                  } else if (Array.isArray(parsedChunk) && parsedChunk[0]?.output) {
+                    chunkContent = parsedChunk[0].output;
+                  }
+                  // Handle other streaming formats
+                  else if (parsedChunk.content) {
                     chunkContent = parsedChunk.content;
                   } else if (parsedChunk.delta?.content) {
                     chunkContent = parsedChunk.delta.content;
@@ -227,7 +238,15 @@ export function ChatInterface() {
                   }
                   
                   if (chunkContent) {
-                    aiResponse += chunkContent;
+                    // For n8n, the chunk might contain the complete response so far, not just a delta
+                    // Check if this is a delta (additional content) or complete response
+                    if (parsedChunk.output || (Array.isArray(parsedChunk) && parsedChunk[0]?.output)) {
+                      // For n8n output format, replace the full content (not append)
+                      aiResponse = chunkContent;
+                    } else {
+                      // For other formats, append the chunk
+                      aiResponse += chunkContent;
+                    }
                     
                     // Update UI in real-time
                     setMessages(prev => prev.map(msg => 
