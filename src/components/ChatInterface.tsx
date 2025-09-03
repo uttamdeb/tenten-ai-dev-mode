@@ -132,15 +132,16 @@ export function ChatInterface() {
     try {
       // Prepare webhook payload
       const webhookPayload = {
-        auth_user_id: "623a3187fb492fa5df0c2277", // Static for now
-        user_name: "Abdullah Abyad Raied 1111", // Static for now  
-        session_id: Date.now().toString().slice(-6), // Generate session ID
-        live_class_id: "NoVKlRff9E", // Static for now
+        auth_user_id: "623a3187fb492fa5df0c2277",
+        user_name: "Abdullah Abyad Raied 1111",
+        session_id: Date.now().toString().slice(-6),
+        live_class_id: "NoVKlRff9E",
         date: Date.now(),
         question: userMessage.content,
         messageId: userMessage.id,
-        program_name: selectedSubject?.label || "General",
-        attachments: userMessage.attachments?.map(att => ({ file_url: att.url })) || []
+        live_class_name: "Physics Live Class",
+        course_name: "Physics",
+        program_name: "HSC 27 অনলাইন ব্যাচ - Physics"
       };
 
       // Create AbortController with 10 minute timeout for image processing
@@ -283,17 +284,21 @@ export function ChatInterface() {
             // Handle n8n workflow response format
             const responseData = Array.isArray(data) ? data[0] : data;
             
-            // Extract AI response from content_blocks structure
-            if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
+            // Handle the new output format: [{"output": "response text"}]
+            if (responseData?.output) {
+              aiResponse = responseData.output;
+            }
+            // Extract AI response from content_blocks structure (fallback)
+            else if (responseData?.ai_response?.content_blocks?.[0]?.data?.content) {
               aiResponse = responseData.ai_response.content_blocks[0].data.content;
               aiReasoning = responseData.ai_reasoning || "";
             }
-            // Handle content_blocks at root level (second response format)
+            // Handle content_blocks at root level (fallback)
             else if (responseData?.content_blocks?.[0]?.data?.content) {
               aiResponse = responseData.content_blocks[0].data.content;
               aiReasoning = responseData.ai_reasoning || "";
             }
-            // Fallback to other possible response formats
+            // Other fallback formats
             else if (responseData?.ai_response?.content) {
               aiResponse = responseData.ai_response.content;
               aiReasoning = responseData.ai_reasoning || "";
