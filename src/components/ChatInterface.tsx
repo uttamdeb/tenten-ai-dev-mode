@@ -141,7 +141,12 @@ export function ChatInterface() {
         messageId: userMessage.id,
         live_class_name: "Physics Live Class",
         course_name: "Physics",
-        program_name: "HSC 27 অনলাইন ব্যাচ - Physics"
+        program_name: "HSC 27 অনলাইন ব্যাচ - Physics",
+        ...(pendingAttachments.length > 0 && {
+          attachments: pendingAttachments.map(attachment => ({
+            file_url: attachment.url
+          }))
+        })
       };
 
       // Create AbortController with 10 minute timeout for image processing
