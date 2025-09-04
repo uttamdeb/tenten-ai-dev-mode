@@ -1,6 +1,5 @@
 import { Bot, User, ChevronDown, ChevronUp, Bug, Brain } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
-import { QuizRenderer } from "./QuizRenderer";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -30,34 +29,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const isStreaming = message.isStreaming;
   const [isReasoningOpen, setIsReasoningOpen] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
-
-  // Function to check if content is in quiz format
-  const isQuizContent = (content: string): boolean => {
-    try {
-      const parsed = JSON.parse(content.trim());
-      return Array.isArray(parsed) && 
-             parsed.length > 0 && 
-             parsed.every(item => 
-               item.hasOwnProperty('num') && 
-               item.hasOwnProperty('question_raw') && 
-               item.hasOwnProperty('options_raw') && 
-               item.hasOwnProperty('answer_letter') && 
-               item.hasOwnProperty('answer_bn') && 
-               item.hasOwnProperty('reason_bn') &&
-               Array.isArray(item.options_raw)
-             );
-    } catch {
-      return false;
-    }
-  };
-
-  const parseQuizContent = (content: string) => {
-    try {
-      return JSON.parse(content.trim());
-    } catch {
-      return null;
-    }
-  };
 
   return (
     <div className={cn(
@@ -152,14 +123,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 </CollapsibleContent>
               </Collapsible>
             )}
-            {/* Render quiz content or markdown based on content type */}
-            {isQuizContent(message.content) ? (
-              <QuizRenderer questions={parseQuizContent(message.content)} />
-            ) : (
-              <MarkdownRenderer>
-                {message.content}
-              </MarkdownRenderer>
-            )}
+            <MarkdownRenderer>
+              {message.content}
+            </MarkdownRenderer>
             {isStreaming && (
               <div className="typing-indicator mt-2">
                 <div className="typing-dot"></div>
