@@ -1,6 +1,5 @@
 import { Bot, User, ChevronDown, ChevronUp, Bug, Brain } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
-import { MessageFeedback } from "./MessageFeedback";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -23,10 +22,9 @@ interface ChatMessageProps {
       size: number;
     }[];
   };
-  sessionId?: string;
 }
 
-export function ChatMessage({ message, sessionId }: ChatMessageProps) {
+export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isStreaming = message.isStreaming;
   const [isReasoningOpen, setIsReasoningOpen] = useState(false);
@@ -134,9 +132,6 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                 <div className="typing-dot"></div>
                 <div className="typing-dot"></div>
               </div>
-            )}
-            {!isStreaming && sessionId && (
-              <MessageFeedback messageId={message.id} sessionId={sessionId} />
             )}
           </div>
         )}
