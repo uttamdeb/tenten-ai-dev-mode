@@ -53,8 +53,12 @@ export function ChatInterface() {
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
-    if (isAutoScrollEnabled) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isAutoScrollEnabled && chatContainerRef.current) {
+      // Scroll to bottom of chat container, not past the footer
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
     }
   };
 
