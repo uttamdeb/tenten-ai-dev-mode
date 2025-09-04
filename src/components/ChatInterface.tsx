@@ -7,10 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChatMessage } from "./ChatMessage";
 import { SubjectSelector, Subject } from "./SubjectSelector";
+import { SessionSidebar } from "./SessionSidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 import { useToast } from "@/hooks/use-toast";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import tentenIcon from "@/assets/tenten-icon.png";
 
@@ -43,6 +46,10 @@ export function ChatInterface() {
   const [pendingAttachments, setPendingAttachments] = useState<ImageAttachment[]>([]);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
   const [waitingTime, setWaitingTime] = useState(0);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [messageIdCounter, setMessageIdCounter] = useState(3001);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -50,8 +57,132 @@ export function ChatInterface() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { uploadImage, isUploading } = useImageUpload();
+  const { user } = useAuth();
 
-  // Auto-scroll to bottom when new messages arrive
+  // Fetch user profile when component mounts
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+      createOrGetCurrentSession();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const createOrGetCurrentSession = async () => {
+    if (!user || currentSessionId) return;
+
+    try {
+      // Create new session
+      const sessionName = `Session ${new Date().toLocaleString()}`;
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .insert([{
+          user_id: user.id,
+          session_name: sessionName
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      setCurrentSessionId(data.id);
+    } catch (error) {
+      console.error('Error creating session:', error);
+    }
+  };
+
+  const handleSessionSelect = async (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    setIsSidebarOpen(false);
+    // Load messages for this session
+    await loadSessionMessages(sessionId);
+  };
+
+  const loadSessionMessages = async (sessionId: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const loadedMessages: Message[] = [];
+      
+      for (const msg of data || []) {
+        // Add user message
+        if (msg.question) {
+          loadedMessages.push({
+            id: `user-${msg.id}`,
+            role: 'user',
+            content: msg.question,
+            timestamp: new Date(msg.created_at),
+          });
+        }
+
+        // Add AI message if it exists
+        if (msg.final_answer) {
+          loadedMessages.push({
+            id: `ai-${msg.id}`,
+            role: 'assistant',
+            content: msg.final_answer,
+            timestamp: new Date(msg.updated_at),
+            debugData: msg.webhook_response,
+          });
+        }
+      }
+
+      setMessages(loadedMessages);
+    } catch (error) {
+      console.error('Error loading session messages:', error);
+    }
+  };
+
+  const storeMessageInDatabase = async (
+    question: string, 
+    webhookRequest: any, 
+    webhookResponse: any, 
+    finalAnswer: string, 
+    messageId: string
+  ) => {
+    if (!user || !currentSessionId) return;
+
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert([{
+          session_id: currentSessionId,
+          user_id: user.id,
+          message_id: messageId,
+          question,
+          webhook_request: webhookRequest,
+          webhook_response: webhookResponse,
+          final_answer: finalAnswer,
+        }]);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error storing message:', error);
+    }
+  };
   const scrollToBottom = () => {
     if (isAutoScrollEnabled && chatContainerRef.current) {
       // Scroll to bottom of chat container, not past the footer
@@ -102,8 +233,26 @@ export function ChatInterface() {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Ensure we have a current session
+    if (!currentSessionId) {
+      await createOrGetCurrentSession();
+      if (!currentSessionId) return;
+    }
+
+    const currentMessageId = messageIdCounter.toString();
+    setMessageIdCounter(prev => prev + 1);
+
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${currentMessageId}`,
       role: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
@@ -116,7 +265,7 @@ export function ChatInterface() {
     setIsLoading(true);
 
     // Create streaming AI message
-    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessageId = `ai-${currentMessageId}`;
     const aiMessage: Message = {
       id: aiMessageId,
       role: "assistant", 
@@ -136,13 +285,13 @@ export function ChatInterface() {
     try {
       // Prepare webhook payload
       const webhookPayload = {
-        auth_user_id: "623a3187fb492fa5df0c2277",
-        user_name: "Abdullah Abyad Raied 1111",
-        session_id: Date.now().toString().slice(-6),
+        auth_user_id: user.id,
+        user_name: userProfile?.full_name || user.email?.split('@')[0] || "User",
+        session_id: currentSessionId,
         live_class_id: "NoVKlRff9E",
         date: Date.now(),
         question: userMessage.content,
-        messageId: userMessage.id,
+        messageId: currentMessageId,
         live_class_name: `${selectedSubject?.label || "Physics"} Live Class`,
         course_name: selectedSubject?.label || "Physics",
         program_name: `HSC 27 অনলাইন ব্যাচ - ${selectedSubject?.label || "Physics"}`,
@@ -395,6 +544,15 @@ export function ChatInterface() {
           : msg
       ));
 
+      // Store the complete conversation in database
+      await storeMessageInDatabase(
+        userMessage.content,
+        webhookPayload,
+        data,
+        aiResponse,
+        currentMessageId
+      );
+
     } catch (error) {
       console.error("Error calling n8n webhook:", error);
       
@@ -472,9 +630,19 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-chat">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+    <div className="flex h-screen bg-gradient-chat">
+      {/* Session Sidebar */}
+      <SessionSidebar
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        currentSessionId={currentSessionId}
+        onSessionSelect={handleSessionSelect}
+      />
+
+      {/* Main Chat Interface */}
+      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "ml-80" : "ml-0")}>
+        {/* Header */}
+        <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
@@ -583,7 +751,7 @@ export function ChatInterface() {
         ) : (
           <div className="space-y-2 px-4">
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage key={message.id} message={message} sessionId={currentSessionId || undefined} />
             ))}
             {isLoading && waitingTime > 0 && (
               <div className="flex gap-3 p-4">
@@ -684,6 +852,7 @@ export function ChatInterface() {
           TenTen can make mistakes. Please verify important information.
         </p>
       </div>
+    </div>
     </div>
   );
 }
