@@ -37,7 +37,7 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>({ value: "physics", label: "Physics", description: "Mechanics, Thermodynamics, Electromagnetism" });
   const [webhookUrl, setWebhookUrl] = useState("https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1");
   const [showSettings, setShowSettings] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<ImageAttachment[]>([]);
@@ -143,9 +143,9 @@ export function ChatInterface() {
         date: Date.now(),
         question: userMessage.content,
         messageId: userMessage.id,
-        live_class_name: "Physics Live Class",
-        course_name: "Physics",
-        program_name: "HSC 27 অনলাইন ব্যাচ - Physics",
+        live_class_name: `${selectedSubject?.label || "Physics"} Live Class`,
+        course_name: selectedSubject?.label || "Physics",
+        program_name: `HSC 27 অনলাইন ব্যাচ - ${selectedSubject?.label || "Physics"}`,
         ...(pendingAttachments.length > 0 && {
           attachments: pendingAttachments.map(attachment => ({
             file_url: attachment.url
