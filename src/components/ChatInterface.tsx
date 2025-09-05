@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Settings, Zap, Bot, Paperclip, X, Image } from "lucide-react";
+import { Send, Zap, Bot, Paperclip, X, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChatMessage } from "./ChatMessage";
 import { SubjectSelector, Subject } from "./SubjectSelector";
 import { SessionSidebar } from "./SessionSidebar";
@@ -42,8 +39,6 @@ export function ChatInterface() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>({ value: "physics", label: "Physics", description: "Mechanics, Thermodynamics, Electromagnetism" });
-  const [webhookUrl, setWebhookUrl] = useState("https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1");
-  const [showSettings, setShowSettings] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<ImageAttachment[]>([]);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
   const [waitingTime, setWaitingTime] = useState(0);
@@ -51,6 +46,8 @@ export function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messageIdCounter, setMessageIdCounter] = useState(3001);
   const [userProfile, setUserProfile] = useState<any>(null);
+  
+  const webhookUrl = "https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1";
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -228,16 +225,6 @@ export function ChatInterface() {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() && pendingAttachments.length === 0) return;
-    
-    if (!webhookUrl.trim()) {
-      toast({
-        title: "Webhook URL Required",
-        description: "Please configure your n8n webhook URL in settings.",
-        variant: "destructive",
-      });
-      setShowSettings(true);
-      return;
-    }
 
     if (!user) {
       toast({
@@ -674,14 +661,6 @@ export function ChatInterface() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowSettings(!showSettings)}
-              className="h-9 w-9"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
             <ThemeToggle />
             <UserMenu />
           </div>
@@ -702,34 +681,6 @@ export function ChatInterface() {
           )}
         </div>
 
-        {/* Settings Panel */}
-        {showSettings && (
-          <Card className="mx-4 mb-4 border-border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                n8n Webhook Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <Label htmlFor="webhook-url" className="text-sm font-medium">
-                  Webhook URL
-                </Label>
-                <Input
-                  id="webhook-url"
-                  placeholder="https://your-n8n-instance.com/webhook/your-webhook-id"
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Enter your n8n webhook URL to enable AI processing
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </header>
 
       {/* Messages */}
@@ -756,11 +707,6 @@ export function ChatInterface() {
                   🤔 Thinking... {waitingTime}s
                 </p>
               </div>
-            )}
-            {!webhookUrl && (
-              <p className="text-sm text-destructive mt-3">
-                Configure your n8n webhook URL in settings to get started
-              </p>
             )}
           </div>
         ) : (
