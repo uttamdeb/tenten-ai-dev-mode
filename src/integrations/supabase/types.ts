@@ -21,7 +21,7 @@ export type Database = {
           id: string
           message_id: string
           question: string
-          session_id: string
+          session_id: number
           updated_at: string
           user_id: string
           webhook_request: Json | null
@@ -33,7 +33,7 @@ export type Database = {
           id?: string
           message_id: string
           question: string
-          session_id: string
+          session_id: number
           updated_at?: string
           user_id: string
           webhook_request?: Json | null
@@ -45,7 +45,7 @@ export type Database = {
           id?: string
           message_id?: string
           question?: string
-          session_id?: string
+          session_id?: number
           updated_at?: string
           user_id?: string
           webhook_request?: Json | null
@@ -64,21 +64,21 @@ export type Database = {
       chat_sessions: {
         Row: {
           created_at: string
-          id: string
+          id: number
           session_name: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          id?: string
+          id?: number
           session_name?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          id?: string
+          id?: number
           session_name?: string | null
           updated_at?: string
           user_id?: string
@@ -91,7 +91,7 @@ export type Database = {
           feedback_type: string
           id: string
           message_id: string
-          session_id: string
+          session_id: number
           user_id: string
         }
         Insert: {
@@ -99,7 +99,7 @@ export type Database = {
           feedback_type: string
           id?: string
           message_id: string
-          session_id: string
+          session_id: number
           user_id: string
         }
         Update: {
@@ -107,7 +107,7 @@ export type Database = {
           feedback_type?: string
           id?: string
           message_id?: string
-          session_id?: string
+          session_id?: number
           user_id?: string
         }
         Relationships: [

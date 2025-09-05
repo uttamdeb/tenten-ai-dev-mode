@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 interface MessageFeedbackProps {
   messageId: string;
-  sessionId: string;
+  sessionId: number;
 }
 
 export const MessageFeedback = ({ messageId, sessionId }: MessageFeedbackProps) => {

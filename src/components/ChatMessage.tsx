@@ -22,8 +22,9 @@ interface ChatMessageProps {
       name: string;
       size: number;
     }[];
+    dbId?: string; // UUID from database
   };
-  sessionId?: string;
+  sessionId?: number;
 }
 
 export function ChatMessage({ message, sessionId }: ChatMessageProps) {
@@ -135,8 +136,8 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                 <div className="typing-dot"></div>
               </div>
             )}
-            {!isStreaming && sessionId && (
-              <MessageFeedback messageId={message.id} sessionId={sessionId} />
+            {!isStreaming && sessionId && message.dbId && (
+              <MessageFeedback messageId={message.dbId} sessionId={sessionId} />
             )}
           </div>
         )}

@@ -34,6 +34,7 @@ interface Message {
   debugData?: any;
   waitingTime?: number;
   attachments?: ImageAttachment[];
+  dbId?: string; // UUID from database
 }
 
 export function ChatInterface() {
@@ -46,7 +47,7 @@ export function ChatInterface() {
   const [pendingAttachments, setPendingAttachments] = useState<ImageAttachment[]>([]);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
   const [waitingTime, setWaitingTime] = useState(0);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messageIdCounter, setMessageIdCounter] = useState(3001);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -105,14 +106,14 @@ export function ChatInterface() {
     }
   };
 
-  const handleSessionSelect = async (sessionId: string) => {
+  const handleSessionSelect = async (sessionId: number) => {
     setCurrentSessionId(sessionId);
     setIsSidebarOpen(false);
     // Load messages for this session
     await loadSessionMessages(sessionId);
   };
 
-  const loadSessionMessages = async (sessionId: string) => {
+  const loadSessionMessages = async (sessionId: number) => {
     if (!user) return;
 
     try {
@@ -146,6 +147,7 @@ export function ChatInterface() {
             content: msg.final_answer,
             timestamp: new Date(msg.updated_at),
             debugData: msg.webhook_response,
+            dbId: msg.id, // Store the database UUID
           });
         }
       }
@@ -163,10 +165,10 @@ export function ChatInterface() {
     finalAnswer: string, 
     messageId: string
   ) => {
-    if (!user || !currentSessionId) return;
+    if (!user || !currentSessionId) return null;
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('chat_messages')
         .insert([{
           session_id: currentSessionId,
@@ -176,11 +178,15 @@ export function ChatInterface() {
           webhook_request: webhookRequest,
           webhook_response: webhookResponse,
           final_answer: finalAnswer,
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
+      return data.id; // Return the UUID
     } catch (error) {
       console.error('Error storing message:', error);
+      return null;
     }
   };
   const scrollToBottom = () => {
@@ -287,7 +293,7 @@ export function ChatInterface() {
       const webhookPayload = {
         auth_user_id: user.id,
         user_name: userProfile?.full_name || user.email?.split('@')[0] || "User",
-        session_id: currentSessionId,
+        session_id: currentSessionId?.toString(),
         live_class_id: "NoVKlRff9E",
         date: Date.now(),
         question: userMessage.content,
@@ -545,13 +551,22 @@ export function ChatInterface() {
       ));
 
       // Store the complete conversation in database
-      await storeMessageInDatabase(
+      const dbId = await storeMessageInDatabase(
         userMessage.content,
         webhookPayload,
         data,
         aiResponse,
         currentMessageId
       );
+
+      // Update AI message with database ID for feedback functionality
+      if (dbId) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === aiMessageId 
+            ? { ...msg, dbId }
+            : msg
+        ));
+      }
 
     } catch (error) {
       console.error("Error calling n8n webhook:", error);
@@ -751,7 +766,7 @@ export function ChatInterface() {
         ) : (
           <div className="space-y-2 px-4">
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} sessionId={currentSessionId || undefined} />
+              <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} />
             ))}
             {isLoading && waitingTime > 0 && (
               <div className="flex gap-3 p-4">

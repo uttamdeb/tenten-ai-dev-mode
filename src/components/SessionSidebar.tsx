@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ChatSession {
-  id: string;
+  id: number;
   session_name: string | null;
   created_at: string;
   message_count: number;
@@ -15,8 +15,8 @@ interface ChatSession {
 interface SessionSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  currentSessionId: string | null;
-  onSessionSelect: (sessionId: string) => void;
+  currentSessionId: number | null;
+  onSessionSelect: (sessionId: number) => void;
 }
 
 export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSelect }: SessionSidebarProps) => {
@@ -72,8 +72,8 @@ export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSe
     return `about ${Math.floor(diffInHours / 24)} days ago`;
   };
 
-  const generateSessionName = (sessionId: string) => {
-    return `Session ${sessionId.slice(-6).toUpperCase()}`;
+  const generateSessionName = (sessionId: number) => {
+    return `Session ${sessionId.toString().padStart(6, '0')}`;
   };
 
   if (!isOpen) {
