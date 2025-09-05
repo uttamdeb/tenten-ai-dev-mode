@@ -633,55 +633,65 @@ export function ChatInterface() {
 
   return (
     <div className="flex h-screen bg-gradient-chat">
-      {/* Session Sidebar */}
-      <SessionSidebar
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        currentSessionId={currentSessionId}
-        onSessionSelect={handleSessionSelect}
-      />
+      {/* Sidebar - only render the full sidebar when open */}
+      {isSidebarOpen && (
+        <SessionSidebar 
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          currentSessionId={currentSessionId}
+          onSessionSelect={handleSessionSelect}
+        />
+      )}
 
       {/* Main Chat Interface */}
       <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "ml-80" : "ml-0")}>
         {/* Header */}
         <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
-              <img 
-                src={tentenIcon} 
-                alt="TenTen AI" 
-                className="w-full h-full object-cover"
-              />
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              {!isSidebarOpen && (
+                <SessionSidebar 
+                  isOpen={isSidebarOpen}
+                  onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                  currentSessionId={currentSessionId}
+                  onSessionSelect={handleSessionSelect}
+                />
+              )}
+              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
+                <img 
+                  src={tentenIcon} 
+                  alt="TenTen AI" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold gradient-text">TenTen AI - Dev Mode</h1>
+                <p className="text-sm text-muted-foreground">AI-powered academic assistant</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-semibold gradient-text">TenTen AI - Dev Mode</h1>
-              <p className="text-sm text-muted-foreground">AI-powered academic assistant</p>
+            
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <UserMenu />
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <UserMenu />
+
+          {/* Subject Selector */}
+          <div className="px-4 pb-4">
+            <SubjectSelector 
+              selectedSubject={selectedSubject}
+              onSubjectChange={setSelectedSubject}
+            />
+            {selectedSubject && (
+              <div className="mt-2">
+                <span className="subject-badge">
+                  {selectedSubject.label}
+                </span>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Subject Selector */}
-        <div className="px-4 pb-4">
-          <SubjectSelector 
-            selectedSubject={selectedSubject}
-            onSubjectChange={setSelectedSubject}
-          />
-          {selectedSubject && (
-            <div className="mt-2">
-              <span className="subject-badge">
-                {selectedSubject.label}
-              </span>
-            </div>
-          )}
-        </div>
-
-      </header>
+        </header>
 
       {/* Messages */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4">

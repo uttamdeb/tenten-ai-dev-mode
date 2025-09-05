@@ -82,7 +82,7 @@ export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSe
         variant="ghost"
         size="icon"
         onClick={onToggle}
-        className="fixed left-4 top-4 z-50"
+        className="shrink-0"
       >
         <MessageCircle className="h-5 w-5" />
       </Button>
