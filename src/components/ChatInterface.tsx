@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Zap, Bot, Paperclip, X, Image } from "lucide-react";
+import { Send, Zap, Bot, Paperclip, X, Image, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "./ChatMessage";
@@ -108,6 +108,39 @@ export function ChatInterface() {
     setIsSidebarOpen(false);
     // Load messages for this session
     await loadSessionMessages(sessionId);
+  };
+
+  const handleNewChat = async () => {
+    if (!user) return;
+
+    try {
+      // Create new session
+      const sessionName = `Session ${new Date().toLocaleString()}`;
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .insert([{
+          user_id: user.id,
+          session_name: sessionName
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setCurrentSessionId(data.id);
+      setMessages([]); // Clear current messages
+      toast({
+        title: "New Chat Started",
+        description: "Created a new chat session.",
+      });
+    } catch (error) {
+      console.error('Error creating new session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create new chat session.",
+        variant: "destructive",
+      });
+    }
   };
 
   const loadSessionMessages = async (sessionId: number) => {
@@ -671,6 +704,15 @@ export function ChatInterface() {
             </div>
             
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNewChat}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New Chat
+              </Button>
               <ThemeToggle />
               <UserMenu />
             </div>
