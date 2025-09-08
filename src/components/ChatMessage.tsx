@@ -119,14 +119,31 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mb-3">
                   <div className="space-y-3">
+                    {/* Webhook URL and Execution Mode */}
+                    <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                      <h4 className="text-xs font-medium text-foreground mb-2">Webhook Configuration</h4>
+                      <div className="space-y-2">
+                        <div>
+                          <span className="text-xs font-medium text-muted-foreground">Webhook URL:</span>
+                          <pre className="text-xs text-muted-foreground mt-1">https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1</pre>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-muted-foreground">Execution Mode:</span>
+                          <pre className="text-xs text-muted-foreground mt-1">production</pre>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Request Body */}
                     {message.debugData.webhookRequest && (
                       <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                        <h4 className="text-xs font-medium text-foreground mb-2">Raw Webhook Request</h4>
+                        <h4 className="text-xs font-medium text-foreground mb-2">Request Body</h4>
                         <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
                           {JSON.stringify(message.debugData.webhookRequest, null, 2)}
                         </pre>
                       </div>
                     )}
+
                     {message.debugData.webhookResponse && (
                       <div className="p-3 bg-muted/50 rounded-lg border border-border">
                         <h4 className="text-xs font-medium text-foreground mb-2">Raw Webhook Response</h4>
