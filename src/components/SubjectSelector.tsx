@@ -25,37 +25,22 @@ const subjects: Subject[] = [
   {
     value: "mathematics",
     label: "Mathematics",
-    description: "Algebra, Calculus, Geometry, Statistics"
+    description: ""
   },
   {
     value: "physics",
     label: "Physics", 
-    description: "Mechanics, Thermodynamics, Electromagnetism"
+    description: ""
   },
   {
     value: "chemistry",
     label: "Chemistry",
-    description: "Organic, Inorganic, Physical Chemistry"
+    description: ""
   },
   {
     value: "biology",
     label: "Biology",
-    description: "Molecular Biology, Genetics, Ecology"
-  },
-  {
-    value: "computer-science",
-    label: "Computer Science",
-    description: "Algorithms, Data Structures, Programming"
-  },
-  {
-    value: "engineering",
-    label: "Engineering",
-    description: "Mechanical, Electrical, Civil Engineering"
-  },
-  {
-    value: "general",
-    label: "General Science",
-    description: "Interdisciplinary questions and concepts"
+    description: ""
   }
 ];
 
@@ -74,7 +59,7 @@ export function SubjectSelector({ selectedSubject, onSubjectChange }: SubjectSel
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between bg-card border-border hover:bg-accent"
+          className="w-48 justify-between bg-card border-border hover:bg-accent"
         >
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -103,21 +88,16 @@ export function SubjectSelector({ selectedSubject, onSubjectChange }: SubjectSel
                 }}
                 className="cursor-pointer"
               >
-                <div className="flex flex-col flex-1">
-                  <div className="flex items-center gap-2">
-                    <Check
-                      className={cn(
-                        "h-4 w-4",
-                        selectedSubject?.value === subject.value
-                          ? "opacity-100 text-primary"
-                          : "opacity-0"
-                      )}
-                    />
-                    <span className="font-medium">{subject.label}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground ml-6">
-                    {subject.description}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <Check
+                    className={cn(
+                      "h-4 w-4",
+                      selectedSubject?.value === subject.value
+                        ? "opacity-100 text-primary"
+                        : "opacity-0"
+                    )}
+                  />
+                  <span className="font-medium">{subject.label}</span>
                 </div>
               </CommandItem>
             ))}

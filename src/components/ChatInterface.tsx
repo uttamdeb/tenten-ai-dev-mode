@@ -38,7 +38,7 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>({ value: "physics", label: "Physics", description: "Mechanics, Thermodynamics, Electromagnetism" });
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>({ value: "physics", label: "Physics", description: "" });
   const [pendingAttachments, setPendingAttachments] = useState<ImageAttachment[]>([]);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
   const [waitingTime, setWaitingTime] = useState(0);
@@ -713,24 +713,13 @@ export function ChatInterface() {
                 <Plus className="h-4 w-4" />
                 New Chat
               </Button>
+              <SubjectSelector 
+                selectedSubject={selectedSubject} 
+                onSubjectChange={setSelectedSubject} 
+              />
               <ThemeToggle />
               <UserMenu />
             </div>
-          </div>
-
-          {/* Subject Selector */}
-          <div className="px-4 pb-4">
-            <SubjectSelector 
-              selectedSubject={selectedSubject}
-              onSubjectChange={setSelectedSubject}
-            />
-            {selectedSubject && (
-              <div className="mt-2">
-                <span className="subject-badge">
-                  {selectedSubject.label}
-                </span>
-              </div>
-            )}
           </div>
 
         </header>

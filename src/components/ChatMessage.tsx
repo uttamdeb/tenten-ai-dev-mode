@@ -118,10 +118,46 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mb-3">
-                  <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-48">
-                      {JSON.stringify(message.debugData, null, 2)}
-                    </pre>
+                  <div className="space-y-3">
+                    {message.debugData.webhookRequest && (
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <h4 className="text-xs font-medium text-foreground mb-2">Raw Webhook Request</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
+                          {JSON.stringify(message.debugData.webhookRequest, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {message.debugData.webhookResponse && (
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <h4 className="text-xs font-medium text-foreground mb-2">Raw Webhook Response</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
+                          {JSON.stringify(message.debugData.webhookResponse, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {message.debugData.finalResponse && (
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <h4 className="text-xs font-medium text-foreground mb-2">Final Response</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
+                          {JSON.stringify(message.debugData.finalResponse, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {message.debugData.messageInfo && (
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <h4 className="text-xs font-medium text-foreground mb-2">Message Info</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
+                          {JSON.stringify(message.debugData.messageInfo, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {!message.debugData.webhookRequest && !message.debugData.webhookResponse && !message.debugData.finalResponse && !message.debugData.messageInfo && (
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-48">
+                          {JSON.stringify(message.debugData, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </CollapsibleContent>
               </Collapsible>
