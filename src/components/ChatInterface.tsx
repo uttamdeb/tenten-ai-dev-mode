@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Send, Zap, Bot, Paperclip, X, Image, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -631,7 +631,8 @@ export function ChatInterface() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  // Replace deprecated onKeyPress with onKeyDown for better mobile behavior
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -665,7 +666,7 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-chat">
+    <div className="flex min-h-[100dvh] w-full bg-gradient-chat overflow-x-hidden">
       {/* Sidebar - only render the full sidebar when open */}
       {isSidebarOpen && (
         <SessionSidebar 
@@ -677,11 +678,11 @@ export function ChatInterface() {
       )}
 
       {/* Main Chat Interface */}
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "ml-80" : "ml-0")}>
+      <div className={cn("flex flex-col flex-1 w-full min-w-0 transition-all duration-300", isSidebarOpen ? "sm:ml-80" : "ml-0")}>
         {/* Header */}
-        <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+        <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
           <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               {!isSidebarOpen && (
                 <SessionSidebar 
                   isOpen={isSidebarOpen}
@@ -690,20 +691,21 @@ export function ChatInterface() {
                   onSessionSelect={handleSessionSelect}
                 />
               )}
-              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
+              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant shrink-0">
                 <img 
                   src={tentenIcon} 
                   alt="TenTen AI" 
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div>
-                <h1 className="text-lg font-semibold gradient-text">TenTen AI - Dev Mode</h1>
-                <p className="text-sm text-muted-foreground">AI-powered academic assistant</p>
+              <div className="min-w-0">
+                <h1 className="text-lg font-semibold gradient-text truncate">TenTen AI - Dev Mode</h1>
+                <p className="text-sm text-muted-foreground truncate">AI-powered academic assistant</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end min-w-0">
               <Button
                 variant="outline"
                 size="sm"
@@ -711,7 +713,7 @@ export function ChatInterface() {
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
-                New Chat
+                <span className="hidden sm:inline">New Chat</span>
               </Button>
               <SubjectSelector 
                 selectedSubject={selectedSubject} 
@@ -724,137 +726,141 @@ export function ChatInterface() {
 
         </header>
 
-      {/* Messages */}
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-            <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
-              <img 
-                src={tentenIcon} 
-                alt="TenTen AI" 
-                className="w-full h-full object-cover"
-              />
+        {/* Messages */}
+        <div ref={chatContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden chat-scroll pb-36 sm:pb-4 w-full">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+              <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
+                <img 
+                  src={tentenIcon} 
+                  alt="TenTen AI" 
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h2 className="text-xl font-semibold mb-2 gradient-text">
+                Hello! I'm TenTen
+              </h2>
+              <p className="text-muted-foreground max-w-md">
+                I'm here to help you solve your doubts and understand complex concepts. 
+                Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
+              </p>
+              {isLoading && waitingTime > 0 && (
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
+                  <p className="text-sm text-primary font-medium">
+                    🤔 Thinking... {waitingTime}s
+                  </p>
+                </div>
+              )}
             </div>
-            <h2 className="text-xl font-semibold mb-2 gradient-text">
-              Hello! I'm TenTen
-            </h2>
-            <p className="text-muted-foreground max-w-md">
-              I'm here to help you solve your doubts and understand complex concepts. 
-              Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
-            </p>
-            {isLoading && waitingTime > 0 && (
-              <div className="mt-4 p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
-                <p className="text-sm text-primary font-medium">
-                  🤔 Thinking... {waitingTime}s
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-2 px-4">
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} />
-            ))}
-            {isLoading && waitingTime > 0 && (
-              <div className="flex gap-3 p-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-elegant">
-                    <Bot className="w-4 h-4 text-primary-foreground" />
-                  </div>
-                </div>
-                <div className="message-bubble ai max-w-[85%] sm:max-w-[70%]">
-                  <div className="p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
-                    <p className="text-sm text-primary font-medium">
-                      🤔 Thinking... {waitingTime}s
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0">
-        {/* Pending Attachments */}
-        {pendingAttachments.length > 0 && (
-          <div className="mb-3 max-w-4xl mx-auto">
-            <div className="flex flex-wrap gap-2">
-              {pendingAttachments.map((attachment) => (
-                <div key={attachment.id} className="relative group">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-border bg-muted">
-                    <img 
-                      src={attachment.url} 
-                      alt={attachment.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => removePendingAttachment(attachment.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+          ) : (
+            <div className="space-y-2 px-4 max-w-full break-words [overflow-wrap:anywhere]">
+              {messages.map((message) => (
+                <div key={message.id} className="max-w-full overflow-x-auto">
+                  <ChatMessage message={message} sessionId={currentSessionId ?? undefined} />
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-3 items-end max-w-4xl mx-auto">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleAttachClick}
-            disabled={isLoading || isUploading}
-            className="h-11 w-11 shrink-0"
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
-          
-          <div className="flex-1 relative">
-            <Textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything... (Shift+Enter for new line)"
-              className={cn(
-                "chat-input resize-none min-h-[44px] max-h-32",
-                "placeholder:text-muted-foreground/70"
+              {isLoading && waitingTime > 0 && (
+                <div className="flex gap-3 p-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-elegant">
+                      <Bot className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  </div>
+                  <div className="message-bubble ai max-w-[85%] sm:max-w-[70%]">
+                    <div className="p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
+                      <p className="text-sm text-primary font-medium">
+                        🤔 Thinking... {waitingTime}s
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
-              disabled={isLoading}
-            />
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0 w-full pb-[env(safe-area-inset-bottom)]">
+          {/* Pending Attachments */}
+          {pendingAttachments.length > 0 && (
+            <div className="mb-3 max-w-4xl mx-auto">
+              <div className="flex flex-wrap gap-2">
+                {pendingAttachments.map((attachment) => (
+                  <div key={attachment.id} className="relative group">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-border bg-muted">
+                      <img 
+                        src={attachment.url} 
+                        alt={attachment.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removePendingAttachment(attachment.id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 items-end max-w-4xl mx-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleAttachClick}
+              disabled={isLoading || isUploading}
+              className="h-11 w-11 shrink-0"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex-1 relative min-w-0">
+              <Textarea
+                ref={textareaRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask me anything... (Shift+Enter for new line)"
+                className={cn(
+                  "chat-input resize-none min-h-[44px] max-h-32",
+                  "placeholder:text-muted-foreground/70"
+                )}
+                disabled={isLoading}
+              />
+            </div>
+            
+            <Button
+              onClick={handleSendMessage}
+              disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
+              className="h-11 w-11 p-0 bg-gradient-primary hover:shadow-glow transition-all duration-300 shrink-0"
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
           
-          <Button
-            onClick={handleSendMessage}
-            disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
-            className="h-11 w-11 p-0 bg-gradient-primary hover:shadow-glow transition-all duration-300 shrink-0"
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            TenTen can make mistakes. Please verify important information.
+          </p>
         </div>
-        
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-        
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          TenTen can make mistakes. Please verify important information.
-        </p>
       </div>
-    </div>
     </div>
   );
 }
