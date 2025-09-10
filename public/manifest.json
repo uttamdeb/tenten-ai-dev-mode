@@ -1,7 +1,7 @@
 {
-  "name": "TenTen AI - Academic Assistant",
+  "name": "TenTen AI - Dev Mode",
   "short_name": "TenTen AI",
-  "description": "AI-powered academic assistant for solving doubts and understanding complex concepts",
+  "description": "10MS's AI-powered academic assistant for solving doubts and understanding complex concepts",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
