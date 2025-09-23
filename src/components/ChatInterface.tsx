@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Zap, Bot, Paperclip, X, Image, Plus } from "lucide-react";
+import { Send, Zap, Bot, Paperclip, X, Image, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "./ChatMessage";
@@ -7,6 +7,8 @@ import { SubjectSelector, Subject } from "./SubjectSelector";
 import { SessionSidebar } from "./SessionSidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import UserMenu from "./UserMenu";
+import { SettingsPanel, ApiConfiguration } from "./SettingsPanel";
+import { useApiConfig } from "@/hooks/useApiConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +34,9 @@ interface Message {
   waitingTime?: number;
   attachments?: ImageAttachment[];
   dbId?: string; // UUID from database
+  sessionInfo?: { id: number };
+  messageInfo?: { id: number };
+  statusInfo?: { state: string };
 }
 
 export function ChatInterface() {
@@ -46,8 +51,9 @@ export function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messageIdCounter, setMessageIdCounter] = useState(3001);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  const webhookUrl = "https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1";
+  const { config, updateConfig, isGitMode, getApiUrl, getAuthHeader } = useApiConfig();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -309,24 +315,44 @@ export function ChatInterface() {
     }, 1000);
 
     try {
-      // Prepare webhook payload
-      const webhookPayload = {
-        auth_user_id: user.id,
-        user_name: userProfile?.full_name || user.email?.split('@')[0] || "User",
-        session_id: currentSessionId?.toString(),
-        live_class_id: "NoVKlRff9E",
-        date: Date.now(),
-        question: userMessage.content,
-        messageId: currentMessageId,
-        live_class_name: `${selectedSubject?.label || "Physics"} Live Class`,
-        course_name: selectedSubject?.label || "Physics",
-        program_name: `HSC 27 অনলাইন ব্যাচ - ${selectedSubject?.label || "Physics"}`,
-        ...(pendingAttachments.length > 0 && {
-          attachments: pendingAttachments.map(attachment => ({
-            file_url: attachment.url
-          }))
-        })
-      };
+      // Prepare payload based on API mode
+      let payload: any;
+      let apiUrl = getApiUrl();
+      let headers = getAuthHeader();
+
+      if (isGitMode) {
+        // FastAPI payload format
+        payload = {
+          body: {
+            text: userMessage.content,
+            attachments: pendingAttachments.map(attachment => ({
+              url: attachment.url,
+              type: "image"
+            }))
+          },
+          session_id: config.sessionId,
+          thread_id: config.threadId
+        };
+      } else {
+        // N8N webhook payload format
+        payload = {
+          auth_user_id: user.id,
+          user_name: userProfile?.full_name || user.email?.split('@')[0] || "User",
+          session_id: currentSessionId?.toString(),
+          live_class_id: "NoVKlRff9E",
+          date: Date.now(),
+          question: userMessage.content,
+          messageId: currentMessageId,
+          live_class_name: `${selectedSubject?.label || "Physics"} Live Class`,
+          course_name: selectedSubject?.label || "Physics",
+          program_name: `HSC 27 অনলাইন ব্যাচ - ${selectedSubject?.label || "Physics"}`,
+          ...(pendingAttachments.length > 0 && {
+            attachments: pendingAttachments.map(attachment => ({
+              file_url: attachment.url
+            }))
+          })
+        };
+      }
 
       // Create AbortController with 10 minute timeout for image processing
       const controller = new AbortController();
@@ -334,12 +360,10 @@ export function ChatInterface() {
         controller.abort();
       }, 10 * 60 * 1000); // 10 minutes
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(apiUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(webhookPayload),
+        headers,
+        body: JSON.stringify(payload),
         signal: controller.signal,
         // Add keep-alive to prevent connection timeouts
         keepalive: true,
@@ -363,6 +387,9 @@ export function ChatInterface() {
       let aiResponse = "";
       let aiReasoning = "";
       let fullResponse = "";
+      let sessionInfo: { id: number } | undefined;
+      let messageInfo: { id: number } | undefined;
+      let statusInfo: { state: string } | undefined;
 
       if (response.body) {
         console.log("Processing streaming response...");
@@ -389,7 +416,6 @@ export function ChatInterface() {
             for (const line of lines) {
               if (line.trim()) {
                 try {
-                  // Handle different streaming formats
                   let parsedChunk;
                   
                   // Check if it's server-sent events format
@@ -401,48 +427,92 @@ export function ChatInterface() {
                     parsedChunk = JSON.parse(line);
                   }
                   
-                  // Extract content from different possible structures
-                  let chunkContent = "";
-                  
-                  // Handle n8n output format first (most specific)
-                  if (parsedChunk.output) {
-                    chunkContent = parsedChunk.output;
-                  } else if (Array.isArray(parsedChunk) && parsedChunk[0]?.output) {
-                    chunkContent = parsedChunk[0].output;
-                  }
-                  // Handle other streaming formats
-                  else if (parsedChunk.content) {
-                    chunkContent = parsedChunk.content;
-                  } else if (parsedChunk.delta?.content) {
-                    chunkContent = parsedChunk.delta.content;
-                  } else if (parsedChunk.choices?.[0]?.delta?.content) {
-                    chunkContent = parsedChunk.choices[0].delta.content;
-                  } else if (parsedChunk.text) {
-                    chunkContent = parsedChunk.text;
-                  }
-                  
-                  if (chunkContent) {
-                    // For n8n, the chunk might contain the complete response so far, not just a delta
-                    // Check if this is a delta (additional content) or complete response
-                    if (parsedChunk.output || (Array.isArray(parsedChunk) && parsedChunk[0]?.output)) {
-                      // For n8n output format, replace the full content (not append)
-                      aiResponse = chunkContent;
-                    } else {
-                      // For other formats, append the chunk
-                      aiResponse += chunkContent;
+                  // Handle FastAPI event-based streaming format
+                  if (isGitMode && parsedChunk.event) {
+                    switch (parsedChunk.event) {
+                      case 'session':
+                        sessionInfo = parsedChunk.data;
+                        setMessages(prev => prev.map(msg => 
+                          msg.id === aiMessageId 
+                            ? { ...msg, sessionInfo, isStreaming: true }
+                            : msg
+                        ));
+                        break;
+                      case 'message_id':
+                        messageInfo = parsedChunk.data;
+                        setMessages(prev => prev.map(msg => 
+                          msg.id === aiMessageId 
+                            ? { ...msg, messageInfo, isStreaming: true }
+                            : msg
+                        ));
+                        break;
+                      case 'status':
+                        statusInfo = parsedChunk.data;
+                        setMessages(prev => prev.map(msg => 
+                          msg.id === aiMessageId 
+                            ? { ...msg, statusInfo, isStreaming: true }
+                            : msg
+                        ));
+                        break;
+                      case 'message':
+                        if (parsedChunk.data?.delta) {
+                          aiResponse += parsedChunk.data.delta;
+                          setMessages(prev => prev.map(msg => 
+                            msg.id === aiMessageId 
+                              ? { ...msg, content: aiResponse, isStreaming: true }
+                              : msg
+                          ));
+                        }
+                        break;
+                      case 'end':
+                        // Stream ended
+                        break;
+                      default:
+                        console.log('Unknown event type:', parsedChunk.event);
+                    }
+                  } else {
+                    // Handle N8N format (existing logic)
+                    let chunkContent = "";
+                    
+                    // Handle n8n output format first (most specific)
+                    if (parsedChunk.output) {
+                      chunkContent = parsedChunk.output;
+                    } else if (Array.isArray(parsedChunk) && parsedChunk[0]?.output) {
+                      chunkContent = parsedChunk[0].output;
+                    }
+                    // Handle other streaming formats
+                    else if (parsedChunk.content) {
+                      chunkContent = parsedChunk.content;
+                    } else if (parsedChunk.delta?.content) {
+                      chunkContent = parsedChunk.delta.content;
+                    } else if (parsedChunk.choices?.[0]?.delta?.content) {
+                      chunkContent = parsedChunk.choices[0].delta.content;
+                    } else if (parsedChunk.text) {
+                      chunkContent = parsedChunk.text;
                     }
                     
-                    // Update UI in real-time
-                    setMessages(prev => prev.map(msg => 
-                      msg.id === aiMessageId 
-                        ? { ...msg, content: aiResponse, isStreaming: true }
-                        : msg
-                    ));
-                  }
-                  
-                  // Handle reasoning updates
-                  if (parsedChunk.reasoning) {
-                    aiReasoning = parsedChunk.reasoning;
+                    if (chunkContent) {
+                      // For n8n, the chunk might contain the complete response so far, not just a delta
+                      if (parsedChunk.output || (Array.isArray(parsedChunk) && parsedChunk[0]?.output)) {
+                        // For n8n output format, replace the full content (not append)
+                        aiResponse = chunkContent;
+                      } else {
+                        // For other formats, append the chunk
+                        aiResponse += chunkContent;
+                      }
+                      
+                      // Update UI in real-time
+                      setMessages(prev => prev.map(msg => 
+                        msg.id === aiMessageId 
+                          ? { ...msg, content: aiResponse, isStreaming: true }
+                          : msg
+                      ));
+                    }
+                    
+                    // Handle reasoning updates
+                    if (parsedChunk.reasoning) {
+                      aiReasoning = parsedChunk.reasoning;
+                    }
                   }
                   
                 } catch (parseError) {
@@ -470,7 +540,14 @@ export function ChatInterface() {
           throw streamError;
         }
         
-        data = { ai_response: aiResponse, ai_reasoning: aiReasoning, fullResponse };
+        data = { 
+          ai_response: aiResponse, 
+          ai_reasoning: aiReasoning, 
+          fullResponse,
+          sessionInfo,
+          messageInfo,
+          statusInfo
+        };
         
       } else {
         // Handle non-streaming response (existing logic)
@@ -566,14 +643,24 @@ export function ChatInterface() {
       const finalWaitingTime = waitingTime;
       setMessages(prev => prev.map(msg => 
         msg.id === aiMessageId 
-          ? { ...msg, content: aiResponse, isStreaming: false, reasoning: aiReasoning, debugData: data, waitingTime: finalWaitingTime }
+          ? { 
+              ...msg, 
+              content: aiResponse, 
+              isStreaming: false, 
+              reasoning: aiReasoning, 
+              debugData: data, 
+              waitingTime: finalWaitingTime,
+              sessionInfo,
+              messageInfo,
+              statusInfo
+            }
           : msg
       ));
 
       // Store the complete conversation in database
       const dbId = await storeMessageInDatabase(
         userMessage.content,
-        webhookPayload,
+        payload,
         data,
         aiResponse,
         currentMessageId
@@ -717,6 +804,15 @@ export function ChatInterface() {
                 selectedSubject={selectedSubject} 
                 onSubjectChange={setSelectedSubject} 
               />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Button>
               <ThemeToggle />
               <UserMenu />
             </div>
@@ -854,6 +950,14 @@ export function ChatInterface() {
           TenTen can make mistakes. Please verify important information.
         </p>
       </div>
+      
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentConfig={config}
+        onConfigChange={updateConfig}
+      />
     </div>
     </div>
   );

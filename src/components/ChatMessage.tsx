@@ -23,6 +23,9 @@ interface ChatMessageProps {
       size: number;
     }[];
     dbId?: string; // UUID from database
+    sessionInfo?: { id: number };
+    messageInfo?: { id: number };
+    statusInfo?: { state: string };
   };
   sessionId?: number;
 }
@@ -75,6 +78,31 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
           </>
         ) : (
           <div className="text-sm">
+            {/* Session and Message Info */}
+            {(message.sessionInfo || message.messageInfo) && (
+              <div className="mb-2 p-2 bg-muted/30 rounded-lg border border-border">
+                {message.sessionInfo && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Session ID:</span> {message.sessionInfo.id}
+                  </p>
+                )}
+                {message.messageInfo && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Message ID:</span> {message.messageInfo.id}
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {/* Status Information */}
+            {message.statusInfo && (
+              <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                  Status: {message.statusInfo.state}
+                </p>
+              </div>
+            )}
+            
             {message.waitingTime && message.waitingTime > 0 && (
               <div className="mb-2">
                 <p className="text-xs text-muted-foreground">
