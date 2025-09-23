@@ -37,6 +37,7 @@ interface Message {
   sessionInfo?: { id: number };
   messageInfo?: { id: number };
   statusInfo?: { state: string };
+  usedTenergy?: number;
 }
 
 export function ChatInterface() {
@@ -390,6 +391,7 @@ export function ChatInterface() {
       let sessionInfo: { id: number } | undefined;
       let messageInfo: { id: number } | undefined;
       let statusInfo: { state: string } | undefined;
+      let usedTenergy: number | undefined;
 
       if (response.body) {
         console.log("Processing streaming response...");
@@ -460,6 +462,16 @@ export function ChatInterface() {
                           setMessages(prev => prev.map(msg => 
                             msg.id === aiMessageId 
                               ? { ...msg, content: aiResponse, isStreaming: true }
+                              : msg
+                          ));
+                        }
+                        break;
+                      case 'token':
+                        if (parsedChunk.data?.used_tenergy !== undefined) {
+                          usedTenergy = parsedChunk.data.used_tenergy;
+                          setMessages(prev => prev.map(msg => 
+                            msg.id === aiMessageId 
+                              ? { ...msg, usedTenergy, isStreaming: true }
                               : msg
                           ));
                         }
@@ -546,7 +558,8 @@ export function ChatInterface() {
           fullResponse,
           sessionInfo,
           messageInfo,
-          statusInfo
+          statusInfo,
+          usedTenergy
         };
         
       } else {
@@ -652,7 +665,8 @@ export function ChatInterface() {
               waitingTime: finalWaitingTime,
               sessionInfo,
               messageInfo,
-              statusInfo
+              statusInfo,
+              usedTenergy: data?.usedTenergy
             }
           : msg
       ));

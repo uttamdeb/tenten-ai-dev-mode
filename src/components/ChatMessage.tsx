@@ -27,6 +27,7 @@ interface ChatMessageProps {
     sessionInfo?: { id: number };
     messageInfo?: { id: number };
     statusInfo?: { state: string };
+    usedTenergy?: number;
   };
   sessionId?: number;
 }
@@ -81,7 +82,7 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
         ) : (
           <div className="text-sm">
             {/* Session and Message Info */}
-            {(message.sessionInfo || message.messageInfo) && (
+            {(message.sessionInfo || message.messageInfo || (message.usedTenergy !== undefined && config.mode !== "n8n")) && (
               <div className="mb-2 p-2 bg-muted/30 rounded-lg border border-border">
                 {message.sessionInfo && (
                   <p className="text-xs text-muted-foreground">
@@ -91,6 +92,11 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                 {message.messageInfo && (
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium">Message ID:</span> {message.messageInfo.id}
+                  </p>
+                )}
+                {message.usedTenergy !== undefined && config.mode !== "n8n" && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Used Tenergy:</span> {message.usedTenergy}
                   </p>
                 )}
               </div>
