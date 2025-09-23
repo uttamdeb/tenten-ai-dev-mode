@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -38,6 +37,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
 };
 
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
+  console.log("SettingsPanel rendered with isOpen:", isOpen);
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
 
   const handleSave = () => {
@@ -53,7 +53,14 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
     setConfig(prev => ({ ...prev, ...updates }));
   };
 
-  if (!isOpen) return null;
+  console.log("SettingsPanel render - isOpen:", isOpen);
+  
+  if (!isOpen) {
+    console.log("SettingsPanel not rendering because isOpen is false");
+    return null;
+  }
+
+  console.log("SettingsPanel rendering modal");
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

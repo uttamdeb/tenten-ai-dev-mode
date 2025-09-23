@@ -54,6 +54,8 @@ export function ChatInterface() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const { config, updateConfig, isGitMode, getApiUrl, getAuthHeader } = useApiConfig();
+  
+  console.log("ChatInterface state - isSettingsOpen:", isSettingsOpen, "config:", config);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -790,7 +792,7 @@ export function ChatInterface() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
@@ -805,10 +807,13 @@ export function ChatInterface() {
                 onSubjectChange={setSelectedSubject} 
               />
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
-                onClick={() => setIsSettingsOpen(true)}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  console.log("Settings button clicked, isSettingsOpen:", isSettingsOpen);
+                  setIsSettingsOpen(true);
+                }}
+                className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Settings className="h-4 w-4" />
                 Settings
@@ -838,6 +843,15 @@ export function ChatInterface() {
               I'm here to help you solve your doubts and understand complex concepts. 
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
+            <Button
+              onClick={() => {
+                console.log("Test button clicked");
+                setIsSettingsOpen(true);
+              }}
+              className="mt-4"
+            >
+              Test Settings Modal
+            </Button>
             {isLoading && waitingTime > 0 && (
               <div className="mt-4 p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
                 <p className="text-sm text-primary font-medium">
