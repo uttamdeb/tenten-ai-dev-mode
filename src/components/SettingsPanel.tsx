@@ -32,12 +32,11 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   authorizationToken: "",
   sessionId: null,
   threadId: 1,
-  remoteGitUrl: "http://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
+  remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
   localGitUrl: "http://localhost:8000/api/v1/messages"
 };
 
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
-  console.log("SettingsPanel rendered with isOpen:", isOpen);
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
 
   const handleSave = () => {
@@ -53,14 +52,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
     setConfig(prev => ({ ...prev, ...updates }));
   };
 
-  console.log("SettingsPanel render - isOpen:", isOpen);
-  
-  if (!isOpen) {
-    console.log("SettingsPanel not rendering because isOpen is false");
-    return null;
-  }
-
-  console.log("SettingsPanel rendering modal");
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -208,14 +200,51 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </p>
               </div>
 
-              {/* API URLs (Read-only) */}
+              {/* API URLs (Editable) */}
               <div className="space-y-2">
                 <Label>API Endpoint</Label>
                 <Input
                   value={config.mode === "remote-git" ? config.remoteGitUrl : config.localGitUrl}
-                  readOnly
-                  className="bg-muted font-mono text-sm"
+                  onChange={(e) => {
+                    if (config.mode === "remote-git") {
+                      updateConfig({ remoteGitUrl: e.target.value });
+                    } else {
+                      updateConfig({ localGitUrl: e.target.value });
+                    }
+                  }}
+                  className="font-mono text-sm"
+                  placeholder="Enter API endpoint URL"
                 />
+                {config.mode === "remote-git" && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      ⚠️ HTTPS is required when accessing from HTTPS pages (like lovable.app)
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateConfig({ remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages" })}
+                        className="text-xs"
+                      >
+                        Use HTTPS
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateConfig({ remoteGitUrl: "http://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages" })}
+                        className="text-xs"
+                      >
+                        Use HTTP
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {config.mode === "local-git" && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    ℹ️ Local development endpoint (HTTP allowed for localhost)
+                  </p>
+                )}
               </div>
             </div>
           )}

@@ -8,7 +8,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   authorizationToken: "",
   sessionId: null,
   threadId: 1,
-  remoteGitUrl: "http://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
+  remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
   localGitUrl: "http://localhost:8000/api/v1/messages"
 };
 

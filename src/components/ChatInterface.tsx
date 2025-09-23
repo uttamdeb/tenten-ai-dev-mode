@@ -54,8 +54,6 @@ export function ChatInterface() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const { config, updateConfig, isGitMode, getApiUrl, getAuthHeader } = useApiConfig();
-  
-  console.log("ChatInterface state - isSettingsOpen:", isSettingsOpen, "config:", config);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -689,8 +687,15 @@ export function ChatInterface() {
           errorMessage = "The request took longer than expected to process. This can happen with image uploads. Please try again.";
           toastDescription = "Request timeout - this can happen with image processing. Please try again.";
         } else if (error.message.includes('Failed to fetch')) {
-          errorMessage = "Unable to connect to the AI service. Please check your internet connection and try again.";
-          toastDescription = "Network connection error. Please check your connection and try again.";
+          // Check if it's likely a mixed content issue
+          const apiUrl = getApiUrl();
+          if (apiUrl.startsWith('http://') && window.location.protocol === 'https:') {
+            errorMessage = "Mixed content error: Cannot access HTTP endpoints from HTTPS pages. Please use HTTPS endpoints or access the app via HTTP.";
+            toastDescription = "Mixed content blocked - use HTTPS endpoints when accessing from HTTPS pages.";
+          } else {
+            errorMessage = "Unable to connect to the AI service. Please check your internet connection and try again.";
+            toastDescription = "Network connection error. Please check your connection and try again.";
+          }
         }
       }
       
@@ -809,10 +814,7 @@ export function ChatInterface() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => {
-                  console.log("Settings button clicked, isSettingsOpen:", isSettingsOpen);
-                  setIsSettingsOpen(true);
-                }}
+                onClick={() => setIsSettingsOpen(true)}
                 className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Settings className="h-4 w-4" />
@@ -843,15 +845,6 @@ export function ChatInterface() {
               I'm here to help you solve your doubts and understand complex concepts. 
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
-            <Button
-              onClick={() => {
-                console.log("Test button clicked");
-                setIsSettingsOpen(true);
-              }}
-              className="mt-4"
-            >
-              Test Settings Modal
-            </Button>
             {isLoading && waitingTime > 0 && (
               <div className="mt-4 p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
                 <p className="text-sm text-primary font-medium">
