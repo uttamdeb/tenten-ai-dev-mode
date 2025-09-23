@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useApiConfig } from "@/hooks/useApiConfig";
 
 interface ChatMessageProps {
   message: {
@@ -35,6 +36,7 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
   const isStreaming = message.isStreaming;
   const [isReasoningOpen, setIsReasoningOpen] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const { config, getApiUrl } = useApiConfig();
 
   return (
     <div className={cn(
@@ -147,17 +149,17 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mb-3">
                   <div className="space-y-3">
-                    {/* Webhook URL and Execution Mode */}
+                    {/* Server API Configuration */}
                     <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                      <h4 className="text-xs font-medium text-foreground mb-2">Webhook Configuration</h4>
+                      <h4 className="text-xs font-medium text-foreground mb-2">Server API Configuration</h4>
                       <div className="space-y-2">
                         <div>
-                          <span className="text-xs font-medium text-muted-foreground">Webhook URL:</span>
-                          <pre className="text-xs text-muted-foreground mt-1">https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1</pre>
+                          <span className="text-xs font-medium text-muted-foreground">API Mode:</span>
+                          <pre className="text-xs text-muted-foreground mt-1">{config.mode}</pre>
                         </div>
                         <div>
-                          <span className="text-xs font-medium text-muted-foreground">Execution Mode:</span>
-                          <pre className="text-xs text-muted-foreground mt-1">production</pre>
+                          <span className="text-xs font-medium text-muted-foreground">API URL:</span>
+                          <pre className="text-xs text-muted-foreground mt-1">{getApiUrl()}</pre>
                         </div>
                       </div>
                     </div>
