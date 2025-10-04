@@ -189,10 +189,10 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Input
                   id="thread-id"
                   type="number"
-                  placeholder="1"
+                  placeholder="7"
                   value={config.threadId}
                   onChange={(e) => updateConfig({ 
-                    threadId: parseInt(e.target.value) || 1 
+                    threadId: parseInt(e.target.value) || 7 
                   })}
                 />
                 <p className="text-xs text-muted-foreground">
