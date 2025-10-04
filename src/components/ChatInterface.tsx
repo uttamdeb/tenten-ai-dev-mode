@@ -206,7 +206,10 @@ export function ChatInterface() {
             role: 'assistant',
             content: msg.final_answer,
             timestamp: new Date(msg.updated_at),
-            debugData: msg.webhook_response,
+            debugData: {
+              webhookRequest: msg.webhook_request,
+              webhookResponse: msg.webhook_response,
+            },
             dbId: msg.id, // Store the database UUID
           });
         }
@@ -688,7 +691,11 @@ export function ChatInterface() {
               content: aiResponse, 
               isStreaming: false, 
               reasoning: aiReasoning, 
-              debugData: data, 
+              debugData: {
+                ...data,
+                webhookRequest: payload, // Add request payload to debug data
+                webhookResponse: data,
+              }, 
               waitingTime: finalWaitingTime,
               sessionInfo,
               messageInfo,
