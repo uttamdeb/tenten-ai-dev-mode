@@ -27,6 +27,7 @@ interface ChatMessageProps {
     sessionInfo?: { id: number };
     messageInfo?: { id: number };
     statusInfo?: { state: string };
+    usedTenergy?: number;
   };
   sessionId?: number;
 }
@@ -80,8 +81,8 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
           </>
         ) : (
           <div className="text-sm">
-            {/* Session and Message Info */}
-            {(message.sessionInfo || message.messageInfo) && (
+            {/* Session, Message Info, and Used Tenergy */}
+            {(message.sessionInfo || message.messageInfo || message.usedTenergy !== undefined) && (
               <div className="mb-2 p-2 bg-muted/30 rounded-lg border border-border">
                 {message.sessionInfo && (
                   <p className="text-xs text-muted-foreground">
@@ -91,6 +92,11 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                 {message.messageInfo && (
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium">Message ID:</span> {message.messageInfo.id}
+                  </p>
+                )}
+                {message.usedTenergy !== undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Used Tenergy:</span> {message.usedTenergy}
                   </p>
                 )}
               </div>
@@ -190,11 +196,14 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
                         </pre>
                       </div>
                     )}
-                    {message.debugData.messageInfo && (
+                    {message.debugData.fullResponse && (
                       <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                        <h4 className="text-xs font-medium text-foreground mb-2">Message Info</h4>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
-                          {JSON.stringify(message.debugData.messageInfo, null, 2)}
+                        <h4 className="text-xs font-medium text-foreground mb-2">Full Payload (Streaming Events)</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-64 scrollbar-thin">
+                          {message.debugData.fullResponse.length > 10000 
+                            ? `${message.debugData.fullResponse.substring(0, 10000)}...\n\n[Truncated - Full payload is ${message.debugData.fullResponse.length} characters]`
+                            : message.debugData.fullResponse
+                          }
                         </pre>
                       </div>
                     )}
