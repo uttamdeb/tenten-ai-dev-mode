@@ -196,7 +196,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Thread identifier for conversation context. Defaults to 1.
+                  Thread identifier for conversation context. Defaults to 1. For stage, use 1 for Math, 2 for Chemistry, 4 for Biology, 7 for Physics.
                 </p>
               </div>
 
