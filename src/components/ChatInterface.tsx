@@ -153,6 +153,12 @@ export function ChatInterface() {
       
       setCurrentSessionId(data.id);
       setMessages([]); // Clear current messages
+      
+      // Reset session_id in config to null for git mode (unless user has manually set it)
+      if (isGitMode) {
+        updateConfig({ ...config, sessionId: null });
+      }
+      
       toast({
         title: "New Chat Started",
         description: "Created a new chat session.",
