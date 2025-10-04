@@ -163,7 +163,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   className="min-h-[80px] font-mono text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
-                  JWT token for authentication with the FastAPI service
+                  JWT token for authentication with the service
                 </p>
               </div>
 
@@ -196,7 +196,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Thread identifier for conversation context. Defaults to 1. For stage, use 1 for Math, 2 for Chemistry, 4 for Biology, 7 for Physics.
+                  Thread identifier for conversation context. Defaults to 1. For stage env, use 1 for Math, 2 for Chemistry, 4 for Biology, 7 for Physics.
                 </p>
               </div>
 
