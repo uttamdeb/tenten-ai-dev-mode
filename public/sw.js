@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tenten-ai-v1';
+const CACHE_NAME = 'tenten-ai-v2.0.0';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
@@ -9,6 +9,8 @@ const urlsToCache = [
 
 // Install event
 self.addEventListener('install', (event) => {
+  // Activate this Service Worker immediately on install
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -32,14 +34,22 @@ self.addEventListener('fetch', (event) => {
 // Activate event
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    (async () => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
       );
-    })
+
+      // Take control of all open clients immediately
+      await self.clients.claim();
+
+      // Optionally notify clients that a new SW is active
+      const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      clientList.forEach((client) => client.postMessage({ type: 'SW_ACTIVATED' }));
+    })()
   );
 });

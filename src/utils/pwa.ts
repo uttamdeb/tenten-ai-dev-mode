@@ -1,6 +1,23 @@
 // Register service worker
 export const registerSW = () => {
   if ('serviceWorker' in navigator) {
+    // Reload the page when a new Service Worker takes control
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+
+    // Optional: Handle messages from the Service Worker
+    navigator.serviceWorker.addEventListener('message', (event: MessageEvent<any>) => {
+      if (event.data?.type === 'SW_ACTIVATED') {
+        console.log('Service Worker activated and controlling this page');
+        // If you prefer manual control, you could trigger a toast here instead of auto-reload
+        // and remove the controllerchange reload above.
+      }
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
