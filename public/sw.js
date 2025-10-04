@@ -1,10 +1,10 @@
-const CACHE_NAME = 'tenten-ai-v2.0.0';
+const CACHE_NAME = 'tenten-ai-v2.0.1';
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
+  '/index.html',
+  '/manifest.json',
+  '/favicon.ico',
   '/tenten-icon.png',
-  '/manifest.json'
 ];
 
 // Install event
@@ -12,22 +12,37 @@ self.addEventListener('install', (event) => {
   // Activate this Service Worker immediately on install
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.addAll(urlsToCache);
+      } catch (err) {
+        // Don't block activation if a precache URL is missing or fails
+        console.warn('SW install: precache failed', err);
+      }
+    })()
   );
 });
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // SPA navigation fallback: serve app shell offline
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      caches.match('/index.html').then((cached) => cached || fetch(req))
+    );
+    return;
+  }
+
+  // Only handle same-origin GET requests; skip APIs
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api')) return;
+
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      }
-    )
+    caches.match(req).then((cached) => cached || fetch(req))
   );
 });
 

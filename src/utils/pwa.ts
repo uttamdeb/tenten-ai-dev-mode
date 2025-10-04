@@ -22,6 +22,8 @@ export const registerSW = () => {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
           console.log('SW registered: ', registration);
+          // Force an immediate update check for the Service Worker
+          registration.update();
         })
         .catch((registrationError) => {
           console.log('SW registration failed: ', registrationError);
