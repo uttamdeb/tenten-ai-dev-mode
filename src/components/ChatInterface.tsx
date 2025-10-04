@@ -63,6 +63,23 @@ export function ChatInterface() {
   const { uploadImage, isUploading } = useImageUpload();
   const { user } = useAuth();
 
+  // Update thread_id when subject changes in git mode
+  useEffect(() => {
+    if (isGitMode && selectedSubject) {
+      const threadIdMap: Record<string, number> = {
+        'mathematics': 1,
+        'chemistry': 2,
+        'biology': 4,
+        'physics': 7
+      };
+      
+      const newThreadId = threadIdMap[selectedSubject.value] || 7;
+      if (config.threadId !== newThreadId) {
+        updateConfig({ ...config, threadId: newThreadId });
+      }
+    }
+  }, [selectedSubject, isGitMode, config, updateConfig]);
+
   // Fetch user profile when component mounts
   useEffect(() => {
     if (user) {

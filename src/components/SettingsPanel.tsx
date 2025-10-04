@@ -28,10 +28,10 @@ interface SettingsPanelProps {
 }
 
 const DEFAULT_CONFIG: ApiConfiguration = {
-  mode: "n8n",
-  authorizationToken: "",
+  mode: "remote-git",
+  authorizationToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzN2I1ZWQ0NmE2MzYzODU3MzNlZjJiZCIsImlzX2FkbWluIjpmYWxzZSwiY29udGFjdCI6IiIsImVtYWlsIjoiYWRtaW5AMTBtcy5jb20iLCJsb2dpbl90eXBlIjoiZW1haWwiLCJsb2dpbl9zb3VyY2UiOiIxMG1pbnNjaG9vbCIsImxvZ2luX3RhcmdldCI6IiIsImxvZ2luX2FzIjowLCJuYW1lIjoiYWRtaW5AMTBtcy5jb20iLCJpc19hY3RpdmUiOmZhbHNlLCJ2ZXJpZmllZCI6dHJ1ZSwiZGV2aWNlX2lkIjoiNjhlMGU0MTcyNTk2OTk1ODYxYjY1NWZkIiwiZGV2aWNlIjp7ImRldmljZV9pZCI6IjY4ZTBlNDE3MjU5Njk5NTg2MWI2NTVmZCIsIm1hY19pZCI6IiIsImRldmljZV9uYW1lIjoiQ2hyb21lIDEzOS4wLjAuMCIsImRldmljZV90eXBlIjoiYnJvd3NlciIsImRldmljZV9vcyI6IkludGVsIE1hYyBPUyBYIDEwXzE1XzciLCJwbGF0Zm9ybSI6IndlYiIsIm9yaWdpbiI6Imh0dHBzOi8vbG9jYWwuMTBtaW51dGVzY2hvb2wubmV0IiwiaXBfYWRkcmVzcyI6IjJhMDk6YmFjMTpiMDA6NTE4OjoyYTU6ZCJ9LCJ1c2VyX3N0YXR1cyI6IiIsImRhdGVfam9pbmVkIjoiMjAyMi0xMS0yMVQxMToxOTo0OC4yNTNaIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImV4cCI6MTc2MDE3MzcxOX0.PrEPG-t4WidhHXxhv28KKqYoc7vTDdb7NUFoJqEEysk",
   sessionId: null,
-  threadId: 1,
+  threadId: 7,
   remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
   localGitUrl: "http://localhost:8000/api/v1/messages"
 };
