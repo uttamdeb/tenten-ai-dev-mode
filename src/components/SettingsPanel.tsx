@@ -90,11 +90,11 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   <Server className="h-5 w-5 text-primary" />
                   <div>
                     <div className="font-medium">N8N Webhook</div>
-                    <div className="text-sm text-muted-foreground">Default TenTen AI service via N8N</div>
+                    <div className="text-sm text-muted-foreground">TenTen AI service via N8N</div>
                   </div>
                 </div>
                 <Badge variant={config.mode === "n8n" ? "default" : "outline"}>
-                  Default
+                  N8N
                 </Badge>
               </div>
 
