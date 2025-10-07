@@ -34,20 +34,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
-        // Refresh user data when sign in occurs to get latest metadata
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setTimeout(async () => {
-            const { data } = await supabase.auth.getUser();
-            if (data.user) {
-              setUser(data.user);
-            }
-          }, 0);
-        }
       }
     );
 

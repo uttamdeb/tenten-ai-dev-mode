@@ -45,41 +45,25 @@ const Profile = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-    
     setLoading(true);
 
     try {
-      // Update profile in database
-      const { error: profileError } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .upsert({
-          user_id: user.id,
+          user_id: user?.id,
           full_name: fullName,
           avatar_url: avatarUrl,
-          email: user.email,
+          email: user?.email,
           updated_at: new Date().toISOString(),
         });
 
-      if (profileError) throw profileError;
-
-      // Update user metadata to trigger auth state refresh
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: {
-          full_name: fullName,
-          avatar_url: avatarUrl,
-        }
-      });
-
-      if (metadataError) throw metadataError;
+      if (error) throw error;
 
       toast({
         title: "Success",
         description: "Profile updated successfully!",
       });
-
-      // Trigger window focus event to refresh profile in ChatInterface
-      window.dispatchEvent(new Event('focus'));
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({

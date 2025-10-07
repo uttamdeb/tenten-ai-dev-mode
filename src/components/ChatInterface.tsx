@@ -53,7 +53,6 @@ export function ChatInterface() {
   const [messageIdCounter, setMessageIdCounter] = useState(3001);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   
   const { config, updateConfig, isGitMode, getApiUrl, getAuthHeader } = useApiConfig();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -82,28 +81,12 @@ export function ChatInterface() {
     }
   }, [selectedSubject, isGitMode, config, updateConfig]);
 
-  // Fetch user profile when component mounts or when profile changes
+  // Fetch user profile when component mounts
   useEffect(() => {
     if (user) {
       fetchUserProfile();
       createOrGetCurrentSession();
     }
-  }, [user, profileRefreshKey]);
-
-  // Listen for profile updates via storage events or periodic refresh
-  useEffect(() => {
-    if (!user) return;
-
-    // Refresh profile when window regains focus (user came back from profile page)
-    const handleFocus = () => {
-      fetchUserProfile();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
   }, [user]);
 
   const fetchUserProfile = async () => {
@@ -243,26 +226,17 @@ export function ChatInterface() {
     webhookRequest: any, 
     webhookResponse: any, 
     finalAnswer: string, 
-    messageId: string,
-    apiSessionId?: number,
-    apiMessageId?: number
+    messageId: string
   ) => {
-    if (!user) return null;
-    
-    // Determine which session ID to use
-    const sessionIdToUse = apiSessionId || currentSessionId;
-    if (!sessionIdToUse) {
-      console.error('No session ID available for storing message');
-      return null;
-    }
+    if (!user || !currentSessionId) return null;
 
     try {
       const { data, error } = await supabase
         .from('chat_messages')
         .insert([{
-          session_id: sessionIdToUse,
+          session_id: currentSessionId,
           user_id: user.id,
-          message_id: apiMessageId?.toString() || messageId,
+          message_id: messageId,
           question,
           webhook_request: webhookRequest,
           webhook_response: webhookResponse,
@@ -737,9 +711,7 @@ export function ChatInterface() {
         payload,
         data,
         aiResponse,
-        currentMessageId,
-        sessionInfo?.id, // Pass API session ID
-        messageInfo?.id  // Pass API message ID
+        currentMessageId
       );
 
       // Update AI message with database ID for feedback functionality
@@ -847,11 +819,11 @@ export function ChatInterface() {
       )}
 
       {/* Main Chat Interface */}
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}>
+      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "ml-80" : "ml-0")}>
         {/* Header */}
         <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-          <div className="flex items-center justify-between p-3 md:p-4 gap-2">
-            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
               {!isSidebarOpen && (
                 <SessionSidebar 
                   isOpen={isSidebarOpen}
@@ -860,59 +832,41 @@ export function ChatInterface() {
                   onSessionSelect={handleSessionSelect}
                 />
               )}
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-2xl overflow-hidden shadow-elegant flex-shrink-0">
+              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
                 <img 
                   src={tentenIcon} 
                   alt="TenTen AI" 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="min-w-0 hidden sm:block">
-                <h1 className="text-base md:text-lg font-semibold gradient-text truncate">TenTen AI - Dev Mode</h1>
-                <p className="text-xs md:text-sm text-muted-foreground truncate">HIGHLY CONFIDENTIAL</p>
+              <div>
+                <h1 className="text-lg font-semibold gradient-text">TenTen AI - Dev Mode</h1>
+                <p className="text-sm text-muted-foreground">HIGHLY CONFIDENTIAL</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleNewChat}
-                className="h-8 md:h-9 px-2 md:px-3 hidden sm:flex items-center gap-1 md:gap-2"
-              >
-                <Plus className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden md:inline">New Chat</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNewChat}
-                className="h-8 w-8 p-0 sm:hidden"
+                className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
+                New Chat
               </Button>
-              <div className="hidden md:block">
-                <SubjectSelector 
-                  selectedSubject={selectedSubject} 
-                  onSubjectChange={setSelectedSubject} 
-                />
-              </div>
+              <SubjectSelector 
+                selectedSubject={selectedSubject} 
+                onSubjectChange={setSelectedSubject} 
+              />
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => setIsSettingsOpen(true)}
-                className="h-8 md:h-9 px-2 md:px-3 bg-primary text-primary-foreground hover:bg-primary/90 hidden sm:flex items-center gap-1 md:gap-2"
-              >
-                <Settings className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden md:inline">Settings</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsSettingsOpen(true)}
-                className="h-8 w-8 p-0 sm:hidden bg-primary text-primary-foreground hover:bg-primary/90"
+                className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Settings className="h-4 w-4" />
+                Settings
               </Button>
               <ThemeToggle />
               <UserMenu />
@@ -924,18 +878,18 @@ export function ChatInterface() {
       {/* Messages */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-4 md:p-8 text-center">
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden shadow-glow mb-4">
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
               <img 
                 src={tentenIcon} 
                 alt="TenTen AI" 
                 className="w-full h-full object-cover"
               />
             </div>
-            <h2 className="text-lg md:text-xl font-semibold mb-2 gradient-text">
+            <h2 className="text-xl font-semibold mb-2 gradient-text">
               Hello! I'm TenTen
             </h2>
-            <p className="text-sm md:text-base text-muted-foreground max-w-md px-4">
+            <p className="text-muted-foreground max-w-md">
               I'm here to help you solve your doubts and understand complex concepts. 
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
@@ -948,14 +902,9 @@ export function ChatInterface() {
             )}
           </div>
         ) : (
-          <div className="space-y-2 px-2 md:px-4">
+          <div className="space-y-2 px-4">
             {messages.map((message) => (
-              <ChatMessage 
-                key={message.id} 
-                message={message} 
-                sessionId={currentSessionId ?? undefined}
-                userProfile={userProfile}
-              />
+              <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} />
             ))}
             {isLoading && waitingTime > 0 && (
               <div className="flex gap-3 p-4">
@@ -979,22 +928,14 @@ export function ChatInterface() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-2 md:p-4 sticky bottom-0">
-        {/* Subject Selector on Mobile - show above input */}
-        <div className="md:hidden mb-2 max-w-4xl mx-auto">
-          <SubjectSelector 
-            selectedSubject={selectedSubject} 
-            onSubjectChange={setSelectedSubject} 
-          />
-        </div>
-        
+      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0">
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
-          <div className="mb-2 md:mb-3 max-w-4xl mx-auto">
+          <div className="mb-3 max-w-4xl mx-auto">
             <div className="flex flex-wrap gap-2">
               {pendingAttachments.map((attachment) => (
                 <div key={attachment.id} className="relative group">
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden border border-border bg-muted">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-border bg-muted">
                     <img 
                       src={attachment.url} 
                       alt={attachment.name}
@@ -1015,15 +956,15 @@ export function ChatInterface() {
           </div>
         )}
 
-        <div className="flex gap-2 md:gap-3 items-end max-w-4xl mx-auto">
+        <div className="flex gap-3 items-end max-w-4xl mx-auto">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleAttachClick}
             disabled={isLoading || isUploading}
-            className="h-9 w-9 md:h-11 md:w-11 shrink-0"
+            className="h-11 w-11 shrink-0"
           >
-            <Paperclip className="h-3 w-3 md:h-4 md:w-4" />
+            <Paperclip className="h-4 w-4" />
           </Button>
           
           <div className="flex-1 relative">
@@ -1032,9 +973,9 @@ export function ChatInterface() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything..."
+              placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
-                "chat-input resize-none min-h-[36px] md:min-h-[44px] max-h-24 md:max-h-32 text-sm md:text-base",
+                "chat-input resize-none min-h-[44px] max-h-32",
                 "placeholder:text-muted-foreground/70"
               )}
               disabled={isLoading}
@@ -1044,10 +985,10 @@ export function ChatInterface() {
           <Button
             onClick={handleSendMessage}
             disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
-            className="h-9 w-9 md:h-11 md:w-11 p-0 bg-gradient-primary hover:shadow-glow transition-all duration-300 shrink-0"
+            className="h-11 w-11 p-0 bg-gradient-primary hover:shadow-glow transition-all duration-300 shrink-0"
             size="icon"
           >
-            <Send className="h-3 w-3 md:h-4 md:w-4" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
         
@@ -1060,7 +1001,7 @@ export function ChatInterface() {
           className="hidden"
         />
         
-        <p className="text-xs text-muted-foreground text-center mt-1 md:mt-2 px-2">
+        <p className="text-xs text-muted-foreground text-center mt-2">
           TenTen can make mistakes. Please verify important information.
         </p>
       </div>
