@@ -73,6 +73,14 @@ export function ChatInterface() {
   const kbInset = useKeyboardInsets();
   const inputBarRef = useRef<HTMLDivElement>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [vw, setVw] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const isMobile = vw < 640;
 
   // Sync profile from hook into local state for existing usage
   useEffect(() => {
@@ -460,7 +468,7 @@ export function ChatInterface() {
                   // Handle FastAPI event-based streaming format
                   if (isGitMode && parsedChunk.event) {
                     switch (parsedChunk.event) {
-                      case 'session':
+                      case 'session': {
                         sessionInfo = parsedChunk.data;
                         const apiSessId = parsedChunk.data?.id;
                         // Update config for subsequent requests only if not manually set
@@ -490,6 +498,7 @@ export function ChatInterface() {
                             : msg
                         ));
                         break;
+                      }
                       case 'message_id':
                         messageInfo = parsedChunk.data;
                         setMessages(prev => prev.map((msg) => 
@@ -829,7 +838,7 @@ export function ChatInterface() {
 
   // Compute dynamic bottom padding so the last message isn't hidden
   const computedBottomPad = Math.max(
-    96, // base padding ~24px * 4
+    96, // base padding
     (inputBarRef.current?.offsetHeight || 80) + (kbInset || 0) + 16
   );
 
@@ -840,12 +849,12 @@ export function ChatInterface() {
     setTimeout(() => {
       textareaRef.current?.scrollIntoView({ block: 'nearest' });
       chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
-    }, 0);
+    }, 250);
   };
   const handleTextareaBlur = () => setIsInputFocused(false);
 
   return (
-    <div className="min-h-dvh flex bg-background">
+    <div className="flex bg-background" style={{ minHeight: '100svh' }}>
       {/* Sidebar + Main */}
       <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
         {/* Header */}
@@ -955,6 +964,7 @@ export function ChatInterface() {
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto chat-scroll px-3 sm:px-4"
         style={{ paddingBottom: `${computedBottomPad}px` }}
+        onClick={() => textareaRef.current?.blur()}
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -1009,7 +1019,8 @@ export function ChatInterface() {
       {/* Input */}
       <div
         ref={inputBarRef}
-        className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0 z-20 pb-safe"
+        className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sm:sticky sm:bottom-0 z-20 pb-safe"
+        style={isMobile && isInputFocused ? { position: 'fixed', bottom: `${kbInset}px`, left: 0, right: 0 } : undefined}
       >
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
