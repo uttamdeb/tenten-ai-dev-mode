@@ -803,14 +803,12 @@ export function ChatInterface() {
         <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
-              {!isSidebarOpen && (
-                <SessionSidebar 
-                  isOpen={isSidebarOpen}
-                  onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-                  currentSessionId={currentSessionId}
-                  onSessionSelect={handleSessionSelect}
-                />
-              )}
+              <SessionSidebar 
+                isOpen={isSidebarOpen}
+                onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                currentSessionId={currentSessionId}
+                onSessionSelect={handleSessionSelect}
+              />
               <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
                 <img 
                   src={tentenIcon} 
