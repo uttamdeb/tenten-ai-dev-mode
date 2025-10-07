@@ -247,15 +247,22 @@ export function ChatInterface() {
     apiSessionId?: number,
     apiMessageId?: number
   ) => {
-    if (!user || !currentSessionId) return null;
+    if (!user) return null;
+    
+    // Determine which session ID to use
+    const sessionIdToUse = apiSessionId || currentSessionId;
+    if (!sessionIdToUse) {
+      console.error('No session ID available for storing message');
+      return null;
+    }
 
     try {
       const { data, error } = await supabase
         .from('chat_messages')
         .insert([{
-          session_id: apiSessionId || currentSessionId, // Use API session ID if available
+          session_id: sessionIdToUse,
           user_id: user.id,
-          message_id: apiMessageId?.toString() || messageId, // Use API message ID if available
+          message_id: apiMessageId?.toString() || messageId,
           question,
           webhook_request: webhookRequest,
           webhook_response: webhookResponse,
