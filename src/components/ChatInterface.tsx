@@ -71,6 +71,8 @@ export function ChatInterface() {
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const kbInset = useKeyboardInsets();
+  const inputBarRef = useRef<HTMLDivElement>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Sync profile from hook into local state for existing usage
   useEffect(() => {
@@ -825,10 +827,27 @@ export function ChatInterface() {
     fileInputRef.current?.click();
   };
 
+  // Compute dynamic bottom padding so the last message isn't hidden
+  const computedBottomPad = Math.max(
+    96, // base padding ~24px * 4
+    (inputBarRef.current?.offsetHeight || 80) + (kbInset || 0) + 16
+  );
+
+  // Ensure we scroll to bottom on input focus
+  const handleTextareaFocus = () => {
+    setIsInputFocused(true);
+    scrollToBottom();
+    setTimeout(() => {
+      textareaRef.current?.scrollIntoView({ block: 'nearest' });
+      chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
+    }, 0);
+  };
+  const handleTextareaBlur = () => setIsInputFocused(false);
+
   return (
     <div className="min-h-dvh flex bg-background">
       {/* Sidebar + Main */}
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}>
+      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
         {/* Header */}
         <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 pt-safe">
           <div className="flex items-center justify-between p-4">
@@ -935,7 +954,7 @@ export function ChatInterface() {
       <div
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto chat-scroll px-3 sm:px-4"
-        style={{ paddingBottom: `calc(8rem + var(--kb, 0px))` }}
+        style={{ paddingBottom: `${computedBottomPad}px` }}
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -989,8 +1008,8 @@ export function ChatInterface() {
 
       {/* Input */}
       <div
-        className="border-t border-border bg-card/80 backdrop-blur-sm p-4 fixed bottom-0 left-0 right-0 z-20 sm:sticky sm:bottom-0 pb-safe"
-        style={{ bottom: kbInset }}
+        ref={inputBarRef}
+        className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0 z-20 pb-safe"
       >
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
@@ -1036,6 +1055,8 @@ export function ChatInterface() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
+              onFocus={handleTextareaFocus}
+              onBlur={handleTextareaBlur}
               placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
                 "chat-input resize-none min-h-[44px] max-h-32",
