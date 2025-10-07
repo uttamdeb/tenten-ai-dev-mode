@@ -848,27 +848,52 @@ export function ChatInterface() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap">
+              {/* New Chat: icon on mobile, text on desktop */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNewChat}
+                className="flex items-center gap-2 h-9 w-9 sm:hidden"
+                aria-label="New Chat"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleNewChat}
-                className="flex items-center gap-2"
+                className="items-center gap-2 hidden sm:flex"
               >
                 <Plus className="h-4 w-4" />
-                New Chat
+                <span className="hidden md:inline">New Chat</span>
               </Button>
-              <SubjectSelector 
-                selectedSubject={selectedSubject} 
-                onSubjectChange={setSelectedSubject} 
-              />
+              
+              {/* Subject selector hidden on very small screens to reduce clutter */}
+              <div className="hidden sm:block">
+                <SubjectSelector 
+                  selectedSubject={selectedSubject} 
+                  onSubjectChange={setSelectedSubject} 
+                />
+              </div>
+              
+              {/* Settings: icon on mobile, text on desktop */}
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => setIsSettingsOpen(true)}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 sm:hidden"
+                aria-label="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => setIsSettingsOpen(true)}
-                className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                className="items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 hidden sm:flex"
               >
                 <Settings className="h-4 w-4" />
-                Settings
+                <span className="hidden md:inline">Settings</span>
               </Button>
               <ThemeToggle />
               <UserMenu />
@@ -914,7 +939,7 @@ export function ChatInterface() {
                     <Bot className="w-4 h-4 text-primary-foreground" />
                   </div>
                 </div>
-                <div className="message-bubble ai max-w-[85%] sm:max-w-[70%]">
+                <div className="message-bubble ai max-w-[85%] sm:max-w-[70%] px-3 py-2 sm:px-4 sm:py-3">
                   <div className="p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
                     <p className="text-sm text-primary font-medium">
                       🤔 Thinking... {waitingTime}s

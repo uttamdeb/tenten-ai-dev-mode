@@ -57,7 +57,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
       )}
       
       <div className={cn(
-        "message-bubble max-w-[85%] sm:max-w-[70%]",
+        "message-bubble max-w-[85%] sm:max-w-[70%] px-3 py-2 sm:px-4 sm:py-3",
         isUser ? "user" : "ai"
       )}>
         {isUser ? (
