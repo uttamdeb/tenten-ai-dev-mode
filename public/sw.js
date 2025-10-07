@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tenten-ai-v2.0.2';
+const CACHE_NAME = 'tenten-ai-v2.0.8';
 const urlsToCache = [
   '/',
   '/index.html',

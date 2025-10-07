@@ -216,7 +216,8 @@ export function ChatInterface() {
     webhookRequest: any, 
     webhookResponse: any, 
     finalAnswer: string, 
-    messageId: string
+    messageId: string,
+    apiSessionId?: number
   ) => {
     if (!user || !currentSessionId) return null;
 
@@ -231,6 +232,7 @@ export function ChatInterface() {
           webhook_request: webhookRequest,
           webhook_response: webhookResponse,
           final_answer: finalAnswer,
+          ...(apiSessionId ? { api_session_id: apiSessionId } : {}),
         }])
         .select()
         .single();
@@ -408,6 +410,7 @@ export function ChatInterface() {
       let messageInfo: { id: number } | undefined;
       let statusInfo: { state: string } | undefined;
       let usedTenergy: number | undefined;
+      let storedApiSessionForCurrent = false;
 
       if (response.body) {
         console.log("Processing streaming response...");
@@ -454,7 +457,20 @@ export function ChatInterface() {
                         if (parsedChunk.data?.id && !config.sessionId) {
                           updateConfig({ ...config, sessionId: parsedChunk.data.id });
                         }
-                        setMessages(prev => prev.map(msg => 
+                        // Persist API session id on the current chat session (once)
+                        if (!storedApiSessionForCurrent && currentSessionId && parsedChunk.data?.id) {
+                          try {
+                            await supabase
+                              .from('chat_sessions')
+                              .update({ api_session_id: parsedChunk.data.id })
+                              .eq('id', currentSessionId);
+                          } catch (e) {
+                            console.warn('Failed to save api_session_id for session', e);
+                          } finally {
+                            storedApiSessionForCurrent = true;
+                          }
+                        }
+                        setMessages(prev => prev.map((msg) => 
                           msg.id === aiMessageId 
                             ? { ...msg, sessionInfo, isStreaming: true }
                             : msg
@@ -700,7 +716,8 @@ export function ChatInterface() {
         payload,
         data,
         aiResponse,
-        (messageInfo?.id ?? currentMessageId).toString()
+        (messageInfo?.id ?? currentMessageId).toString(),
+        sessionInfo?.id
       );
 
       // Update AI message with database ID for feedback functionality
