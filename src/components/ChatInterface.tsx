@@ -18,6 +18,7 @@ import tentenIcon from "@/assets/tenten-icon.png";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { BookOpen } from "lucide-react";
+import { useKeyboardInsets } from "@/hooks/useKeyboardInsets";
 
 interface ImageAttachment {
   id: string;
@@ -69,6 +70,7 @@ export function ChatInterface() {
   const { uploadImage, isUploading } = useImageUpload();
   const { user } = useAuth();
   const { profile } = useUserProfile();
+  const kbInset = useKeyboardInsets();
 
   // Sync profile from hook into local state for existing usage
   useEffect(() => {
@@ -930,7 +932,11 @@ export function ChatInterface() {
         </header>
 
       {/* Messages */}
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-32 sm:pb-4 px-3 sm:px-4">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto chat-scroll px-3 sm:px-4"
+        style={{ paddingBottom: `calc(8rem + var(--kb, 0px))` }}
+      >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
@@ -982,7 +988,10 @@ export function ChatInterface() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 fixed bottom-0 left-0 right-0 z-20 sm:sticky sm:bottom-0 pb-safe">
+      <div
+        className="border-t border-border bg-card/80 backdrop-blur-sm p-4 fixed bottom-0 left-0 right-0 z-20 sm:sticky sm:bottom-0 pb-safe"
+        style={{ bottom: kbInset }}
+      >
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
           <div className="mb-3 max-w-4xl mx-auto">
