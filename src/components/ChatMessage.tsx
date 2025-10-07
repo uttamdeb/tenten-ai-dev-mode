@@ -30,9 +30,10 @@ interface ChatMessageProps {
     usedTenergy?: number;
   };
   sessionId?: number;
+  userAvatarUrl?: string;
 }
 
-export function ChatMessage({ message, sessionId }: ChatMessageProps) {
+export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isStreaming = message.isStreaming;
   const [isReasoningOpen, setIsReasoningOpen] = useState(false);
@@ -247,8 +248,12 @@ export function ChatMessage({ message, sessionId }: ChatMessageProps) {
 
       {isUser && (
         <div className="flex-shrink-0">
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-            <User className="w-4 h-4 text-muted-foreground" />
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
+            {userAvatarUrl ? (
+              <img src={userAvatarUrl} alt="You" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-4 h-4 text-muted-foreground" />
+            )}
           </div>
         </div>
       )}

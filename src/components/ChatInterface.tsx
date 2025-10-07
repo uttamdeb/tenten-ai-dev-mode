@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import tentenIcon from "@/assets/tenten-icon.png";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface ImageAttachment {
   id: string;
@@ -63,6 +64,12 @@ export function ChatInterface() {
   const { toast } = useToast();
   const { uploadImage, isUploading } = useImageUpload();
   const { user } = useAuth();
+  const { profile } = useUserProfile();
+
+  // Sync profile from hook into local state for existing usage
+  useEffect(() => {
+    if (profile) setUserProfile(profile);
+  }, [profile]);
 
   // Update thread_id when subject changes in git mode
   useEffect(() => {
@@ -81,29 +88,12 @@ export function ChatInterface() {
     }
   }, [selectedSubject, isGitMode, config, updateConfig]);
 
-  // Fetch user profile when component mounts
+  // Ensure we only create a session when the user becomes available
   useEffect(() => {
     if (user) {
-      fetchUserProfile();
       createOrGetCurrentSession();
     }
   }, [user]);
-
-  const fetchUserProfile = async () => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) throw error;
-      setUserProfile(data);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
 
   const createOrGetCurrentSession = async () => {
     if (!user || currentSessionId) return;
@@ -472,7 +462,7 @@ export function ChatInterface() {
                         break;
                       case 'message_id':
                         messageInfo = parsedChunk.data;
-                        setMessages(prev => prev.map(msg => 
+                        setMessages(prev => prev.map((msg) => 
                           msg.id === aiMessageId 
                             ? { ...msg, messageInfo, isStreaming: true }
                             : msg
@@ -625,8 +615,7 @@ export function ChatInterface() {
             else if (responseData?.ai_response?.content) {
               aiResponse = responseData.ai_response.content;
               aiReasoning = responseData.ai_reasoning || "";
-            }
-            else if (data.response) {
+            } else if (data.response) {
               aiResponse = data.response;
             } 
             else if (data.message) {
@@ -711,12 +700,12 @@ export function ChatInterface() {
         payload,
         data,
         aiResponse,
-        currentMessageId
+        (messageInfo?.id ?? currentMessageId).toString()
       );
 
       // Update AI message with database ID for feedback functionality
       if (dbId) {
-        setMessages(prev => prev.map(msg => 
+        setMessages(prev => prev.map((msg) => 
           msg.id === aiMessageId 
             ? { ...msg, dbId }
             : msg
@@ -747,7 +736,7 @@ export function ChatInterface() {
         }
       }
       
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map((msg) => 
         msg.id === aiMessageId 
           ? { 
               ...msg, 
@@ -807,19 +796,9 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-chat">
-      {/* Sidebar - only render the full sidebar when open */}
-      {isSidebarOpen && (
-        <SessionSidebar 
-          isOpen={isSidebarOpen}
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          currentSessionId={currentSessionId}
-          onSessionSelect={handleSessionSelect}
-        />
-      )}
-
-      {/* Main Chat Interface */}
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "ml-80" : "ml-0")}>
+    <div className="min-h-screen flex bg-background">
+      {/* Sidebar + Main */}
+      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}>
         {/* Header */}
         <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center justify-between p-4">
@@ -904,7 +883,7 @@ export function ChatInterface() {
         ) : (
           <div className="space-y-2 px-4">
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} />
+              <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} userAvatarUrl={userProfile?.avatar_url || user?.user_metadata?.avatar_url} />
             ))}
             {isLoading && waitingTime > 0 && (
               <div className="flex gap-3 p-4">
