@@ -221,26 +221,49 @@ export function ChatInterface() {
   ) => {
     if (!user || !currentSessionId) return null;
 
+    // Base payload always valid regardless of schema changes
+    const basePayload: any = {
+      session_id: currentSessionId,
+      user_id: user.id,
+      message_id: messageId,
+      question,
+      webhook_request: webhookRequest,
+      webhook_response: webhookResponse,
+      final_answer: finalAnswer,
+    };
+
+    // First try: include api_session_id when provided
+    const payloadWithApi = apiSessionId ? { ...basePayload, api_session_id: apiSessionId } : basePayload;
+
     try {
       const { data, error } = await supabase
         .from('chat_messages')
-        .insert([{
-          session_id: currentSessionId,
-          user_id: user.id,
-          message_id: messageId,
-          question,
-          webhook_request: webhookRequest,
-          webhook_response: webhookResponse,
-          final_answer: finalAnswer,
-          ...(apiSessionId ? { api_session_id: apiSessionId } : {}),
-        }])
+        .insert([payloadWithApi])
         .select()
         .single();
 
       if (error) throw error;
       return data.id; // Return the UUID
-    } catch (error) {
-      console.error('Error storing message:', error);
+    } catch (err: any) {
+      // If the insert failed because api_session_id column doesn't exist, retry without it
+      const msg = err?.message || "";
+      const code = err?.code || "";
+      const columnMissing = msg.includes('api_session_id') || code === '42703'; // 42703 = undefined_column
+      if (apiSessionId && columnMissing) {
+        try {
+          const { data, error } = await supabase
+            .from('chat_messages')
+            .insert([basePayload])
+            .select()
+            .single();
+          if (error) throw error;
+          return data.id;
+        } catch (fallbackErr) {
+          console.error('Error storing message (fallback):', fallbackErr);
+          return null;
+        }
+      }
+      console.error('Error storing message:', err);
       return null;
     }
   };
