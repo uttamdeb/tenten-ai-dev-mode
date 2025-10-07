@@ -7,6 +7,14 @@ Beautiful blue/purple gradient theme with LaTeX support
 All colors MUST be HSL for consistency
 */
 
+@layer utilities {
+  /* Mobile safe units and insets */
+  .min-h-dvh { min-height: 100dvh; }
+  .h-dvh { height: 100dvh; }
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+}
+
 @layer base {
   :root {
     /* Core backgrounds */

@@ -796,11 +796,11 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-dvh flex bg-background">
       {/* Sidebar + Main */}
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}>
+      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
         {/* Header */}
-        <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+        <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 pt-safe">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <SessionSidebar 
@@ -849,11 +849,10 @@ export function ChatInterface() {
               <UserMenu />
             </div>
           </div>
-
         </header>
 
       {/* Messages */}
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4 px-3 sm:px-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
@@ -905,7 +904,7 @@ export function ChatInterface() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0">
+      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0 pb-safe">
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
           <div className="mb-3 max-w-4xl mx-auto">
