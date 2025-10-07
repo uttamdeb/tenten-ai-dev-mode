@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { MessageCircle, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -89,8 +90,9 @@ export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSe
     );
   }
 
-  return (
-    <div className="fixed left-0 top-0 h-full w-80 bg-background border-r z-40 flex flex-col">
+  // When open, render into a portal so it is not clipped by header/backdrop contexts
+  return createPortal(
+    <div className="fixed left-0 top-0 h-screen w-80 bg-background border-r z-[100] flex flex-col shadow-lg">
       <div className="p-4 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold">Recent Sessions</h2>
         <Button variant="ghost" size="icon" onClick={onToggle}>
@@ -132,6 +134,7 @@ export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSe
           )}
         </div>
       </ScrollArea>
-    </div>
+    </div>,
+    document.body
   );
 };
