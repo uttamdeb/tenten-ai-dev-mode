@@ -88,10 +88,10 @@ export function ChatInterface() {
     }
   }, [selectedSubject, isGitMode, config, updateConfig]);
 
-  // Ensure we only create a session when the user becomes available
+  // Fetch user profile when component mounts
   useEffect(() => {
     if (user) {
-      createOrGetCurrentSession();
+      // createOrGetCurrentSession(); // Do not pre-create; wait for API session id
     }
   }, [user]);
 
@@ -127,40 +127,13 @@ export function ChatInterface() {
   const handleNewChat = async () => {
     if (!user) return;
 
-    try {
-      // Create new session
-      const sessionName = `Session ${new Date().toLocaleString()}`;
-      const { data, error } = await supabase
-        .from('chat_sessions')
-        .insert([{
-          user_id: user.id,
-          session_name: sessionName
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      setCurrentSessionId(data.id);
-      setMessages([]); // Clear current messages
-      
-      // Reset session_id in config to null for git mode (unless user has manually set it)
-      if (isGitMode) {
-        updateConfig({ ...config, sessionId: null });
-      }
-      
-      toast({
-        title: "New Chat Started",
-        description: "Created a new chat session.",
-      });
-    } catch (error) {
-      console.error('Error creating new session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create new chat session.",
-        variant: "destructive",
-      });
-    }
+    // Do not create a DB session yet. We'll create it when API returns the session id.
+    setCurrentSessionId(null);
+    setMessages([]);
+    toast({
+      title: "New Chat Started",
+      description: "A new chat will be saved when the server assigns a session id.",
+    });
   };
 
   const loadSessionMessages = async (sessionId: number) => {
@@ -222,13 +195,14 @@ export function ChatInterface() {
     webhookResponse: any, 
     finalAnswer: string, 
     messageId: string,
+    sessionIdToUse: number,
     apiSessionId?: number
   ) => {
-    if (!user || !currentSessionId) return null;
+    if (!user || !sessionIdToUse) return null;
 
     // Base payload always valid regardless of schema changes
     const basePayload: any = {
-      session_id: currentSessionId,
+      session_id: sessionIdToUse,
       user_id: user.id,
       message_id: messageId,
       question,
@@ -321,11 +295,11 @@ export function ChatInterface() {
       return;
     }
 
-    // Ensure we have a current session
-    if (!currentSessionId) {
-      await createOrGetCurrentSession();
-      if (!currentSessionId) return;
-    }
+    // Do not pre-create Supabase session; the API will provide session id on first response.
+    // if (!currentSessionId) {
+    //   await createOrGetCurrentSession();
+    //   if (!currentSessionId) return;
+    // }
 
     const currentMessageId = messageIdCounter.toString();
     setMessageIdCounter(prev => prev + 1);
@@ -481,30 +455,28 @@ export function ChatInterface() {
                     switch (parsedChunk.event) {
                       case 'session':
                         sessionInfo = parsedChunk.data;
-                        // Update config with received session_id for subsequent messages
-                        if (parsedChunk.data?.id && !config.sessionId) {
-                          updateConfig({ ...config, sessionId: parsedChunk.data.id });
+                        const apiSessId = parsedChunk.data?.id;
+                        // Update config for subsequent requests
+                        if (apiSessId && !config.sessionId) {
+                          updateConfig({ ...config, sessionId: apiSessId });
                         }
-                        // Persist API session id on the current chat session (once)
-                        if (!storedApiSessionForCurrent && currentSessionId && parsedChunk.data?.id) {
+                        // Ensure a chat_sessions row exists with the API session id as primary key
+                        if (apiSessId && user) {
                           try {
-                            // Save to api_session_id if column exists (harmless if it doesn't)
                             await supabase
                               .from('chat_sessions')
-                              .update({ api_session_id: parsedChunk.data.id })
-                              .eq('id', currentSessionId);
-                          } catch {}
-                          try {
-                            // Also reflect API session id in the human-visible name so it appears in Supabase and UI
-                            await supabase
-                              .from('chat_sessions')
-                              .update({ session_name: `Session ${parsedChunk.data.id}` })
-                              .eq('id', currentSessionId);
+                              .upsert([
+                                {
+                                  id: apiSessId,
+                                  user_id: user.id,
+                                  session_name: `Session ${new Date().toLocaleString()}`,
+                                },
+                              ], { onConflict: 'id' as any });
                           } catch (e) {
-                            console.warn('Failed to update session_name with API session id', e);
+                            console.warn('Failed to upsert chat_sessions with API id', e);
                           }
-                          storedApiSessionForCurrent = true;
                         }
+                        setCurrentSessionId(apiSessId ?? null);
                         setMessages(prev => prev.map((msg) => 
                           msg.id === aiMessageId 
                             ? { ...msg, sessionInfo, isStreaming: true }
@@ -752,6 +724,7 @@ export function ChatInterface() {
         data,
         aiResponse,
         (messageInfo?.id ?? currentMessageId).toString(),
+        (sessionInfo?.id ?? currentSessionId) as number,
         sessionInfo?.id
       );
 
