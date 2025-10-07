@@ -1,4 +1,4 @@
-import { User, ChevronDown, ChevronUp, Bug, Brain } from "lucide-react";
+import { Bot, User, ChevronDown, ChevronUp, Bug, Brain } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { MessageFeedback } from "./MessageFeedback";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ interface ChatMessageProps {
     messageInfo?: { id: number };
     statusInfo?: { state: string };
     usedTenergy?: number;
+    threadId?: number;
   };
   sessionId?: number;
   userAvatarUrl?: string;
@@ -40,6 +41,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
   const [isReasoningOpen, setIsReasoningOpen] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const { config, getApiUrl } = useApiConfig();
+  const effectiveThreadId = message.threadId ?? message.debugData?.webhookRequest?.thread_id ?? config.threadId;
 
   return (
     <div className={cn(
@@ -84,7 +86,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
         ) : (
           <div className="text-sm">
             {/* Session, Message Info, and Used Tenergy */}
-            {(message.sessionInfo || message.messageInfo || message.usedTenergy !== undefined) && (
+            {(message.sessionInfo || message.messageInfo || message.usedTenergy !== undefined || effectiveThreadId !== undefined) && (
               <div className="mb-2 p-2 bg-muted/30 rounded-lg border border-border">
                 {message.sessionInfo && (
                   <p className="text-xs text-muted-foreground">
@@ -94,6 +96,11 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
                 {message.messageInfo && (
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium">Message ID:</span> {message.messageInfo.id}
+                  </p>
+                )}
+                {effectiveThreadId !== undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Thread ID:</span> {effectiveThreadId}
                   </p>
                 )}
                 {message.usedTenergy !== undefined && (

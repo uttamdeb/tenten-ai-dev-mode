@@ -39,6 +39,7 @@ interface Message {
   messageInfo?: { id: number };
   statusInfo?: { state: string };
   usedTenergy?: number;
+  threadId?: number;
 }
 
 export function ChatInterface() {
@@ -175,11 +176,7 @@ export function ChatInterface() {
               webhookRequest: msg.webhook_request,
               webhookResponse: msg.webhook_response,
             },
-            // Use API-provided ids/status if present in stored webhook_response
-            sessionInfo: (msg as any)?.webhook_response?.sessionInfo,
-            messageInfo: (msg as any)?.webhook_response?.messageInfo,
-            statusInfo: (msg as any)?.webhook_response?.statusInfo,
-            usedTenergy: (msg as any)?.webhook_response?.usedTenergy,
+            threadId: (msg as any)?.webhook_request?.thread_id ?? undefined,
             dbId: msg.id, // Store the database UUID
           });
         }
@@ -327,6 +324,7 @@ export function ChatInterface() {
       content: "",
       timestamp: new Date(),
       isStreaming: true,
+      threadId: isGitMode ? config.threadId : undefined,
     };
 
     setMessages(prev => [...prev, aiMessage]);
