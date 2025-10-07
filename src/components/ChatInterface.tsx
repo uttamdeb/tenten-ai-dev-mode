@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import tentenIcon from "@/assets/tenten-icon.png";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { BookOpen } from "lucide-react";
 
 interface ImageAttachment {
   id: string;
@@ -55,6 +57,7 @@ export function ChatInterface() {
   const [messageIdCounter, setMessageIdCounter] = useState(3001);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSubjectSheetOpen, setIsSubjectSheetOpen] = useState(false);
   
   const { config, updateConfig, isGitMode, getApiUrl, getAuthHeader } = useApiConfig();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -823,7 +826,7 @@ export function ChatInterface() {
   return (
     <div className="min-h-dvh flex bg-background">
       {/* Sidebar + Main */}
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
+      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}>
         {/* Header */}
         <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 pt-safe">
           <div className="flex items-center justify-between p-4">
@@ -848,6 +851,31 @@ export function ChatInterface() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap">
+              {/* Mobile Subject Selector (Sheet) */}
+              <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 sm:hidden"
+                    aria-label="Choose subject"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="pb-safe">
+                  <SheetHeader>
+                    <SheetTitle>Select Subject</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <SubjectSelector 
+                      selectedSubject={selectedSubject} 
+                      onSubjectChange={(s) => { setSelectedSubject(s); setIsSubjectSheetOpen(false); }}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+
               {/* New Chat: icon on mobile, text on desktop */}
               <Button
                 variant="outline"
@@ -867,15 +895,15 @@ export function ChatInterface() {
                 <Plus className="h-4 w-4" />
                 <span className="hidden md:inline">New Chat</span>
               </Button>
-              
-              {/* Subject selector hidden on very small screens to reduce clutter */}
+
+              {/* Subject selector visible on sm+ */}
               <div className="hidden sm:block">
                 <SubjectSelector 
                   selectedSubject={selectedSubject} 
                   onSubjectChange={setSelectedSubject} 
                 />
               </div>
-              
+
               {/* Settings: icon on mobile, text on desktop */}
               <Button
                 variant="secondary"
@@ -902,7 +930,7 @@ export function ChatInterface() {
         </header>
 
       {/* Messages */}
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4 px-3 sm:px-4">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-32 sm:pb-4 px-3 sm:px-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
@@ -954,7 +982,7 @@ export function ChatInterface() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sticky bottom-0 pb-safe">
+      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4 fixed bottom-0 left-0 right-0 z-20 sm:sticky sm:bottom-0 pb-safe">
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
           <div className="mb-3 max-w-4xl mx-auto">
