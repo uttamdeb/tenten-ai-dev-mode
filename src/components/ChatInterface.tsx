@@ -863,11 +863,11 @@ export function ChatInterface() {
                     <BookOpen className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="pb-safe">
+                <SheetContent side="bottom" className="pb-safe h-[85dvh] max-h-[90dvh] overflow-y-auto">
                   <SheetHeader>
                     <SheetTitle>Select Subject</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-4">
+                  <div className="mt-4 px-2">
                     <SubjectSelector 
                       selectedSubject={selectedSubject} 
                       onSubjectChange={(s) => { setSelectedSubject(s); setIsSubjectSheetOpen(false); }}
