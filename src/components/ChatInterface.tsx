@@ -200,6 +200,11 @@ export function ChatInterface() {
               webhookRequest: msg.webhook_request,
               webhookResponse: msg.webhook_response,
             },
+            // Use API-provided ids/status if present in stored webhook_response
+            sessionInfo: (msg as any)?.webhook_response?.sessionInfo,
+            messageInfo: (msg as any)?.webhook_response?.messageInfo,
+            statusInfo: (msg as any)?.webhook_response?.statusInfo,
+            usedTenergy: (msg as any)?.webhook_response?.usedTenergy,
             dbId: msg.id, // Store the database UUID
           });
         }
@@ -483,15 +488,22 @@ export function ChatInterface() {
                         // Persist API session id on the current chat session (once)
                         if (!storedApiSessionForCurrent && currentSessionId && parsedChunk.data?.id) {
                           try {
+                            // Save to api_session_id if column exists (harmless if it doesn't)
                             await supabase
                               .from('chat_sessions')
                               .update({ api_session_id: parsedChunk.data.id })
                               .eq('id', currentSessionId);
+                          } catch {}
+                          try {
+                            // Also reflect API session id in the human-visible name so it appears in Supabase and UI
+                            await supabase
+                              .from('chat_sessions')
+                              .update({ session_name: `Session ${parsedChunk.data.id}` })
+                              .eq('id', currentSessionId);
                           } catch (e) {
-                            console.warn('Failed to save api_session_id for session', e);
-                          } finally {
-                            storedApiSessionForCurrent = true;
+                            console.warn('Failed to update session_name with API session id', e);
                           }
+                          storedApiSessionForCurrent = true;
                         }
                         setMessages(prev => prev.map((msg) => 
                           msg.id === aiMessageId 
