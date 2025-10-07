@@ -130,9 +130,11 @@ export function ChatInterface() {
     // Do not create a DB session yet. We'll create it when API returns the session id.
     setCurrentSessionId(null);
     setMessages([]);
+    // Reset API session id so first message sends null unless user typed a custom value in Settings.
+    updateConfig({ ...config, sessionId: null });
     toast({
       title: "New Chat Started",
-      description: "A new chat will be saved when the server assigns a session id.",
+      description: "Start fresh with TenTen",
     });
   };
 
@@ -456,9 +458,9 @@ export function ChatInterface() {
                       case 'session':
                         sessionInfo = parsedChunk.data;
                         const apiSessId = parsedChunk.data?.id;
-                        // Update config for subsequent requests
+                        // Update config for subsequent requests only if not manually set
                         if (apiSessId && !config.sessionId) {
-                          updateConfig({ ...config, sessionId: apiSessId });
+                          updateConfig({ ...config, sessionId: String(apiSessId) });
                         }
                         // Ensure a chat_sessions row exists with the API session id as primary key
                         if (apiSessId && user) {
