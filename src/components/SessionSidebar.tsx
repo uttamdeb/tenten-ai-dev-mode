@@ -90,40 +90,40 @@ export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSe
   }
 
   return (
-    <div className="fixed left-0 top-0 h-full w-80 bg-background border-r z-40 flex flex-col">
-      <div className="p-4 border-b flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Recent Sessions</h2>
+    <div className="fixed left-0 top-0 h-full w-64 md:w-80 bg-background border-r z-40 flex flex-col">
+      <div className="p-3 md:p-4 border-b flex items-center justify-between">
+        <h2 className="text-base md:text-lg font-semibold">Recent Sessions</h2>
         <Button variant="ghost" size="icon" onClick={onToggle}>
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
         </Button>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2">
+        <div className="p-1.5 md:p-2">
           {loading ? (
-            <div className="text-center text-muted-foreground py-8">Loading sessions...</div>
+            <div className="text-center text-sm md:text-base text-muted-foreground py-6 md:py-8">Loading...</div>
           ) : sessions.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">No sessions yet</div>
+            <div className="text-center text-sm md:text-base text-muted-foreground py-6 md:py-8">No sessions yet</div>
           ) : (
             sessions.map((session) => (
               <button
                 key={session.id}
                 onClick={() => onSessionSelect(session.id)}
-                className={`w-full p-3 rounded-lg text-left hover:bg-accent transition-colors mb-2 ${
+                className={`w-full p-2 md:p-3 rounded-lg text-left hover:bg-accent transition-colors mb-1.5 md:mb-2 ${
                   currentSessionId === session.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <MessageCircle className="h-5 w-5 mt-1 flex-shrink-0" />
+                <div className="flex items-start gap-2 md:gap-3">
+                  <MessageCircle className="h-4 w-4 md:h-5 md:w-5 mt-0.5 md:mt-1 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">
+                    <h3 className="text-sm md:text-base font-medium truncate">
                       {session.session_name || generateSessionName(session.id)}
                     </h3>
-                    <p className="text-sm opacity-70 mt-1">
+                    <p className="text-xs md:text-sm opacity-70 mt-0.5 md:mt-1">
                       {formatTimeAgo(session.created_at)}
                     </p>
                   </div>
-                  <div className="text-xs opacity-60 flex-shrink-0">
+                  <div className="text-[10px] md:text-xs opacity-60 flex-shrink-0">
                     {session.message_count}
                   </div>
                 </div>
