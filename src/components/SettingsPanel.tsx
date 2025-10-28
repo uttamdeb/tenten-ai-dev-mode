@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { EvaluationMode } from "./EvaluationMode";
 
 export type ApiMode = "n8n" | "remote-git" | "local-git";
 
@@ -38,6 +39,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
 
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
+  const [isEvalMode, setIsEvalMode] = useState(false);
 
   const handleSave = () => {
     onConfigChange(config);
@@ -52,7 +54,20 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
     setConfig(prev => ({ ...prev, ...updates }));
   };
 
+  const handleBackFromEval = () => {
+    setIsEvalMode(false);
+  };
+
   if (!isOpen) return null;
+
+  // Show Evaluation Mode if activated
+  if (isEvalMode) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <EvaluationMode onBack={handleBackFromEval} />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -253,9 +268,18 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
 
           {/* Action Buttons */}
           <div className="flex justify-between">
-            <Button variant="outline" onClick={handleReset}>
-              Reset to Defaults
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleReset}>
+                Reset to Defaults
+              </Button>
+              <Button 
+                variant="default"
+                onClick={() => setIsEvalMode(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Enter Eval Mode
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>
                 Cancel
