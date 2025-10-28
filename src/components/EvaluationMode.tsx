@@ -76,7 +76,7 @@ const getEndpointUrl = (mode: EndpointMode): string => {
     case "prod":
       return "https://api.10minuteschool.com/tenten-ai-service/api/v1/evaluations/run";
     case "stage":
-      return "https://api.10minuteschool.com/tenten-ai-service/api/v1/evaluations/run";
+      return "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/evaluations/run";
     case "local":
       return "http://localhost:8000/api/v1/evaluations/run";
   }
