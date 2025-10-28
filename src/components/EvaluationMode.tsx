@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { ExternalLink, PlayCircle, FlaskConical } from "lucide-react";
+import { ExternalLink, PlayCircle, FlaskConical, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -188,6 +188,9 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
               Your evaluation has been queued and is being processed
             </CardDescription>
           </div>
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <X className="h-4 w-4" />
+          </Button>
         </CardHeader>
         
         <CardContent className="space-y-6">
@@ -281,6 +284,9 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
             Configure and run TenTen AI evaluation experiments
           </CardDescription>
         </div>
+        <Button variant="ghost" size="icon" onClick={onBack}>
+          <X className="h-4 w-4" />
+        </Button>
       </CardHeader>
       
       <CardContent className="space-y-6">
