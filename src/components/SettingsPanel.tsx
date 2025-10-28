@@ -10,13 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EvaluationMode } from "./EvaluationMode";
 
-export type ApiMode = "n8n" | "remote-git" | "local-git";
+export type ApiMode = "n8n" | "prod-git" | "remote-git" | "local-git";
 
 export interface ApiConfiguration {
   mode: ApiMode;
   authorizationToken: string;
   sessionId: string | null;
   threadId: number;
+  prodGitUrl: string;
   remoteGitUrl: string;
   localGitUrl: string;
 }
@@ -33,6 +34,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   authorizationToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzN2I1ZWQ0NmE2MzYzODU3MzNlZjJiZCIsImlzX2FkbWluIjpmYWxzZSwiY29udGFjdCI6IiIsImVtYWlsIjoiYWRtaW5AMTBtcy5jb20iLCJsb2dpbl90eXBlIjoiZW1haWwiLCJsb2dpbl9zb3VyY2UiOiIxMG1pbnNjaG9vbCIsImxvZ2luX3RhcmdldCI6IiIsImxvZ2luX2FzIjowLCJuYW1lIjoiYWRtaW5AMTBtcy5jb20iLCJpc19hY3RpdmUiOmZhbHNlLCJ2ZXJpZmllZCI6dHJ1ZSwiZGV2aWNlX2lkIjoiNjkwMGNiN2EzMWY3ZGIyYzY2ZDZkMGQ1IiwiZGV2aWNlIjp7ImRldmljZV9pZCI6IjY5MDBjYjdhMzFmN2RiMmM2NmQ2ZDBkNSIsIm1hY19pZCI6IiIsImRldmljZV9uYW1lIjoiQ2hyb21lIDEzOS4wLjAuMCIsImRldmljZV90eXBlIjoiYnJvd3NlciIsImRldmljZV9vcyI6IkludGVsIE1hYyBPUyBYIDEwXzE1XzciLCJwbGF0Zm9ybSI6IndlYiIsIm9yaWdpbiI6Imh0dHBzOi8vbG9jYWwuMTBtaW51dGVzY2hvb2wubmV0IiwiaXBfYWRkcmVzcyI6IjExOC4xNzkuNDYuMzMifSwidXNlcl9zdGF0dXMiOiIiLCJkYXRlX2pvaW5lZCI6IjIwMjItMTEtMjFUMTE6MTk6NDguMjUzWiIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJleHAiOjE3NjIyNjQ1NzB9.wf5F6XZ5b5cSWCNDV2nXwlTT9Kot_1mJECMAPXc-PHs",
   sessionId: null,
   threadId: 7,
+  prodGitUrl: "https://api.10minuteschool.com/tenten-ai-service/api/v1/messages",
   remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
   localGitUrl: "http://localhost:8000/api/v1/messages"
 };
@@ -116,6 +118,27 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               <div 
                 className={cn(
                   "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  config.mode === "prod-git" 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border hover:border-primary/50"
+                )}
+                onClick={() => updateConfig({ mode: "prod-git" })}
+              >
+                <div className="flex items-center gap-3">
+                  <GitBranch className="h-5 w-5 text-purple-500" />
+                  <div>
+                    <div className="font-medium">Connect to Prod TenTen Git</div>
+                    <div className="text-sm text-muted-foreground">FastAPI service on production</div>
+                  </div>
+                </div>
+                <Badge variant={config.mode === "prod-git" ? "default" : "outline"}>
+                  Prod
+                </Badge>
+              </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
                   config.mode === "remote-git" 
                     ? "border-primary bg-primary/5" 
                     : "border-border hover:border-primary/50"
@@ -160,7 +183,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
           <Separator />
 
           {/* Configuration for Git modes */}
-          {(config.mode === "remote-git" || config.mode === "local-git") && (
+          {(config.mode === "prod-git" || config.mode === "remote-git" || config.mode === "local-git") && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4" />
@@ -219,9 +242,17 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               <div className="space-y-2">
                 <Label>API Endpoint</Label>
                 <Input
-                  value={config.mode === "remote-git" ? config.remoteGitUrl : config.localGitUrl}
+                  value={
+                    config.mode === "prod-git" 
+                      ? config.prodGitUrl 
+                      : config.mode === "remote-git" 
+                      ? config.remoteGitUrl 
+                      : config.localGitUrl
+                  }
                   onChange={(e) => {
-                    if (config.mode === "remote-git") {
+                    if (config.mode === "prod-git") {
+                      updateConfig({ prodGitUrl: e.target.value });
+                    } else if (config.mode === "remote-git") {
                       updateConfig({ remoteGitUrl: e.target.value });
                     } else {
                       updateConfig({ localGitUrl: e.target.value });
@@ -233,7 +264,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 {config.mode === "remote-git" && (
                   <div className="space-y-1">
                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                      ⚠️ HTTPS is required when accessing from HTTPS pages (like lovable.app)
+                      ⚠️ HTTPS is required when accessing from HTTPS pages
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -254,6 +285,11 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                       </Button>
                     </div>
                   </div>
+                )}
+                {config.mode === "prod-git" && (
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    ✅ Production endpoint (HTTPS required)
+                  </p>
                 )}
                 {config.mode === "local-git" && (
                   <p className="text-xs text-blue-600 dark:text-blue-400">
