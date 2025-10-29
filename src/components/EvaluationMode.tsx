@@ -158,7 +158,6 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
 
       const response = await fetch(config.customEndpoint, {
         method: 'POST',
-        mode: 'cors',  // Explicitly set CORS mode
         headers: {
           'Content-Type': 'application/json',
           'X-Tenms-Service-Key': config.serviceKey
@@ -357,24 +356,6 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
             className="font-mono text-sm"
             placeholder="Enter API endpoint URL"
           />
-          {config.endpointMode === "local" && (
-            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
-              <p className="text-xs text-amber-900 dark:text-amber-100 font-medium">
-                ⚠️ CORS Required for Local Development
-              </p>
-              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                If you get "Failed to fetch" errors, add CORS middleware to your FastAPI backend:
-              </p>
-              <pre className="text-xs mt-2 bg-amber-100 dark:bg-amber-900 p-2 rounded overflow-x-auto">
-{`app.add_middleware(
-  CORSMiddleware,
-  allow_origins=["*"],
-  allow_methods=["*"],
-  allow_headers=["*"]
-)`}
-              </pre>
-            </div>
-          )}
         </div>
 
         <Separator />
