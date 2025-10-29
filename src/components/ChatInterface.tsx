@@ -184,8 +184,9 @@ export function ChatInterface() {
       const newToken = data?.data?.token?.access_token;
 
       if (newToken) {
-        // Update the authorization token in config
-        updateConfig({ ...config, authorizationToken: newToken, sessionId: null });
+        // Update the authorization token in config - this will persist to localStorage
+        const updatedConfig = { ...config, authorizationToken: newToken };
+        updateConfig(updatedConfig);
         console.log('Authorization token refreshed successfully');
       } else {
         console.warn('No access token found in response');
@@ -208,7 +209,8 @@ export function ChatInterface() {
     setCurrentSessionId(null);
     setMessages([]);
     // Reset API session id (but keep the refreshed auth token)
-    updateConfig({ ...config, sessionId: null });
+    const updatedConfig = { ...config, sessionId: null };
+    updateConfig(updatedConfig);
     toast({
       title: "New Chat Started",
       description: "Start fresh with TenTen",
