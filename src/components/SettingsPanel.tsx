@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings, GitBranch, Server, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,11 @@ const DEFAULT_CONFIG: ApiConfiguration = {
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
   const [isEvalMode, setIsEvalMode] = useState(false);
+
+  // Sync local state when currentConfig prop changes (e.g., after token refresh)
+  useEffect(() => {
+    setConfig(currentConfig);
+  }, [currentConfig]);
 
   const handleSave = () => {
     onConfigChange(config);
