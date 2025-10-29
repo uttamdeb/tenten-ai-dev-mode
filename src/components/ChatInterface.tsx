@@ -528,9 +528,11 @@ export function ChatInterface() {
                       case 'message':
                         if (parsedChunk.data?.delta) {
                           aiResponse += parsedChunk.data.delta;
+                          // Clean leading zeros and numbers
+                          let cleanedResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
                           setMessages(prev => prev.map(msg => 
                             msg.id === aiMessageId 
-                              ? { ...msg, content: aiResponse, isStreaming: true }
+                              ? { ...msg, content: cleanedResponse, isStreaming: true }
                               : msg
                           ));
                         }
@@ -572,10 +574,13 @@ export function ChatInterface() {
                         aiResponse += chunkContent;
                       }
                       
-                      // Update UI in real-time
+                      // Clean leading zeros and numbers from the accumulated response
+                      let cleanedResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
+                      
+                      // Update UI in real-time with cleaned response
                       setMessages(prev => prev.map(msg => 
                         msg.id === aiMessageId 
-                          ? { ...msg, content: aiResponse, isStreaming: true }
+                          ? { ...msg, content: cleanedResponse, isStreaming: true }
                           : msg
                       ));
                     }
