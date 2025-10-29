@@ -151,6 +151,11 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
         use_agent: config.useAgent
       };
 
+      console.log('Sending evaluation request:', {
+        endpoint: config.customEndpoint,
+        payload
+      });
+
       const response = await fetch(config.customEndpoint, {
         method: 'POST',
         headers: {
@@ -160,15 +165,26 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
         body: JSON.stringify(payload)
       });
 
+      console.log('Response status:', response.status);
+      
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (response.ok) {
         setResult(data);
       } else {
-        setError(data.message || 'Failed to initiate evaluation');
+        setError(data.message || `Failed to initiate evaluation (Status: ${response.status})`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Evaluation request error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      
+      // Provide more helpful error messages
+      if (errorMessage.includes('Failed to fetch')) {
+        setError(`Network error: Cannot connect to ${config.customEndpoint}. Please check:\n1. The service is running\n2. CORS is enabled on the server\n3. The endpoint URL is correct`);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -456,7 +472,7 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
         {/* Error Display */}
         {error && (
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-900 dark:text-red-100">{error}</p>
+            <p className="text-sm text-red-900 dark:text-red-100 whitespace-pre-line">{error}</p>
           </div>
         )}
 
