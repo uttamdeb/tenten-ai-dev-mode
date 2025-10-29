@@ -8,14 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { EvaluationMode } from "./EvaluationMode";
 
-export type ApiMode = "n8n" | "remote-git" | "local-git";
+export type ApiMode = "n8n" | "prod-git" | "remote-git" | "local-git";
 
 export interface ApiConfiguration {
   mode: ApiMode;
   authorizationToken: string;
   sessionId: string | null;
   threadId: number;
+  prodGitUrl: string;
   remoteGitUrl: string;
   localGitUrl: string;
 }
@@ -29,15 +31,17 @@ interface SettingsPanelProps {
 
 const DEFAULT_CONFIG: ApiConfiguration = {
   mode: "remote-git",
-  authorizationToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzN2I1ZWQ0NmE2MzYzODU3MzNlZjJiZCIsImlzX2FkbWluIjpmYWxzZSwiY29udGFjdCI6IiIsImVtYWlsIjoiYWRtaW5AMTBtcy5jb20iLCJsb2dpbl90eXBlIjoiZW1haWwiLCJsb2dpbl9zb3VyY2UiOiIxMG1pbnNjaG9vbCIsImxvZ2luX3RhcmdldCI6IiIsImxvZ2luX2FzIjowLCJuYW1lIjoiYWRtaW5AMTBtcy5jb20iLCJpc19hY3RpdmUiOmZhbHNlLCJ2ZXJpZmllZCI6dHJ1ZSwiZGV2aWNlX2lkIjoiNjhmYzZkZTRlZWEwYjUxNDViOTkwYjAzIiwiZGV2aWNlIjp7ImRldmljZV9pZCI6IjY4ZmM2ZGU0ZWVhMGI1MTQ1Yjk5MGIwMyIsIm1hY19pZCI6IiIsImRldmljZV9uYW1lIjoiQ2hyb21lIDEzOS4wLjAuMCIsImRldmljZV90eXBlIjoiYnJvd3NlciIsImRldmljZV9vcyI6IkludGVsIE1hYyBPUyBYIDEwXzE1XzciLCJwbGF0Zm9ybSI6IndlYiIsIm9yaWdpbiI6Imh0dHBzOi8vbG9jYWwuMTBtaW51dGVzY2hvb2wubmV0IiwiaXBfYWRkcmVzcyI6IjExOC4xNzkuNDYuMzMifSwidXNlcl9zdGF0dXMiOiIiLCJkYXRlX2pvaW5lZCI6IjIwMjItMTEtMjFUMTE6MTk6NDguMjUzWiIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJleHAiOjE3NjE5Nzg0Njh9.2wMTu3OpXsWAQPeZLLT9uPVmlw7qvEVwTqepT4mPI9M",
+  authorizationToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzN2I1ZWQ0NmE2MzYzODU3MzNlZjJiZCIsImlzX2FkbWluIjpmYWxzZSwiY29udGFjdCI6IiIsImVtYWlsIjoiYWRtaW5AMTBtcy5jb20iLCJsb2dpbl90eXBlIjoiZW1haWwiLCJsb2dpbl9zb3VyY2UiOiIxMG1pbnNjaG9vbCIsImxvZ2luX3RhcmdldCI6IiIsImxvZ2luX2FzIjowLCJuYW1lIjoiYWRtaW5AMTBtcy5jb20iLCJpc19hY3RpdmUiOmZhbHNlLCJ2ZXJpZmllZCI6dHJ1ZSwiZGV2aWNlX2lkIjoiNjkwMWFhZGIzMWY3ZGIyYzY2ZDZkMGUyIiwiZGV2aWNlIjp7ImRldmljZV9pZCI6IjY5MDFhYWRiMzFmN2RiMmM2NmQ2ZDBlMiIsIm1hY19pZCI6IiIsImRldmljZV9uYW1lIjoiQ2hyb21lIDEzOS4wLjAuMCIsImRldmljZV90eXBlIjoiYnJvd3NlciIsImRldmljZV9vcyI6IkludGVsIE1hYyBPUyBYIDEwXzE1XzciLCJwbGF0Zm9ybSI6IndlYiIsIm9yaWdpbiI6Imh0dHBzOi8vbG9jYWwuMTBtaW51dGVzY2hvb2wubmV0IiwiaXBfYWRkcmVzcyI6IjE2MC4zMC4xODkuMjAyIn0sInVzZXJfc3RhdHVzIjoiIiwiZGF0ZV9qb2luZWQiOiIyMDIyLTExLTIxVDExOjE5OjQ4LjI1M1oiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYyMzIxNzU1fQ.PxcvwpSE53wq24WyXbPR7HflnXdSYL3LX42H0i-7lPE",
   sessionId: null,
   threadId: 7,
+  prodGitUrl: "https://api.10minuteschool.com/tenten-ai-service/api/v1/messages",
   remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
   localGitUrl: "http://localhost:8000/api/v1/messages"
 };
 
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
+  const [isEvalMode, setIsEvalMode] = useState(false);
 
   const handleSave = () => {
     onConfigChange(config);
@@ -52,7 +56,20 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
     setConfig(prev => ({ ...prev, ...updates }));
   };
 
+  const handleBackFromEval = () => {
+    setIsEvalMode(false);
+  };
+
   if (!isOpen) return null;
+
+  // Show Evaluation Mode if activated
+  if (isEvalMode) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <EvaluationMode onBack={handleBackFromEval} />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -95,6 +112,27 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
                 <Badge variant={config.mode === "n8n" ? "default" : "outline"}>
                   N8N
+                </Badge>
+              </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  config.mode === "prod-git" 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border hover:border-primary/50"
+                )}
+                onClick={() => updateConfig({ mode: "prod-git" })}
+              >
+                <div className="flex items-center gap-3">
+                  <GitBranch className="h-5 w-5 text-purple-500" />
+                  <div>
+                    <div className="font-medium">Connect to Prod TenTen Git</div>
+                    <div className="text-sm text-muted-foreground">FastAPI service on production</div>
+                  </div>
+                </div>
+                <Badge variant={config.mode === "prod-git" ? "default" : "outline"}>
+                  Prod
                 </Badge>
               </div>
 
@@ -145,7 +183,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
           <Separator />
 
           {/* Configuration for Git modes */}
-          {(config.mode === "remote-git" || config.mode === "local-git") && (
+          {(config.mode === "prod-git" || config.mode === "remote-git" || config.mode === "local-git") && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4" />
@@ -204,9 +242,17 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               <div className="space-y-2">
                 <Label>API Endpoint</Label>
                 <Input
-                  value={config.mode === "remote-git" ? config.remoteGitUrl : config.localGitUrl}
+                  value={
+                    config.mode === "prod-git" 
+                      ? config.prodGitUrl 
+                      : config.mode === "remote-git" 
+                      ? config.remoteGitUrl 
+                      : config.localGitUrl
+                  }
                   onChange={(e) => {
-                    if (config.mode === "remote-git") {
+                    if (config.mode === "prod-git") {
+                      updateConfig({ prodGitUrl: e.target.value });
+                    } else if (config.mode === "remote-git") {
                       updateConfig({ remoteGitUrl: e.target.value });
                     } else {
                       updateConfig({ localGitUrl: e.target.value });
@@ -218,7 +264,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 {config.mode === "remote-git" && (
                   <div className="space-y-1">
                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                      ⚠️ HTTPS is required when accessing from HTTPS pages (like lovable.app)
+                      ⚠️ HTTPS is required when accessing from HTTPS pages
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -240,6 +286,11 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     </div>
                   </div>
                 )}
+                {config.mode === "prod-git" && (
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    ✅ Production endpoint (HTTPS required)
+                  </p>
+                )}
                 {config.mode === "local-git" && (
                   <p className="text-xs text-blue-600 dark:text-blue-400">
                     ℹ️ Local development endpoint (HTTP allowed for localhost)
@@ -253,9 +304,18 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
 
           {/* Action Buttons */}
           <div className="flex justify-between">
-            <Button variant="outline" onClick={handleReset}>
-              Reset to Defaults
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleReset}>
+                Reset to Defaults
+              </Button>
+              <Button 
+                variant="default"
+                onClick={() => setIsEvalMode(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Enter Eval Mode
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>
                 Cancel
