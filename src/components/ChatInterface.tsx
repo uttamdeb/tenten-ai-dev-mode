@@ -140,13 +140,74 @@ export function ChatInterface() {
     await loadSessionMessages(sessionId);
   };
 
+  const refreshAuthToken = async () => {
+    try {
+      let loginUrl = '';
+      let credentials = {};
+
+      // Determine which endpoint and credentials to use based on mode
+      if (config.mode === 'prod-git') {
+        // Prod mode - use prod endpoint and prod credentials
+        loginUrl = 'https://api.10minuteschool.com/auth/v1/login';
+        credentials = {
+          username: "+8801521326202",
+          loginType: "phone",
+          password: "123456"
+        };
+      } else if (config.mode === 'remote-git' || config.mode === 'local-git') {
+        // Remote or Local mode - use stage endpoint and stage credentials
+        loginUrl = 'https://local-api.10minuteschool.net/auth/v1/login';
+        credentials = {
+          username: "admin@10ms.com",
+          loginType: "email",
+          password: "#11111111"
+        };
+      } else {
+        // N8N mode doesn't need token refresh
+        return;
+      }
+
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json, text/plain, */*',
+        },
+        body: JSON.stringify(credentials)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Token refresh failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const newToken = data?.data?.token?.access_token;
+
+      if (newToken) {
+        // Update the authorization token in config
+        updateConfig({ ...config, authorizationToken: newToken, sessionId: null });
+        console.log('Authorization token refreshed successfully');
+      } else {
+        console.warn('No access token found in response');
+      }
+    } catch (error) {
+      console.error('Error refreshing auth token:', error);
+      // Don't show error to user, just log it
+    }
+  };
+
   const handleNewChat = async () => {
     if (!user) return;
+
+    // Refresh auth token for git modes
+    if (config.mode === 'prod-git' || config.mode === 'remote-git' || config.mode === 'local-git') {
+      await refreshAuthToken();
+    }
 
     // Do not create a DB session yet. We'll create it when API returns the session id.
     setCurrentSessionId(null);
     setMessages([]);
-    // Reset API session id so first message sends null unless user typed a custom value in Settings.
+    // Reset API session id (but keep the refreshed auth token)
     updateConfig({ ...config, sessionId: null });
     toast({
       title: "New Chat Started",
