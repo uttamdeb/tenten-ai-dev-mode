@@ -543,7 +543,8 @@ export function ChatInterface() {
                   if (isGitMode && parsedChunk.event) {
                     switch (parsedChunk.event) {
                       case 'session': {
-                        sessionInfo = parsedChunk.data;
+                        // Merge session data instead of replacing to preserve id when title comes later
+                        sessionInfo = sessionInfo ? { ...sessionInfo, ...parsedChunk.data } : parsedChunk.data;
                         const apiSessId = parsedChunk.data?.id;
                         const sessionTitle = parsedChunk.data?.title;
                         
