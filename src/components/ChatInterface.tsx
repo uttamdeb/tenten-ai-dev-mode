@@ -558,18 +558,28 @@ export function ChatInterface() {
                           
                           setCurrentSessionId(apiSessId);
                           
-                          // Create initial session row with timestamp-based name
+                          // Create initial session row with timestamp-based name ONLY if it doesn't exist
                           if (user) {
                             try {
-                              await supabase
+                              // First check if session already exists
+                              const { data: existingSession } = await supabase
                                 .from('chat_sessions')
-                                .upsert([
-                                  {
-                                    id: apiSessId,
-                                    user_id: user.id,
-                                    session_name: `Session ${new Date().toLocaleString()}`,
-                                  },
-                                ], { onConflict: 'id' as any });
+                                .select('id')
+                                .eq('id', apiSessId)
+                                .single();
+                              
+                              // Only insert if session doesn't exist
+                              if (!existingSession) {
+                                await supabase
+                                  .from('chat_sessions')
+                                  .insert([
+                                    {
+                                      id: apiSessId,
+                                      user_id: user.id,
+                                      session_name: `Session ${new Date().toLocaleString()}`,
+                                    },
+                                  ]);
+                              }
                             } catch (e) {
                               console.warn('Failed to create chat_sessions with API id', e);
                             }
