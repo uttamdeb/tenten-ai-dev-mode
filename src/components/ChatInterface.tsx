@@ -501,6 +501,7 @@ export function ChatInterface() {
       let statusInfo: { state: string } | undefined;
       let usedTenergy: number | undefined;
       let storedApiSessionForCurrent = false;
+      let currentStreamSessionId: number | null = null; // Track session ID across multiple session events
 
       if (response.body) {
         console.log("Processing streaming response...");
@@ -546,41 +547,52 @@ export function ChatInterface() {
                         const apiSessId = parsedChunk.data?.id;
                         const sessionTitle = parsedChunk.data?.title;
                         
-                        // Update config for subsequent requests only if not manually set
-                        if (apiSessId && !config.sessionId) {
-                          updateConfig({ ...config, sessionId: String(apiSessId) });
-                        }
-                        
-                        // Ensure a chat_sessions row exists with the API session id as primary key
-                        if (apiSessId && user) {
-                          try {
-                            const sessionData: any = {
-                              id: apiSessId,
-                              user_id: user.id,
-                            };
-                            
-                            // Use title if provided, otherwise use timestamp-based name
-                            if (sessionTitle) {
-                              sessionData.session_name = sessionTitle;
-                            } else if (!sessionInfo || !sessionTitle) {
-                              // Only set default name on first session event (when no title yet)
-                              sessionData.session_name = `Session ${new Date().toLocaleString()}`;
+                        // Track session ID from first session event
+                        if (apiSessId) {
+                          currentStreamSessionId = apiSessId;
+                          
+                          // Update config for subsequent requests only if not manually set
+                          if (!config.sessionId) {
+                            updateConfig({ ...config, sessionId: String(apiSessId) });
+                          }
+                          
+                          setCurrentSessionId(apiSessId);
+                          
+                          // Create initial session row with timestamp-based name
+                          if (user) {
+                            try {
+                              await supabase
+                                .from('chat_sessions')
+                                .upsert([
+                                  {
+                                    id: apiSessId,
+                                    user_id: user.id,
+                                    session_name: `Session ${new Date().toLocaleString()}`,
+                                  },
+                                ], { onConflict: 'id' as any });
+                            } catch (e) {
+                              console.warn('Failed to create chat_sessions with API id', e);
                             }
-                            
-                            await supabase
-                              .from('chat_sessions')
-                              .upsert([sessionData], { onConflict: 'id' as any });
-                            
-                            // If we got a title, refresh the sessions list in sidebar
-                            if (sessionTitle) {
-                              setSessionRefreshTrigger(prev => prev + 1);
-                            }
-                          } catch (e) {
-                            console.warn('Failed to upsert chat_sessions with API id', e);
                           }
                         }
                         
-                        setCurrentSessionId(apiSessId ?? null);
+                        // Handle title update (can come in a separate session event)
+                        if (sessionTitle && currentStreamSessionId && user) {
+                          try {
+                            console.log('Updating session title:', sessionTitle, 'for session:', currentStreamSessionId);
+                            await supabase
+                              .from('chat_sessions')
+                              .update({ session_name: sessionTitle })
+                              .eq('id', currentStreamSessionId)
+                              .eq('user_id', user.id);
+                            
+                            // Refresh the sessions list in sidebar
+                            setSessionRefreshTrigger(prev => prev + 1);
+                          } catch (e) {
+                            console.warn('Failed to update session title', e);
+                          }
+                        }
+                        
                         setMessages(prev => prev.map((msg) => 
                           msg.id === aiMessageId 
                             ? { ...msg, sessionInfo, isStreaming: true }
