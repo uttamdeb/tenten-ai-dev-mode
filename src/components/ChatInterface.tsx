@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "./ChatMessage";
 import { SubjectSelector, Subject } from "./SubjectSelector";
-import { SessionSidebar } from "./SessionSidebar";
+import { SessionSidebar, SessionSidebarHandle } from "./SessionSidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 import { SettingsPanel, ApiConfiguration } from "./SettingsPanel";
@@ -59,6 +59,7 @@ export function ChatInterface() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSubjectSheetOpen, setIsSubjectSheetOpen] = useState(false);
+  const [sessionRefreshTrigger, setSessionRefreshTrigger] = useState(0);
   
   const { config, updateConfig, isGitMode, getApiUrl, getAuthHeader } = useApiConfig();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -81,6 +82,15 @@ export function ChatInterface() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
   const isMobile = vw < 640;
+
+  // Handler to refresh sessions list in sidebar
+  const sessionSidebarRef = useRef<SessionSidebarHandle>(null);
+  
+  useEffect(() => {
+    if (sessionSidebarRef.current?.refresh) {
+      sessionSidebarRef.current.refresh();
+    }
+  }, [sessionRefreshTrigger]);
 
   // Sync profile from hook into local state for existing usage
   useEffect(() => {
@@ -534,26 +544,42 @@ export function ChatInterface() {
                       case 'session': {
                         sessionInfo = parsedChunk.data;
                         const apiSessId = parsedChunk.data?.id;
+                        const sessionTitle = parsedChunk.data?.title;
+                        
                         // Update config for subsequent requests only if not manually set
                         if (apiSessId && !config.sessionId) {
                           updateConfig({ ...config, sessionId: String(apiSessId) });
                         }
+                        
                         // Ensure a chat_sessions row exists with the API session id as primary key
                         if (apiSessId && user) {
                           try {
+                            const sessionData: any = {
+                              id: apiSessId,
+                              user_id: user.id,
+                            };
+                            
+                            // Use title if provided, otherwise use timestamp-based name
+                            if (sessionTitle) {
+                              sessionData.session_name = sessionTitle;
+                            } else if (!sessionInfo || !sessionTitle) {
+                              // Only set default name on first session event (when no title yet)
+                              sessionData.session_name = `Session ${new Date().toLocaleString()}`;
+                            }
+                            
                             await supabase
                               .from('chat_sessions')
-                              .upsert([
-                                {
-                                  id: apiSessId,
-                                  user_id: user.id,
-                                  session_name: `Session ${new Date().toLocaleString()}`,
-                                },
-                              ], { onConflict: 'id' as any });
+                              .upsert([sessionData], { onConflict: 'id' as any });
+                            
+                            // If we got a title, refresh the sessions list in sidebar
+                            if (sessionTitle) {
+                              setSessionRefreshTrigger(prev => prev + 1);
+                            }
                           } catch (e) {
                             console.warn('Failed to upsert chat_sessions with API id', e);
                           }
                         }
+                        
                         setCurrentSessionId(apiSessId ?? null);
                         setMessages(prev => prev.map((msg) => 
                           msg.id === aiMessageId 
@@ -933,6 +959,7 @@ export function ChatInterface() {
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <SessionSidebar 
+                ref={sessionSidebarRef}
                 isOpen={isSidebarOpen}
                 onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
                 currentSessionId={currentSessionId}

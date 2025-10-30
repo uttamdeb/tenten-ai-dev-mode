@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { createPortal } from "react-dom";
 import { MessageCircle, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,12 @@ interface SessionSidebarProps {
   onSessionSelect: (sessionId: number) => void;
 }
 
-export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSelect }: SessionSidebarProps) => {
+export interface SessionSidebarHandle {
+  refresh: () => void;
+}
+
+export const SessionSidebar = forwardRef<SessionSidebarHandle, SessionSidebarProps>(
+  ({ isOpen, onToggle, currentSessionId, onSessionSelect }, ref) => {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +35,11 @@ export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSe
       fetchSessions();
     }
   }, [user]);
+
+  // Expose refresh method to parent component
+  useImperativeHandle(ref, () => ({
+    refresh: fetchSessions
+  }));
 
   const fetchSessions = async () => {
     if (!user) return;
@@ -137,4 +147,4 @@ export const SessionSidebar = ({ isOpen, onToggle, currentSessionId, onSessionSe
     </div>,
     document.body
   );
-};
+});
