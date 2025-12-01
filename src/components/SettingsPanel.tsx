@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getThreadOptions, getLabelFromThreadId } from "@/utils/threadMapping";
 
 export type ApiMode = "n8n" | "tenten-git" | "tenten-video";
 export type GitEndpoint = "prod" | "stage" | "local";
@@ -121,6 +122,8 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
           <div className="space-y-3">
             <Label className="text-base font-medium">API Mode</Label>
             <div className="grid grid-cols-1 gap-3">
+              {/* N8N Webhook - Hidden but kept for easy restoration */}
+              {/* To restore N8N: Uncomment this block
               <div 
                 className={cn(
                   "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
@@ -141,6 +144,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   N8N
                 </Badge>
               </div>
+              */}
 
               <div 
                 className={cn(
@@ -226,7 +230,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined })}
+                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined, threadId: 1 })}
                   >
                     <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
                       Prod
@@ -239,7 +243,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined })}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, threadId: 7 })}
                   >
                     <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
                       Stage
@@ -252,7 +256,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined })}
+                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined, threadId: 7 })}
                   >
                     <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
                       Local
@@ -310,17 +314,37 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               {/* Thread ID */}
               <div className="space-y-2">
                 <Label htmlFor="thread-id">Thread ID</Label>
-                <Input
-                  id="thread-id"
-                  type="number"
-                  placeholder="7"
-                  value={config.threadId}
-                  onChange={(e) => updateConfig({ 
-                    threadId: parseInt(e.target.value) || 7 
-                  })}
-                />
+                <div className="flex gap-2">
+                  <Select
+                    value={config.threadId.toString()}
+                    onValueChange={(value) => updateConfig({ threadId: parseInt(value) })}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue>
+                        {getLabelFromThreadId(config.threadId, config.gitEndpoint) || config.threadId} (ID: {config.threadId})
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getThreadOptions(config.gitEndpoint).map((option) => (
+                        <SelectItem key={option.id} value={option.id.toString()}>
+                          {option.label} (ID: {option.id})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="thread-id"
+                    type="number"
+                    placeholder="Custom"
+                    value={config.threadId}
+                    onChange={(e) => updateConfig({ 
+                      threadId: parseInt(e.target.value) || 1 
+                    })}
+                    className="w-24"
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Thread identifier for conversation context. Defaults to 1. For stage env, use 1 for Math, 2 for Chemistry, 4 for Biology, 7 for Physics.
+                  Select a subject or enter a custom thread ID. Changes sync with subject selector.
                 </p>
               </div>
             </div>
@@ -345,7 +369,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined })}
+                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined, threadId: 1 })}
                   >
                     <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
                       Prod
@@ -358,7 +382,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined })}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, threadId: 7 })}
                   >
                     <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
                       Stage
@@ -371,7 +395,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined })}
+                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined, threadId: 7 })}
                   >
                     <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
                       Local
@@ -429,17 +453,37 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               {/* Thread ID */}
               <div className="space-y-2">
                 <Label htmlFor="video-thread-id">Thread ID</Label>
-                <Input
-                  id="video-thread-id"
-                  type="number"
-                  placeholder="1"
-                  value={config.threadId}
-                  onChange={(e) => updateConfig({ 
-                    threadId: parseInt(e.target.value) || 1 
-                  })}
-                />
+                <div className="flex gap-2">
+                  <Select
+                    value={config.threadId.toString()}
+                    onValueChange={(value) => updateConfig({ threadId: parseInt(value) })}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue>
+                        {getLabelFromThreadId(config.threadId, config.gitEndpoint) || config.threadId} (ID: {config.threadId})
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getThreadOptions(config.gitEndpoint).map((option) => (
+                        <SelectItem key={option.id} value={option.id.toString()}>
+                          {option.label} (ID: {option.id})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="video-thread-id"
+                    type="number"
+                    placeholder="Custom"
+                    value={config.threadId}
+                    onChange={(e) => updateConfig({ 
+                      threadId: parseInt(e.target.value) || 1 
+                    })}
+                    className="w-24"
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Thread identifier for conversation context.
+                  Select a subject or enter a custom thread ID. Changes sync with subject selector.
                 </p>
               </div>
 

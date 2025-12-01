@@ -24,7 +24,7 @@ export interface Subject {
 const subjects: Subject[] = [
   {
     value: "mathematics",
-    label: "Mathematics",
+    label: "Math",
     description: ""
   },
   {
@@ -40,6 +40,21 @@ const subjects: Subject[] = [
   {
     value: "biology",
     label: "Biology",
+    description: ""
+  },
+  {
+    value: "bangla",
+    label: "Bangla",
+    description: ""
+  },
+  {
+    value: "english",
+    label: "English",
+    description: ""
+  },
+  {
+    value: "ict",
+    label: "ICT",
     description: ""
   }
 ];
