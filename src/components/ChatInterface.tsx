@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "./ChatMessage";
 import { SubjectSelector, Subject } from "./SubjectSelector";
-import { getThreadIdFromSubject } from "@/utils/threadMapping";
+import { getThreadIdFromSubject, getSubjectFromThreadId } from "@/utils/threadMapping";
 import { SessionSidebar, SessionSidebarHandle } from "./SessionSidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import UserMenu from "./UserMenu";
@@ -98,15 +98,45 @@ export function ChatInterface() {
     if (profile) setUserProfile(profile);
   }, [profile]);
 
-  // One-way sync: When subject changes, update thread ID (but not vice versa)
+  // Track previous values to prevent infinite loops
+  const prevThreadIdRef = useRef(config.threadId);
+  const prevSubjectRef = useRef(selectedSubject?.value);
+
+  // Bidirectional sync between subject and thread ID
   useEffect(() => {
-    if ((config.mode === 'tenten-git' || config.mode === 'tenten-video') && selectedSubject) {
+    if (config.mode !== 'tenten-git' && config.mode !== 'tenten-video') return;
+
+    // Subject changed → update thread ID
+    if (selectedSubject?.value !== prevSubjectRef.current) {
       const newThreadId = getThreadIdFromSubject(selectedSubject.value, config.gitEndpoint);
       if (newThreadId !== null && config.threadId !== newThreadId) {
+        prevThreadIdRef.current = newThreadId;
         updateConfig({ ...config, threadId: newThreadId });
       }
+      prevSubjectRef.current = selectedSubject?.value;
     }
-  }, [selectedSubject?.value]);
+    // Thread ID changed → update subject
+    else if (config.threadId !== prevThreadIdRef.current) {
+      const subjectValue = getSubjectFromThreadId(config.threadId, config.gitEndpoint);
+      if (subjectValue && subjectValue !== selectedSubject?.value) {
+        const subjects = [
+          { value: "mathematics", label: "Math" },
+          { value: "physics", label: "Physics" },
+          { value: "chemistry", label: "Chemistry" },
+          { value: "biology", label: "Biology" },
+          { value: "bangla", label: "Bangla" },
+          { value: "english", label: "English" },
+          { value: "ict", label: "ICT" }
+        ];
+        const newSubject = subjects.find(s => s.value === subjectValue);
+        if (newSubject) {
+          prevSubjectRef.current = newSubject.value;
+          setSelectedSubject({ ...newSubject, description: "" });
+        }
+      }
+      prevThreadIdRef.current = config.threadId;
+    }
+  }, [selectedSubject?.value, config.threadId, config.mode, config.gitEndpoint]);
 
   // Fetch user profile when component mounts
   useEffect(() => {
