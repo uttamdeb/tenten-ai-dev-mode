@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "./ChatMessage";
 import { SubjectSelector, Subject } from "./SubjectSelector";
+import { getThreadIdFromSubject } from "@/utils/threadMapping";
 import { SessionSidebar, SessionSidebarHandle } from "./SessionSidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import UserMenu from "./UserMenu";
@@ -96,6 +97,16 @@ export function ChatInterface() {
   useEffect(() => {
     if (profile) setUserProfile(profile);
   }, [profile]);
+
+  // One-way sync: When subject changes, update thread ID (but not vice versa)
+  useEffect(() => {
+    if ((config.mode === 'tenten-git' || config.mode === 'tenten-video') && selectedSubject) {
+      const newThreadId = getThreadIdFromSubject(selectedSubject.value, config.gitEndpoint);
+      if (newThreadId !== null && config.threadId !== newThreadId) {
+        updateConfig({ ...config, threadId: newThreadId });
+      }
+    }
+  }, [selectedSubject?.value]);
 
   // Fetch user profile when component mounts
   useEffect(() => {
