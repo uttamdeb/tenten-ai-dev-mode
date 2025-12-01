@@ -3,11 +3,17 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
     const root = window.document.documentElement;
-    const initialTheme = root.classList.contains("dark") ? "dark" : "light";
+    // Check localStorage first, then fall back to checking the class, default to dark
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    const initialTheme = savedTheme || (root.classList.contains("dark") ? "dark" : "light");
+    
+    // Apply the theme
+    root.classList.remove("light", "dark");
+    root.classList.add(initialTheme);
     setTheme(initialTheme);
   }, []);
 

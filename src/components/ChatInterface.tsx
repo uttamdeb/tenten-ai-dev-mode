@@ -1255,6 +1255,7 @@ export function ChatInterface() {
           multiple
           onChange={handleFileSelect}
           className="hidden"
+          aria-label="Upload image files"
         />
         
         <p className="text-xs text-muted-foreground text-center mt-2">
