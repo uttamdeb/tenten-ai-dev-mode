@@ -88,7 +88,7 @@ export const useApiConfig = () => {
   const getApiUrl = () => {
     switch (config.mode) {
       case "tenten-git":
-        return getGitEndpointUrl(config.gitEndpoint);
+        return config.customGitUrl || getGitEndpointUrl(config.gitEndpoint);
       case "n8n":
       default:
         return "https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1";

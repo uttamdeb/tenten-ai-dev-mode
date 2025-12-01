@@ -26,6 +26,7 @@ export interface ApiConfiguration {
   sessionId: string | null;
   threadId: number;
   gitEndpoint: GitEndpoint;
+  customGitUrl?: string;
 }
 
 interface SettingsPanelProps {
@@ -179,7 +180,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "prod" })}
+                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined })}
                   >
                     <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
                       Prod
@@ -192,7 +193,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage" })}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined })}
                   >
                     <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
                       Stage
@@ -205,16 +206,28 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "local" })}
+                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined })}
                   >
                     <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
                       Local
                     </Badge>
                   </div>
                 </div>
-                <div className="p-3 rounded-md bg-muted/50 font-mono text-xs">
-                  {getGitEndpointUrl(config.gitEndpoint)}
-                </div>
+              </div>
+
+              {/* API URL (Editable) */}
+              <div className="space-y-2">
+                <Label htmlFor="git-url">API Endpoint URL</Label>
+                <Input
+                  id="git-url"
+                  value={config.customGitUrl || getGitEndpointUrl(config.gitEndpoint)}
+                  onChange={(e) => updateConfig({ customGitUrl: e.target.value })}
+                  className="font-mono text-sm"
+                  placeholder="Enter API endpoint URL"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Default: {getGitEndpointUrl(config.gitEndpoint)}
+                </p>
               </div>
 
               {/* Authorization Token */}
