@@ -13,8 +13,12 @@ export const registerSW = () => {
     navigator.serviceWorker.addEventListener('message', (event: MessageEvent<any>) => {
       if (event.data?.type === 'SW_ACTIVATED') {
         console.log('Service Worker activated and controlling this page');
-        // If you prefer manual control, you could trigger a toast here instead of auto-reload
-        // and remove the controllerchange reload above.
+        // If a new SW activated, ensure the page refreshes so it loads the newest index.html
+        // Some browsers may not trigger controllerchange immediately for all clients — reload on message as a fallback.
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
       }
     });
 
