@@ -47,7 +47,8 @@ export function getThreadOptions(endpoint: GitEndpoint): ThreadOption[] {
 /**
  * Get subject name from thread ID for a specific environment
  */
-export function getSubjectFromThreadId(threadId: number, endpoint: GitEndpoint): string | null {
+export function getSubjectFromThreadId(threadId: number | null, endpoint: GitEndpoint): string | null {
+  if (threadId === null) return null;
   const mapping = THREAD_MAPPINGS[endpoint].find(m => m.id === threadId);
   return mapping?.subject || null;
 }
@@ -63,7 +64,8 @@ export function getThreadIdFromSubject(subject: string, endpoint: GitEndpoint): 
 /**
  * Get label from thread ID for a specific environment
  */
-export function getLabelFromThreadId(threadId: number, endpoint: GitEndpoint): string | null {
+export function getLabelFromThreadId(threadId: number | null, endpoint: GitEndpoint): string | null {
+  if (threadId === null) return null;
   const mapping = THREAD_MAPPINGS[endpoint].find(m => m.id === threadId);
   return mapping?.label || null;
 }

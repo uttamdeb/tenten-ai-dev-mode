@@ -26,7 +26,7 @@ export interface ApiConfiguration {
   mode: ApiMode;
   authorizationToken: string;
   sessionId: string | null;
-  threadId: number;
+  threadId: number | null;
   gitEndpoint: GitEndpoint;
   customGitUrl?: string;
   contentType: string | null;
@@ -227,7 +227,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     ? "border-primary bg-primary/5" 
                     : "border-border hover:border-primary/50"
                 )}
-                onClick={() => updateConfig({ mode: "tenten-video" })}
+                onClick={() => updateConfig({ mode: "tenten-video", threadId: null })}
               >
                 <div className="flex items-center gap-3">
                   <Video className="h-5 w-5 text-blue-500" />
@@ -264,7 +264,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined, threadId: 1 })}
+                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined, threadId: null })}
                   >
                     <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
                       Prod
@@ -277,7 +277,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, threadId: 7 })}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, threadId: null })}
                   >
                     <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
                       Stage
@@ -290,7 +290,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined, threadId: 7 })}
+                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined, threadId: null })}
                   >
                     <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
                       Local
@@ -350,12 +350,14 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Label htmlFor="thread-id">Thread ID</Label>
                 <div className="flex gap-2">
                   <Select
-                    value={config.threadId.toString()}
+                    value={config.threadId !== null ? config.threadId.toString() : ""}
                     onValueChange={(value) => updateConfig({ threadId: parseInt(value) })}
                   >
                     <SelectTrigger className="flex-1">
                       <SelectValue>
-                        {getLabelFromThreadId(config.threadId, config.gitEndpoint) || config.threadId} (ID: {config.threadId})
+                        {config.threadId !== null
+                          ? (getLabelFromThreadId(config.threadId, config.gitEndpoint) || config.threadId) + ` (ID: ${config.threadId})`
+                          : "Not set"}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -370,9 +372,9 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     id="thread-id"
                     type="number"
                     placeholder="Custom"
-                    value={config.threadId}
+                    value={config.threadId !== null ? String(config.threadId) : ""}
                     onChange={(e) => updateConfig({ 
-                      threadId: parseInt(e.target.value) || 1 
+                      threadId: e.target.value ? parseInt(e.target.value) : null 
                     })}
                     className="w-24"
                   />
@@ -484,40 +486,20 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </p>
               </div>
 
-              {/* Thread ID */}
+              {/* Thread ID (Video mode: not used) */}
               <div className="space-y-2">
                 <Label htmlFor="video-thread-id">Thread ID</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={config.threadId.toString()}
-                    onValueChange={(value) => updateConfig({ threadId: parseInt(value) })}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue>
-                        {getLabelFromThreadId(config.threadId, config.gitEndpoint) || config.threadId} (ID: {config.threadId})
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getThreadOptions(config.gitEndpoint).map((option) => (
-                        <SelectItem key={option.id} value={option.id.toString()}>
-                          {option.label} (ID: {option.id})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex gap-2 items-center">
                   <Input
                     id="video-thread-id"
-                    type="number"
-                    placeholder="Custom"
-                    value={config.threadId}
-                    onChange={(e) => updateConfig({ 
-                      threadId: parseInt(e.target.value) || 1 
-                    })}
-                    className="w-24"
+                    placeholder="Not used (sent as null)"
+                    value={"null"}
+                    disabled
+                    className="w-full"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Select a subject or enter a custom thread ID. Changes sync with subject selector.
+                  Thread ID is not used in Video mode and will be sent as null.
                 </p>
               </div>
 

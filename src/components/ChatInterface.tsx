@@ -102,9 +102,9 @@ export function ChatInterface() {
   const prevThreadIdRef = useRef(config.threadId);
   const prevSubjectRef = useRef(selectedSubject?.value);
 
-  // Bidirectional sync between subject and thread ID
+  // Bidirectional sync between subject and thread ID (only for Git mode)
   useEffect(() => {
-    if (config.mode !== 'tenten-git' && config.mode !== 'tenten-video') return;
+    if (config.mode !== 'tenten-git') return;
 
     // Subject changed → update thread ID
     if (selectedSubject?.value !== prevSubjectRef.current) {
@@ -439,7 +439,7 @@ export function ChatInterface() {
       content: "",
       timestamp: new Date(),
       isStreaming: true,
-      threadId: isGitMode ? config.threadId : undefined,
+      threadId: config.mode === 'tenten-git' ? config.threadId : undefined,
     };
 
     setMessages(prev => [...prev, aiMessage]);
