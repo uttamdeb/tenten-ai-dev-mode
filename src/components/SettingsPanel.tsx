@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X, FlaskConical, Video } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical, Video, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EvaluationMode } from "./EvaluationMode";
+import { TokenGenerator } from "./TokenGenerator";
 import {
   Select,
   SelectContent,
@@ -65,6 +66,7 @@ const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
   const [isEvalMode, setIsEvalMode] = useState(false);
+  const [isTokenGenerator, setIsTokenGenerator] = useState(false);
 
   // Sync local state when currentConfig prop changes (e.g., after token refresh)
   useEffect(() => {
@@ -88,7 +90,20 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
     setIsEvalMode(false);
   };
 
+  const handleBackFromTokenGenerator = () => {
+    setIsTokenGenerator(false);
+  };
+
   if (!isOpen) return null;
+
+  // Show Token Generator if activated
+  if (isTokenGenerator) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <TokenGenerator onBack={handleBackFromTokenGenerator} />
+      </div>
+    );
+  }
 
   // Show Evaluation Mode if activated
   if (isEvalMode) {
@@ -145,6 +160,25 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </Badge>
               </div>
               */}
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  "border-border hover:border-primary/50"
+                )}
+                onClick={() => setIsTokenGenerator(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <Key className="h-5 w-5 text-green-500" />
+                  <div>
+                    <div className="font-medium">Generate Access Token</div>
+                    <div className="text-sm text-muted-foreground">Create authentication tokens for API access</div>
+                  </div>
+                </div>
+                <Badge variant="outline">
+                  Auth
+                </Badge>
+              </div>
 
               <div 
                 className={cn(
