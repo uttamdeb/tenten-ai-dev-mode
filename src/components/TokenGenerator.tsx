@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Key, Copy, Check, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,10 +44,37 @@ const getAuthUrl = (endpoint: GitEndpoint): string => {
 };
 
 export function TokenGenerator({ onBack }: TokenGeneratorProps) {
+  const PROD_DEFAULT = { username: "+8801718067555", loginType: "phone", password: "12345678" };
+  const STAGE_DEFAULT = { username: "admin@10ms.com", loginType: "email", password: "#11111111" };
+
   const [endpoint, setEndpoint] = useState<GitEndpoint>("prod");
-  const [username, setUsername] = useState("+8801718067555");
-  const [loginType, setLoginType] = useState("phone");
-  const [password, setPassword] = useState("12345678");
+  const [username, setUsername] = useState(PROD_DEFAULT.username);
+  const [loginType, setLoginType] = useState(PROD_DEFAULT.loginType);
+  const [password, setPassword] = useState(PROD_DEFAULT.password);
+  const prevEndpoint = useRef<GitEndpoint>(endpoint);
+
+  // When switching endpoint, update fields only when they are still equal to the previous endpoint defaults
+  useEffect(() => {
+    if (prevEndpoint.current === endpoint) return;
+
+    // If switching to prod and fields still match stage defaults, update to prod defaults
+    if (endpoint === 'prod') {
+      if (username === STAGE_DEFAULT.username && loginType === STAGE_DEFAULT.loginType && password === STAGE_DEFAULT.password) {
+        setUsername(PROD_DEFAULT.username);
+        setLoginType(PROD_DEFAULT.loginType);
+        setPassword(PROD_DEFAULT.password);
+      }
+    } else {
+      // switching to stage/local -> set stage defaults if current values matched prod defaults
+      if (username === PROD_DEFAULT.username && loginType === PROD_DEFAULT.loginType && password === PROD_DEFAULT.password) {
+        setUsername(STAGE_DEFAULT.username);
+        setLoginType(STAGE_DEFAULT.loginType);
+        setPassword(STAGE_DEFAULT.password);
+      }
+    }
+
+    prevEndpoint.current = endpoint;
+  }, [endpoint]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tokenResponse, setTokenResponse] = useState<TokenResponse | null>(null);
