@@ -457,7 +457,8 @@ export function ChatInterface() {
       let headers = getAuthHeader();
 
       if (isGitMode) {
-        // FastAPI payload format (for both git and video modes)
+        // FastAPI payload format
+        // For git mode we send the configured thread_id; for video mode thread_id must be null (not used)
         payload = {
           body: {
             text: userMessage.content,
@@ -467,10 +468,11 @@ export function ChatInterface() {
             }))
           },
           session_id: config.sessionId,
-          thread_id: config.threadId
+          // thread_id is only used for the git workflow
+          thread_id: config.mode === 'tenten-git' ? config.threadId : null
         };
 
-        // Add video mode specific fields if in video mode
+        // Add video mode specific fields when in tenten-video
         if (config.mode === 'tenten-video') {
           if (config.contentType !== null) {
             payload.content_type = config.contentType;
