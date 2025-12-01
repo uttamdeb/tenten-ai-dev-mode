@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X, FlaskConical } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export type ApiMode = "n8n" | "tenten-git";
+export type ApiMode = "n8n" | "tenten-git" | "tenten-video";
 export type GitEndpoint = "prod" | "stage" | "local";
 
 export interface ApiConfiguration {
@@ -27,6 +27,9 @@ export interface ApiConfiguration {
   threadId: number;
   gitEndpoint: GitEndpoint;
   customGitUrl?: string;
+  contentType: string | null;
+  contentId: string | null;
+  segmentId: number | null;
 }
 
 interface SettingsPanelProps {
@@ -41,7 +44,10 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   authorizationToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzN2I1ZWQ0NmE2MzYzODU3MzNlZjJiZCIsImlzX2FkbWluIjpmYWxzZSwiY29udGFjdCI6IiIsImVtYWlsIjoiYWRtaW5AMTBtcy5jb20iLCJsb2dpbl90eXBlIjoiZW1haWwiLCJsb2dpbl9zb3VyY2UiOiIxMG1pbnNjaG9vbCIsImxvZ2luX3RhcmdldCI6IiIsImxvZ2luX2FzIjowLCJuYW1lIjoiYWRtaW5AMTBtcy5jb20iLCJpc19hY3RpdmUiOmZhbHNlLCJ2ZXJpZmllZCI6dHJ1ZSwiZGV2aWNlX2lkIjoiNjkwMWFhZGIzMWY3ZGIyYzY2ZDZkMGUyIiwiZGV2aWNlIjp7ImRldmljZV9pZCI6IjY5MDFhYWRiMzFmN2RiMmM2NmQ2ZDBlMiIsIm1hY19pZCI6IiIsImRldmljZV9uYW1lIjoiQ2hyb21lIDEzOS4wLjAuMCIsImRldmljZV90eXBlIjoiYnJvd3NlciIsImRldmljZV9vcyI6IkludGVsIE1hYyBPUyBYIDEwXzE1XzciLCJwbGF0Zm9ybSI6IndlYiIsIm9yaWdpbiI6Imh0dHBzOi8vbG9jYWwuMTBtaW51dGVzY2hvb2wubmV0IiwiaXBfYWRkcmVzcyI6IjE2MC4zMC4xODkuMjAyIn0sInVzZXJfc3RhdHVzIjoiIiwiZGF0ZV9qb2luZWQiOiIyMDIyLTExLTIxVDExOjE5OjQ4LjI1M1oiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYyMzIxNzU1fQ.PxcvwpSE53wq24WyXbPR7HflnXdSYL3LX42H0i-7lPE",
   sessionId: null,
   threadId: 7,
-  gitEndpoint: "stage"
+  gitEndpoint: "stage",
+  contentType: null,
+  contentId: null,
+  segmentId: null
 };
 
 const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
@@ -175,6 +181,27 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   Eval
                 </Badge>
               </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  config.mode === "tenten-video" 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border hover:border-primary/50"
+                )}
+                onClick={() => updateConfig({ mode: "tenten-video" })}
+              >
+                <div className="flex items-center gap-3">
+                  <Video className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <div className="font-medium">Connect to TenTen Video Mode</div>
+                    <div className="text-sm text-muted-foreground">FastAPI service with video content support</div>
+                  </div>
+                </div>
+                <Badge variant={config.mode === "tenten-video" ? "default" : "outline"}>
+                  Video
+                </Badge>
+              </div>
             </div>
           </div>
 
@@ -294,6 +321,174 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 />
                 <p className="text-xs text-muted-foreground">
                   Thread identifier for conversation context. Defaults to 1. For stage env, use 1 for Math, 2 for Chemistry, 4 for Biology, 7 for Physics.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Configuration for TenTen Video mode */}
+          {config.mode === "tenten-video" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Video className="h-4 w-4" />
+                <Label className="text-base font-medium">Video Mode Configuration</Label>
+              </div>
+
+              {/* API Endpoint Selection */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Choose API Endpoint</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "prod" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined })}
+                  >
+                    <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
+                      Prod
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "stage" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined })}
+                  >
+                    <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
+                      Stage
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "local" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined })}
+                  >
+                    <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
+                      Local
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* API URL (Editable) */}
+              <div className="space-y-2">
+                <Label htmlFor="video-git-url">API Endpoint URL</Label>
+                <Input
+                  id="video-git-url"
+                  value={config.customGitUrl || getGitEndpointUrl(config.gitEndpoint)}
+                  onChange={(e) => updateConfig({ customGitUrl: e.target.value })}
+                  className="font-mono text-sm"
+                  placeholder="Enter API endpoint URL"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Default: {getGitEndpointUrl(config.gitEndpoint)}
+                </p>
+              </div>
+
+              {/* Authorization Token */}
+              <div className="space-y-2">
+                <Label htmlFor="video-auth-token">Authorization Token</Label>
+                <Textarea
+                  id="video-auth-token"
+                  placeholder="Enter your JWT authorization token..."
+                  value={config.authorizationToken}
+                  onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
+                  className="min-h-[80px] font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  JWT token for authentication with the service
+                </p>
+              </div>
+
+              {/* Session ID */}
+              <div className="space-y-2">
+                <Label htmlFor="video-session-id">Session ID (Optional)</Label>
+                <Input
+                  id="video-session-id"
+                  placeholder="Leave empty for null"
+                  value={config.sessionId || ""}
+                  onChange={(e) => updateConfig({ 
+                    sessionId: e.target.value.trim() || null 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Session identifier. Leave empty to send as null.
+                </p>
+              </div>
+
+              {/* Thread ID */}
+              <div className="space-y-2">
+                <Label htmlFor="video-thread-id">Thread ID</Label>
+                <Input
+                  id="video-thread-id"
+                  type="number"
+                  placeholder="1"
+                  value={config.threadId}
+                  onChange={(e) => updateConfig({ 
+                    threadId: parseInt(e.target.value) || 1 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Thread identifier for conversation context.
+                </p>
+              </div>
+
+              {/* Content Type */}
+              <div className="space-y-2">
+                <Label htmlFor="content-type">Content Type (Optional)</Label>
+                <Input
+                  id="content-type"
+                  placeholder="e.g., video"
+                  value={config.contentType || ""}
+                  onChange={(e) => updateConfig({ 
+                    contentType: e.target.value.trim() || null 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Type of content. Leave empty for null.
+                </p>
+              </div>
+
+              {/* Content ID */}
+              <div className="space-y-2">
+                <Label htmlFor="content-id">Content ID (Optional)</Label>
+                <Input
+                  id="content-id"
+                  placeholder="e.g., video-test"
+                  value={config.contentId || ""}
+                  onChange={(e) => updateConfig({ 
+                    contentId: e.target.value.trim() || null 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Identifier for the content. Leave empty for null.
+                </p>
+              </div>
+
+              {/* Segment ID */}
+              <div className="space-y-2">
+                <Label htmlFor="segment-id">Segment ID (Optional)</Label>
+                <Input
+                  id="segment-id"
+                  type="number"
+                  placeholder="e.g., 10"
+                  value={config.segmentId !== null ? config.segmentId : ""}
+                  onChange={(e) => updateConfig({ 
+                    segmentId: e.target.value ? parseInt(e.target.value) : null 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Segment identifier. Leave empty for null.
                 </p>
               </div>
             </div>

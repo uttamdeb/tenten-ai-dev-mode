@@ -156,7 +156,7 @@ export function ChatInterface() {
       let credentials = {};
 
       // Determine which endpoint and credentials to use based on mode
-      if (config.mode === 'tenten-git') {
+      if (config.mode === 'tenten-git' || config.mode === 'tenten-video') {
         // Use endpoint and credentials based on gitEndpoint
         if (config.gitEndpoint === 'prod') {
           // Prod endpoint - use prod credentials
@@ -213,8 +213,8 @@ export function ChatInterface() {
   const handleNewChat = async () => {
     if (!user) return;
 
-    // Refresh auth token for git mode
-    if (config.mode === 'tenten-git') {
+    // Refresh auth token for git and video modes
+    if (config.mode === 'tenten-git' || config.mode === 'tenten-video') {
       await refreshAuthToken();
     }
 
@@ -433,7 +433,7 @@ export function ChatInterface() {
       let headers = getAuthHeader();
 
       if (isGitMode) {
-        // FastAPI payload format
+        // FastAPI payload format (for both git and video modes)
         payload = {
           body: {
             text: userMessage.content,
@@ -445,6 +445,19 @@ export function ChatInterface() {
           session_id: config.sessionId,
           thread_id: config.threadId
         };
+
+        // Add video mode specific fields if in video mode
+        if (config.mode === 'tenten-video') {
+          if (config.contentType !== null) {
+            payload.content_type = config.contentType;
+          }
+          if (config.contentId !== null) {
+            payload.content_id = config.contentId;
+          }
+          if (config.segmentId !== null) {
+            payload.segment_id = config.segmentId;
+          }
+        }
       } else {
         // N8N webhook payload format
         payload = {
