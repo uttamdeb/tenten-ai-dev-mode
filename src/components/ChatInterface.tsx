@@ -156,22 +156,25 @@ export function ChatInterface() {
       let credentials = {};
 
       // Determine which endpoint and credentials to use based on mode
-      if (config.mode === 'prod-git') {
-        // Prod mode - use prod endpoint and prod credentials
-        loginUrl = 'https://api.10minuteschool.com/auth/v1/login';
-        credentials = {
-          username: "+8801521326202",
-          loginType: "phone",
-          password: "123456"
-        };
-      } else if (config.mode === 'remote-git' || config.mode === 'local-git') {
-        // Remote or Local mode - use stage endpoint and stage credentials
-        loginUrl = 'https://local-api.10minuteschool.net/auth/v1/login';
-        credentials = {
-          username: "admin@10ms.com",
-          loginType: "email",
-          password: "#11111111"
-        };
+      if (config.mode === 'tenten-git') {
+        // Use endpoint and credentials based on gitEndpoint
+        if (config.gitEndpoint === 'prod') {
+          // Prod endpoint - use prod credentials
+          loginUrl = 'https://api.10minuteschool.com/auth/v1/login';
+          credentials = {
+            username: "+8801521326202",
+            loginType: "phone",
+            password: "123456"
+          };
+        } else {
+          // Stage or Local endpoint - use stage credentials
+          loginUrl = 'https://local-api.10minuteschool.net/auth/v1/login';
+          credentials = {
+            username: "admin@10ms.com",
+            loginType: "email",
+            password: "#11111111"
+          };
+        }
       } else {
         // N8N mode doesn't need token refresh
         return;
@@ -210,8 +213,8 @@ export function ChatInterface() {
   const handleNewChat = async () => {
     if (!user) return;
 
-    // Refresh auth token for git modes
-    if (config.mode === 'prod-git' || config.mode === 'remote-git' || config.mode === 'local-git') {
+    // Refresh auth token for git mode
+    if (config.mode === 'tenten-git') {
       await refreshAuthToken();
     }
 

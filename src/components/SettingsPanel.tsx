@@ -9,17 +9,23 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EvaluationMode } from "./EvaluationMode";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export type ApiMode = "n8n" | "prod-git" | "remote-git" | "local-git";
+export type ApiMode = "n8n" | "tenten-git";
+export type GitEndpoint = "prod" | "stage" | "local";
 
 export interface ApiConfiguration {
   mode: ApiMode;
   authorizationToken: string;
   sessionId: string | null;
   threadId: number;
-  prodGitUrl: string;
-  remoteGitUrl: string;
-  localGitUrl: string;
+  gitEndpoint: GitEndpoint;
 }
 
 interface SettingsPanelProps {
@@ -30,13 +36,22 @@ interface SettingsPanelProps {
 }
 
 const DEFAULT_CONFIG: ApiConfiguration = {
-  mode: "remote-git",
+  mode: "tenten-git",
   authorizationToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzN2I1ZWQ0NmE2MzYzODU3MzNlZjJiZCIsImlzX2FkbWluIjpmYWxzZSwiY29udGFjdCI6IiIsImVtYWlsIjoiYWRtaW5AMTBtcy5jb20iLCJsb2dpbl90eXBlIjoiZW1haWwiLCJsb2dpbl9zb3VyY2UiOiIxMG1pbnNjaG9vbCIsImxvZ2luX3RhcmdldCI6IiIsImxvZ2luX2FzIjowLCJuYW1lIjoiYWRtaW5AMTBtcy5jb20iLCJpc19hY3RpdmUiOmZhbHNlLCJ2ZXJpZmllZCI6dHJ1ZSwiZGV2aWNlX2lkIjoiNjkwMWFhZGIzMWY3ZGIyYzY2ZDZkMGUyIiwiZGV2aWNlIjp7ImRldmljZV9pZCI6IjY5MDFhYWRiMzFmN2RiMmM2NmQ2ZDBlMiIsIm1hY19pZCI6IiIsImRldmljZV9uYW1lIjoiQ2hyb21lIDEzOS4wLjAuMCIsImRldmljZV90eXBlIjoiYnJvd3NlciIsImRldmljZV9vcyI6IkludGVsIE1hYyBPUyBYIDEwXzE1XzciLCJwbGF0Zm9ybSI6IndlYiIsIm9yaWdpbiI6Imh0dHBzOi8vbG9jYWwuMTBtaW51dGVzY2hvb2wubmV0IiwiaXBfYWRkcmVzcyI6IjE2MC4zMC4xODkuMjAyIn0sInVzZXJfc3RhdHVzIjoiIiwiZGF0ZV9qb2luZWQiOiIyMDIyLTExLTIxVDExOjE5OjQ4LjI1M1oiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYyMzIxNzU1fQ.PxcvwpSE53wq24WyXbPR7HflnXdSYL3LX42H0i-7lPE",
   sessionId: null,
   threadId: 7,
-  prodGitUrl: "https://api.10minuteschool.com/tenten-ai-service/api/v1/messages",
-  remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages",
-  localGitUrl: "http://localhost:8000/api/v1/messages"
+  gitEndpoint: "stage"
+};
+
+const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
+  switch (endpoint) {
+    case "prod":
+      return "https://api.10minuteschool.com/tenten-ai-service/api/v1/messages";
+    case "stage":
+      return "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages";
+    case "local":
+      return "http://localhost:8000/api/v1/messages";
+  }
 };
 
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
@@ -123,63 +138,21 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               <div 
                 className={cn(
                   "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
-                  config.mode === "prod-git" 
+                  config.mode === "tenten-git" 
                     ? "border-primary bg-primary/5" 
                     : "border-border hover:border-primary/50"
                 )}
-                onClick={() => updateConfig({ mode: "prod-git" })}
+                onClick={() => updateConfig({ mode: "tenten-git" })}
               >
                 <div className="flex items-center gap-3">
                   <GitBranch className="h-5 w-5 text-purple-500" />
                   <div>
-                    <div className="font-medium">Connect to Prod TenTen Git</div>
-                    <div className="text-sm text-muted-foreground">FastAPI service on production</div>
+                    <div className="font-medium">Connect to TenTen Git</div>
+                    <div className="text-sm text-muted-foreground">FastAPI service with configurable endpoint</div>
                   </div>
                 </div>
-                <Badge variant={config.mode === "prod-git" ? "default" : "outline"}>
-                  Prod
-                </Badge>
-              </div>
-
-              <div 
-                className={cn(
-                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
-                  config.mode === "remote-git" 
-                    ? "border-primary bg-primary/5" 
-                    : "border-border hover:border-primary/50"
-                )}
-                onClick={() => updateConfig({ mode: "remote-git" })}
-              >
-                <div className="flex items-center gap-3">
-                  <GitBranch className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <div className="font-medium">Connect to Remote TenTen Git</div>
-                    <div className="text-sm text-muted-foreground">FastAPI service on remote server</div>
-                  </div>
-                </div>
-                <Badge variant={config.mode === "remote-git" ? "default" : "outline"}>
-                  Remote
-                </Badge>
-              </div>
-
-              <div 
-                className={cn(
-                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
-                  config.mode === "local-git" 
-                    ? "border-primary bg-primary/5" 
-                    : "border-border hover:border-primary/50"
-                )}
-                onClick={() => updateConfig({ mode: "local-git" })}
-              >
-                <div className="flex items-center gap-3">
-                  <GitBranch className="h-5 w-5 text-green-500" />
-                  <div>
-                    <div className="font-medium">Connect to Local TenTen Git</div>
-                    <div className="text-sm text-muted-foreground">FastAPI service on localhost</div>
-                  </div>
-                </div>
-                <Badge variant={config.mode === "local-git" ? "default" : "outline"}>
-                  Local
+                <Badge variant={config.mode === "tenten-git" ? "default" : "outline"}>
+                  Git
                 </Badge>
               </div>
             </div>
@@ -187,12 +160,61 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
 
           <Separator />
 
-          {/* Configuration for Git modes */}
-          {(config.mode === "prod-git" || config.mode === "remote-git" || config.mode === "local-git") && (
+          {/* Configuration for TenTen Git mode */}
+          {config.mode === "tenten-git" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4" />
                 <Label className="text-base font-medium">FastAPI Configuration</Label>
+              </div>
+
+              {/* API Endpoint Selection */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Choose API Endpoint</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "prod" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "prod" })}
+                  >
+                    <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
+                      Prod
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "stage" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "stage" })}
+                  >
+                    <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
+                      Stage
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "local" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "local" })}
+                  >
+                    <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
+                      Local
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-3 rounded-md bg-muted/50 font-mono text-xs">
+                  {getGitEndpointUrl(config.gitEndpoint)}
+                </div>
               </div>
 
               {/* Authorization Token */}
@@ -241,66 +263,6 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <p className="text-xs text-muted-foreground">
                   Thread identifier for conversation context. Defaults to 1. For stage env, use 1 for Math, 2 for Chemistry, 4 for Biology, 7 for Physics.
                 </p>
-              </div>
-
-              {/* API URLs (Editable) */}
-              <div className="space-y-2">
-                <Label>API Endpoint</Label>
-                <Input
-                  value={
-                    config.mode === "prod-git" 
-                      ? config.prodGitUrl 
-                      : config.mode === "remote-git" 
-                      ? config.remoteGitUrl 
-                      : config.localGitUrl
-                  }
-                  onChange={(e) => {
-                    if (config.mode === "prod-git") {
-                      updateConfig({ prodGitUrl: e.target.value });
-                    } else if (config.mode === "remote-git") {
-                      updateConfig({ remoteGitUrl: e.target.value });
-                    } else {
-                      updateConfig({ localGitUrl: e.target.value });
-                    }
-                  }}
-                  className="font-mono text-sm"
-                  placeholder="Enter API endpoint URL"
-                />
-                {config.mode === "remote-git" && (
-                  <div className="space-y-1">
-                    <p className="text-xs text-amber-600 dark:text-amber-400">
-                      ⚠️ HTTPS is required when accessing from HTTPS pages
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateConfig({ remoteGitUrl: "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages" })}
-                        className="text-xs"
-                      >
-                        Use HTTPS
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateConfig({ remoteGitUrl: "http://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages" })}
-                        className="text-xs"
-                      >
-                        Use HTTP
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {config.mode === "prod-git" && (
-                  <p className="text-xs text-green-600 dark:text-green-400">
-                    ✅ Production endpoint (HTTPS required)
-                  </p>
-                )}
-                {config.mode === "local-git" && (
-                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                    ℹ️ Local development endpoint (HTTP allowed for localhost)
-                  </p>
-                )}
               </div>
             </div>
           )}
