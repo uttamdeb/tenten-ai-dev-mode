@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -156,6 +156,25 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   Git
                 </Badge>
               </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  "border-border hover:border-primary/50"
+                )}
+                onClick={() => setIsEvalMode(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <FlaskConical className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <div className="font-medium">Connect to TenTen Evaluations</div>
+                    <div className="text-sm text-muted-foreground">Configure and run AI evaluation experiments</div>
+                  </div>
+                </div>
+                <Badge variant="outline">
+                  Eval
+                </Badge>
+              </div>
             </div>
           </div>
 
@@ -284,18 +303,9 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
 
           {/* Action Buttons */}
           <div className="flex justify-between">
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleReset}>
-                Reset to Defaults
-              </Button>
-              <Button 
-                variant="default"
-                onClick={() => setIsEvalMode(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Enter Eval Mode
-              </Button>
-            </div>
+            <Button variant="outline" onClick={handleReset}>
+              Reset to Defaults
+            </Button>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>
                 Cancel
