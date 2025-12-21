@@ -458,7 +458,7 @@ export function ChatInterface() {
 
       if (isGitMode) {
         // FastAPI payload format
-        // For git mode we send the configured thread_id; for video mode thread_id must be null (not used)
+        // For git mode we send the configured thread_id; for video/exam mode thread_id must be null (not used)
         payload = {
           body: {
             text: userMessage.content,
@@ -482,6 +482,31 @@ export function ChatInterface() {
           }
           if (config.segmentId !== null) {
             payload.segment_id = config.segmentId;
+          }
+        }
+
+        // Add exam mode specific fields when in tenten-exam
+        if (config.mode === 'tenten-exam') {
+          // Set content_type (default to "question" if not provided)
+          payload.content_type = config.contentType || "question";
+          
+          // Required fields for exam mode
+          if (config.contentId !== null) {
+            payload.content_id = config.contentId;
+          }
+          
+          // Add segment_id if provided
+          if (config.segmentId !== null) {
+            payload.segment_id = config.segmentId;
+          }
+          
+          // Add extra field with exam-specific data
+          payload.extra = {};
+          if (config.examId !== null) {
+            payload.extra.exam_id = config.examId;
+          }
+          if (config.examSessionId !== null) {
+            payload.extra.exam_session_id = config.examSessionId;
           }
         }
       } else {

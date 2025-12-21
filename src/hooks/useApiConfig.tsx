@@ -11,7 +11,9 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   gitEndpoint: "stage",
   contentType: null,
   contentId: null,
-  segmentId: null
+  segmentId: null,
+  examId: null,
+  examSessionId: null
 };
 
 const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
@@ -85,13 +87,14 @@ export const useApiConfig = () => {
   };
 
   const isGitMode = (mode: ApiMode) => {
-    return mode === "tenten-git" || mode === "tenten-video";
-  };
+    return mode === "tenten-git" || mode === "tenten-video" || mode === "tenten-exam";
+};
 
   const getApiUrl = () => {
     switch (config.mode) {
       case "tenten-git":
       case "tenten-video":
+      case "tenten-exam":
         return config.customGitUrl || getGitEndpointUrl(config.gitEndpoint);
       case "n8n":
       default:

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X, FlaskConical, Video, Key } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { getThreadOptions, getLabelFromThreadId } from "@/utils/threadMapping";
 
-export type ApiMode = "n8n" | "tenten-git" | "tenten-video";
+export type ApiMode = "n8n" | "tenten-git" | "tenten-video" | "tenten-exam";
 export type GitEndpoint = "prod" | "stage" | "local";
 
 export interface ApiConfiguration {
@@ -32,6 +32,8 @@ export interface ApiConfiguration {
   contentType: string | null;
   contentId: string | null;
   segmentId: number | null;
+  examId: string | null;
+  examSessionId: string | null;
 }
 
 interface SettingsPanelProps {
@@ -49,7 +51,9 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   gitEndpoint: "stage",
   contentType: null,
   contentId: null,
-  segmentId: null
+  segmentId: null,
+  examId: null,
+  examSessionId: null
 };
 
 const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
@@ -238,6 +242,27 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
                 <Badge variant={config.mode === "tenten-video" ? "default" : "outline"}>
                   Video
+                </Badge>
+              </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  config.mode === "tenten-exam" 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border hover:border-primary/50"
+                )}
+                onClick={() => updateConfig({ mode: "tenten-exam", threadId: null })}
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-orange-500" />
+                  <div>
+                    <div className="font-medium">Connect to TenTen Exam Mode</div>
+                    <div className="text-sm text-muted-foreground">FastAPI service with exam content support</div>
+                  </div>
+                </div>
+                <Badge variant={config.mode === "tenten-exam" ? "default" : "outline"}>
+                  Exam
                 </Badge>
               </div>
             </div>
@@ -540,6 +565,209 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Label htmlFor="segment-id">Segment ID (Optional)</Label>
                 <Input
                   id="segment-id"
+                  type="number"
+                  placeholder="e.g., 10"
+                  value={config.segmentId !== null ? config.segmentId : ""}
+                  onChange={(e) => updateConfig({ 
+                    segmentId: e.target.value ? parseInt(e.target.value) : null 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Segment identifier. Leave empty for null.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Configuration for TenTen Exam mode */}
+          {config.mode === "tenten-exam" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <Label className="text-base font-medium">Exam Mode Configuration</Label>
+              </div>
+
+              {/* API Endpoint Selection */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Choose API Endpoint</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "prod" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined, threadId: 1 })}
+                  >
+                    <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
+                      Prod
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "stage" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, threadId: 7 })}
+                  >
+                    <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
+                      Stage
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "local" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined, threadId: 7 })}
+                  >
+                    <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
+                      Local
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* API URL (Editable) */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-git-url">API Endpoint URL</Label>
+                <Input
+                  id="exam-git-url"
+                  value={config.customGitUrl || getGitEndpointUrl(config.gitEndpoint)}
+                  onChange={(e) => updateConfig({ customGitUrl: e.target.value })}
+                  className="font-mono text-sm"
+                  placeholder="Enter API endpoint URL"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Default: {getGitEndpointUrl(config.gitEndpoint)}
+                </p>
+              </div>
+
+              {/* Authorization Token */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-auth-token">Authorization Token</Label>
+                <Textarea
+                  id="exam-auth-token"
+                  placeholder="Enter your JWT authorization token..."
+                  value={config.authorizationToken}
+                  onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
+                  className="min-h-[80px] font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  JWT token for authentication with the service
+                </p>
+              </div>
+
+              {/* Session ID */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-session-id">Session ID (Optional)</Label>
+                <Input
+                  id="exam-session-id"
+                  placeholder="Leave empty for null"
+                  value={config.sessionId || ""}
+                  onChange={(e) => updateConfig({ 
+                    sessionId: e.target.value.trim() || null 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Session identifier. Leave empty to send as null.
+                </p>
+              </div>
+
+              {/* Thread ID (Exam mode: not used) */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-thread-id">Thread ID</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="exam-thread-id"
+                    placeholder="Not used (sent as null)"
+                    value={"null"}
+                    disabled
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Thread ID is not used in Exam mode and will be sent as null.
+                </p>
+              </div>
+
+              {/* Content Type */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-content-type">Content Type</Label>
+                <Input
+                  id="exam-content-type"
+                  placeholder="e.g., question"
+                  value={config.contentType || ""}
+                  onChange={(e) => updateConfig({ 
+                    contentType: e.target.value.trim() || null 
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Type of content (default: question)
+                </p>
+              </div>
+
+              {/* Content ID - Required for Exam Mode */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-content-id">Content ID <span className="text-red-500">*</span></Label>
+                <Input
+                  id="exam-content-id"
+                  placeholder="e.g., 694263f702cacda484dd8eb1"
+                  value={config.contentId || ""}
+                  onChange={(e) => updateConfig({ 
+                    contentId: e.target.value.trim() || null 
+                  })}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-red-500">Required:</span> Identifier for the exam content.
+                </p>
+              </div>
+
+              {/* Exam ID - Required for Exam Mode */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-id">Exam ID <span className="text-red-500">*</span></Label>
+                <Input
+                  id="exam-id"
+                  placeholder="e.g., 6942623902cacda484dd8d81"
+                  value={config.examId || ""}
+                  onChange={(e) => updateConfig({ 
+                    examId: e.target.value.trim() || null 
+                  })}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-red-500">Required:</span> Identifier for the exam.
+                </p>
+              </div>
+
+              {/* Exam Session ID - Required for Exam Mode */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-session-id-field">Exam Session ID <span className="text-red-500">*</span></Label>
+                <Input
+                  id="exam-session-id-field"
+                  placeholder="e.g., 694263f702cacda484dd8e9e"
+                  value={config.examSessionId || ""}
+                  onChange={(e) => updateConfig({ 
+                    examSessionId: e.target.value.trim() || null 
+                  })}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-red-500">Required:</span> Identifier for the exam session.
+                </p>
+              </div>
+
+              {/* Segment ID */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-segment-id">Segment ID (Optional)</Label>
+                <Input
+                  id="exam-segment-id"
                   type="number"
                   placeholder="e.g., 10"
                   value={config.segmentId !== null ? config.segmentId : ""}
