@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { GitEndpoint } from "./SettingsPanel";
 
@@ -168,14 +169,13 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
         {/* Authorization Token */}
         <div className="space-y-2">
           <Label htmlFor="auth-token">Authorization Token</Label>
-          <Input
+          <Textarea
             id="auth-token"
-            type="password"
             placeholder="Enter your JWT authorization token..."
             value={authToken}
             onChange={(e) => setAuthToken(e.target.value)}
             disabled={isLoading}
-            className="font-mono text-sm"
+            className="min-h-[80px] font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground">
             JWT token for authentication with the service
