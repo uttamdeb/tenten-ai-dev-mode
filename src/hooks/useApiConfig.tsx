@@ -13,7 +13,8 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   contentId: null,
   segmentId: null,
   examId: null,
-  examSessionId: null
+  examSessionId: null,
+  questionId: null
 };
 
 const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
@@ -87,7 +88,7 @@ export const useApiConfig = () => {
   };
 
   const isGitMode = (mode: ApiMode) => {
-    return mode === "tenten-git" || mode === "tenten-video" || mode === "tenten-exam";
+    return mode === "tenten-git" || mode === "tenten-video" || mode === "tenten-exam" || mode === "tenten-exam-explanation";
 };
 
   const getApiUrl = () => {
@@ -96,6 +97,10 @@ export const useApiConfig = () => {
       case "tenten-video":
       case "tenten-exam":
         return config.customGitUrl || getGitEndpointUrl(config.gitEndpoint);
+      case "tenten-exam-explanation":
+        // Special endpoint for exam question explanations
+        const baseUrl = config.customGitUrl || getGitEndpointUrl(config.gitEndpoint);
+        return baseUrl.replace('/api/v1/messages', '/api/v1/contents/question-explanation');
       case "n8n":
       default:
         return "https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1";

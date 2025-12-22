@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { getThreadOptions, getLabelFromThreadId } from "@/utils/threadMapping";
 
-export type ApiMode = "n8n" | "tenten-git" | "tenten-video" | "tenten-exam";
+export type ApiMode = "n8n" | "tenten-git" | "tenten-video" | "tenten-exam" | "tenten-exam-explanation";
 export type GitEndpoint = "prod" | "stage" | "local";
 
 export interface ApiConfiguration {
@@ -34,6 +34,7 @@ export interface ApiConfiguration {
   segmentId: number | null;
   examId: string | null;
   examSessionId: string | null;
+  questionId: string | null;
 }
 
 interface SettingsPanelProps {
@@ -53,7 +54,8 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   contentId: null,
   segmentId: null,
   examId: null,
-  examSessionId: null
+  examSessionId: null,
+  questionId: null
 };
 
 const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
@@ -263,6 +265,27 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
                 <Badge variant={config.mode === "tenten-exam" ? "default" : "outline"}>
                   Exam
+                </Badge>
+              </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  config.mode === "tenten-exam-explanation" 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border hover:border-primary/50"
+                )}
+                onClick={() => updateConfig({ mode: "tenten-exam-explanation", threadId: null })}
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="h-5 w-5 text-teal-500" />
+                  <div>
+                    <div className="font-medium">TenTen Exam Question Explanation Mode</div>
+                    <div className="text-sm text-muted-foreground">Get detailed explanations for exam questions</div>
+                  </div>
+                </div>
+                <Badge variant={config.mode === "tenten-exam-explanation" ? "default" : "outline"}>
+                  Explanation
                 </Badge>
               </div>
             </div>
@@ -777,6 +800,112 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 />
                 <p className="text-xs text-muted-foreground">
                   Segment identifier. Leave empty for null.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Configuration for TenTen Exam Question Explanation mode */}
+          {config.mode === "tenten-exam-explanation" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                <Label className="text-base font-medium">Exam Question Explanation Configuration</Label>
+              </div>
+
+              {/* API Endpoint Selection */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Choose API Endpoint</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "prod" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined, threadId: 1 })}
+                  >
+                    <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
+                      Prod
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "stage" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, threadId: 7 })}
+                  >
+                    <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
+                      Stage
+                    </Badge>
+                  </div>
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      config.gitEndpoint === "local" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined, threadId: 7 })}
+                  >
+                    <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
+                      Local
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* API URL (Read-only display) */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-explanation-url">API Endpoint URL</Label>
+                <Input
+                  id="exam-explanation-url"
+                  value={
+                    config.customGitUrl 
+                      ? config.customGitUrl.replace('/api/v1/messages', '/api/v1/contents/question-explanation')
+                      : getGitEndpointUrl(config.gitEndpoint).replace('/api/v1/messages', '/api/v1/contents/question-explanation')
+                  }
+                  disabled
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Endpoint: /api/v1/contents/question-explanation
+                </p>
+              </div>
+
+              {/* Authorization Token */}
+              <div className="space-y-2">
+                <Label htmlFor="exam-explanation-auth-token">Authorization Token</Label>
+                <Textarea
+                  id="exam-explanation-auth-token"
+                  placeholder="Enter your JWT authorization token..."
+                  value={config.authorizationToken}
+                  onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
+                  className="min-h-[80px] font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  JWT token for authentication with the service
+                </p>
+              </div>
+
+              {/* Question ID - Required */}
+              <div className="space-y-2">
+                <Label htmlFor="question-id">Question ID <span className="text-red-500">*</span></Label>
+                <Input
+                  id="question-id"
+                  placeholder="e.g., 3370"
+                  value={config.questionId || ""}
+                  onChange={(e) => updateConfig({ 
+                    questionId: e.target.value.trim() || null 
+                  })}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-red-500">Required:</span> Identifier for the question to explain.
                 </p>
               </div>
             </div>
