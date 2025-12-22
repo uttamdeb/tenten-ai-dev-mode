@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EvaluationMode } from "./EvaluationMode";
 import { TokenGenerator } from "./TokenGenerator";
+import { ExamExplanation } from "./ExamExplanation";
 import {
   Select,
   SelectContent,
@@ -73,6 +74,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
   const [isEvalMode, setIsEvalMode] = useState(false);
   const [isTokenGenerator, setIsTokenGenerator] = useState(false);
+  const [isExamExplanation, setIsExamExplanation] = useState(false);
 
   // Sync local state when currentConfig prop changes (e.g., after token refresh)
   useEffect(() => {
@@ -100,7 +102,27 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
     setIsTokenGenerator(false);
   };
 
+  const handleBackFromExamExplanation = () => {
+    setIsExamExplanation(false);
+  };
+
   if (!isOpen) return null;
+
+  // Show Exam Explanation if activated
+  if (isExamExplanation) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <ExamExplanation 
+          onBack={handleBackFromExamExplanation} 
+          initialConfig={{
+            questionId: config.questionId,
+            gitEndpoint: config.gitEndpoint,
+            authorizationToken: config.authorizationToken
+          }}
+        />
+      </div>
+    );
+  }
 
   // Show Token Generator if activated
   if (isTokenGenerator) {
@@ -271,11 +293,9 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               <div 
                 className={cn(
                   "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
-                  config.mode === "tenten-exam-explanation" 
-                    ? "border-primary bg-primary/5" 
-                    : "border-border hover:border-primary/50"
+                  "border-border hover:border-primary/50"
                 )}
-                onClick={() => updateConfig({ mode: "tenten-exam-explanation", threadId: null })}
+                onClick={() => setIsExamExplanation(true)}
               >
                 <div className="flex items-center gap-3">
                   <BookOpen className="h-5 w-5 text-teal-500" />
@@ -284,7 +304,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     <div className="text-sm text-muted-foreground">Get detailed explanations for exam questions</div>
                   </div>
                 </div>
-                <Badge variant={config.mode === "tenten-exam-explanation" ? "default" : "outline"}>
+                <Badge variant="outline">
                   Explanation
                 </Badge>
               </div>
@@ -800,112 +820,6 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 />
                 <p className="text-xs text-muted-foreground">
                   Segment identifier. Leave empty for null.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Configuration for TenTen Exam Question Explanation mode */}
-          {config.mode === "tenten-exam-explanation" && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                <Label className="text-base font-medium">Exam Question Explanation Configuration</Label>
-              </div>
-
-              {/* API Endpoint Selection */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Choose API Endpoint</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div 
-                    className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
-                      config.gitEndpoint === "prod" 
-                        ? "border-primary bg-primary/5" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => updateConfig({ gitEndpoint: "prod", customGitUrl: undefined, threadId: 1 })}
-                  >
-                    <Badge variant={config.gitEndpoint === "prod" ? "default" : "outline"}>
-                      Prod
-                    </Badge>
-                  </div>
-                  <div 
-                    className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
-                      config.gitEndpoint === "stage" 
-                        ? "border-primary bg-primary/5" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, threadId: 7 })}
-                  >
-                    <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
-                      Stage
-                    </Badge>
-                  </div>
-                  <div 
-                    className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
-                      config.gitEndpoint === "local" 
-                        ? "border-primary bg-primary/5" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => updateConfig({ gitEndpoint: "local", customGitUrl: undefined, threadId: 7 })}
-                  >
-                    <Badge variant={config.gitEndpoint === "local" ? "default" : "outline"}>
-                      Local
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* API URL (Read-only display) */}
-              <div className="space-y-2">
-                <Label htmlFor="exam-explanation-url">API Endpoint URL</Label>
-                <Input
-                  id="exam-explanation-url"
-                  value={
-                    config.customGitUrl 
-                      ? config.customGitUrl.replace('/api/v1/messages', '/api/v1/contents/question-explanation')
-                      : getGitEndpointUrl(config.gitEndpoint).replace('/api/v1/messages', '/api/v1/contents/question-explanation')
-                  }
-                  disabled
-                  className="font-mono text-sm"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Endpoint: /api/v1/contents/question-explanation
-                </p>
-              </div>
-
-              {/* Authorization Token */}
-              <div className="space-y-2">
-                <Label htmlFor="exam-explanation-auth-token">Authorization Token</Label>
-                <Textarea
-                  id="exam-explanation-auth-token"
-                  placeholder="Enter your JWT authorization token..."
-                  value={config.authorizationToken}
-                  onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
-                  className="min-h-[80px] font-mono text-sm"
-                />
-                <p className="text-xs text-muted-foreground">
-                  JWT token for authentication with the service
-                </p>
-              </div>
-
-              {/* Question ID - Required */}
-              <div className="space-y-2">
-                <Label htmlFor="question-id">Question ID <span className="text-red-500">*</span></Label>
-                <Input
-                  id="question-id"
-                  placeholder="e.g., 3370"
-                  value={config.questionId || ""}
-                  onChange={(e) => updateConfig({ 
-                    questionId: e.target.value.trim() || null 
-                  })}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> Identifier for the question to explain.
                 </p>
               </div>
             </div>

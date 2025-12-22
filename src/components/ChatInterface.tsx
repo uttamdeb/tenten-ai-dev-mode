@@ -457,66 +457,58 @@ export function ChatInterface() {
       let headers = getAuthHeader();
 
       if (isGitMode) {
-        // Special handling for exam explanation mode
-        if (config.mode === 'tenten-exam-explanation') {
-          // Exam explanation only needs question_id
-          payload = {
-            question_id: config.questionId
-          };
-        } else {
-          // FastAPI payload format for other git modes
-          payload = {
-            body: {
-              text: userMessage.content,
-              attachments: pendingAttachments.map(attachment => ({
-                url: attachment.url,
-                type: "image"
-              }))
-            },
-            session_id: config.sessionId
-          };
+        // FastAPI payload format
+        payload = {
+          body: {
+            text: userMessage.content,
+            attachments: pendingAttachments.map(attachment => ({
+              url: attachment.url,
+              type: "image"
+            }))
+          },
+          session_id: config.sessionId
+        };
 
-          // thread_id is only used for the git workflow (not for video or exam)
-          if (config.mode === 'tenten-git') {
-            payload.thread_id = config.threadId;
+        // thread_id is only used for the git workflow (not for video or exam)
+        if (config.mode === 'tenten-git') {
+          payload.thread_id = config.threadId;
+        }
+
+        // Add video mode specific fields when in tenten-video
+        if (config.mode === 'tenten-video') {
+          if (config.contentType !== null) {
+            payload.content_type = config.contentType;
           }
-
-          // Add video mode specific fields when in tenten-video
-          if (config.mode === 'tenten-video') {
-            if (config.contentType !== null) {
-              payload.content_type = config.contentType;
-            }
-            if (config.contentId !== null) {
-              payload.content_id = config.contentId;
-            }
-            if (config.segmentId !== null) {
-              payload.segment_id = config.segmentId;
-            }
+          if (config.contentId !== null) {
+            payload.content_id = config.contentId;
           }
+          if (config.segmentId !== null) {
+            payload.segment_id = config.segmentId;
+          }
+        }
 
-          // Add exam mode specific fields when in tenten-exam
-          if (config.mode === 'tenten-exam') {
-            // Set content_type (default to "question" if not provided)
-            payload.content_type = config.contentType || "question";
-            
-            // Required fields for exam mode
-            if (config.contentId !== null) {
-              payload.content_id = config.contentId;
-            }
-            
-            // Add segment_id if provided
-            if (config.segmentId !== null) {
-              payload.segment_id = config.segmentId;
-            }
-            
-            // Add extra field with exam-specific data
-            payload.extra = {};
-            if (config.examId !== null) {
-              payload.extra.exam_id = config.examId;
-            }
-            if (config.examSessionId !== null) {
-              payload.extra.exam_session_id = config.examSessionId;
-            }
+        // Add exam mode specific fields when in tenten-exam
+        if (config.mode === 'tenten-exam') {
+          // Set content_type (default to "question" if not provided)
+          payload.content_type = config.contentType || "question";
+          
+          // Required fields for exam mode
+          if (config.contentId !== null) {
+            payload.content_id = config.contentId;
+          }
+          
+          // Add segment_id if provided
+          if (config.segmentId !== null) {
+            payload.segment_id = config.segmentId;
+          }
+          
+          // Add extra field with exam-specific data
+          payload.extra = {};
+          if (config.examId !== null) {
+            payload.extra.exam_id = config.examId;
+          }
+          if (config.examSessionId !== null) {
+            payload.extra.exam_session_id = config.examSessionId;
           }
         }
       } else {
