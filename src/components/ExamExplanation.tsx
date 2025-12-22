@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, ArrowLeft, Loader2 } from "lucide-react";
+import { BookOpen, ArrowLeft, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ interface ExamExplanationProps {
 }
 
 interface ExplanationResponse {
+  questionId: string;
   status: number;
   message: string;
   errors: any[];
@@ -42,15 +43,16 @@ const getExplanationUrl = (endpoint: GitEndpoint): string => {
 
 export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps) {
   const [endpoint, setEndpoint] = useState<GitEndpoint>(initialConfig.gitEndpoint);
-  const [questionId, setQuestionId] = useState(initialConfig.questionId || "");
+  const [questionIds, setQuestionIds] = useState(initialConfig.questionId || "");
   const [authToken, setAuthToken] = useState(initialConfig.authorizationToken);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [response, setResponse] = useState<ExplanationResponse | null>(null);
+  const [responses, setResponses] = useState<ExplanationResponse[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleGenerate = async () => {
-    if (!questionId) {
-      setError("Question ID is required");
+    if (!questionIds.trim()) {
+      setError("Question ID(s) are required");
       return;
     }
 
@@ -61,36 +63,90 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
 
     setIsLoading(true);
     setError(null);
-    setResponse(null);
+    setResponses([]);
+    setCurrentIndex(0);
+
+    // Parse question IDs (comma-separated or space-separated)
+    const idList = questionIds
+      .split(/[\s,]+/)
+      .map(id => id.trim())
+      .filter(id => id.length > 0);
+
+    if (idList.length === 0) {
+      setError("No valid question IDs provided");
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      const apiResponse = await fetch(getExplanationUrl(endpoint), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          question_id: questionId
-        })
-      });
+      const results: ExplanationResponse[] = [];
+      
+      // Make API calls sequentially for each question ID
+      for (const qId of idList) {
+        try {
+          const apiResponse = await fetch(getExplanationUrl(endpoint), {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+              question_id: qId
+            })
+          });
 
-      const data = await apiResponse.json();
+          const data = await apiResponse.json();
 
-      if (!apiResponse.ok) {
-        throw new Error(data.message || `HTTP error! status: ${apiResponse.status}`);
+          if (!apiResponse.ok) {
+            results.push({
+              questionId: qId,
+              status: apiResponse.status,
+              message: data.message || `HTTP error! status: ${apiResponse.status}`,
+              errors: [data.message || "Request failed"],
+              data: { explanation: "" }
+            });
+          } else if (data.status !== 200) {
+            results.push({
+              questionId: qId,
+              status: data.status,
+              message: data.message || "Failed to get explanation",
+              errors: data.errors || [data.message || "Failed"],
+              data: { explanation: "" }
+            });
+          } else {
+            results.push({
+              questionId: qId,
+              ...data
+            });
+          }
+        } catch (err: any) {
+          results.push({
+            questionId: qId,
+            status: 0,
+            message: "Error",
+            errors: [err.message || "Failed to fetch"],
+            data: { explanation: "" }
+          });
+        }
       }
 
-      if (data.status !== 200) {
-        throw new Error(data.message || "Failed to get explanation");
+      setResponses(results);
+      if (results.length === 0) {
+        setError("No explanations could be generated");
       }
-
-      setResponse(data);
     } catch (err: any) {
-      setError(err.message || "Failed to generate explanation");
+      setError(err.message || "Failed to generate explanations");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePrevious = () => {
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex(prev => Math.min(responses.length - 1, prev + 1));
   };
 
   return (
@@ -183,25 +239,25 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
           </p>
         </div>
 
-        {/* Question ID */}
+        {/* Question IDs */}
         <div className="space-y-2">
-          <Label htmlFor="question-id">Question ID <span className="text-red-500">*</span></Label>
+          <Label htmlFor="question-ids">Question ID(s) <span className="text-red-500">*</span></Label>
           <Input
-            id="question-id"
-            placeholder="e.g., 3370"
-            value={questionId}
-            onChange={(e) => setQuestionId(e.target.value)}
+            id="question-ids"
+            placeholder="e.g., 3370 or 3370, 14748, 5522 (comma or space separated)"
+            value={questionIds}
+            onChange={(e) => setQuestionIds(e.target.value)}
             disabled={isLoading}
           />
           <p className="text-xs text-muted-foreground">
-            <span className="text-red-500">Required:</span> Identifier for the question to explain.
+            <span className="text-red-500">Required:</span> Enter one or more question IDs (comma or space separated).
           </p>
         </div>
 
         {/* Generate Button */}
         <Button
           onClick={handleGenerate}
-          disabled={isLoading || !questionId || !authToken}
+          disabled={isLoading || !questionIds.trim() || !authToken}
           className="w-full"
         >
           {isLoading ? (
@@ -221,53 +277,96 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
           </Alert>
         )}
 
-        {/* Response Display */}
-        {response && (
+        {/* Response Display with Carousel */}
+        {responses.length > 0 && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2">
               <Label className="text-base font-medium text-green-600">
-                ✓ Explanation Generated Successfully
+                ✓ Explanations Generated Successfully
               </Label>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Status</Label>
-              <div className="flex items-center gap-2">
-                <Badge variant="default">{response.status}</Badge>
-                <span className="text-sm text-muted-foreground">{response.message}</span>
-              </div>
-            </div>
-
-            {/* Explanation */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Explanation</Label>
-              <div className="p-4 rounded-lg bg-muted/50 border">
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {response.data.explanation}
-                </p>
-              </div>
-            </div>
-
-            {/* Explanation (Katex) */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Explanation (Katex)</Label>
-              <div className="p-4 rounded-lg bg-muted/50 border">
-                <MarkdownRenderer>
-                  {response.data.explanation}
-                </MarkdownRenderer>
-              </div>
-            </div>
-
-            {/* Errors (if any) */}
-            {response.errors && response.errors.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-destructive">Errors</Label>
-                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <pre className="text-xs text-destructive overflow-auto">
-                    {JSON.stringify(response.errors, null, 2)}
-                  </pre>
+              {responses.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevious}
+                    disabled={currentIndex === 0}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Badge variant="secondary">
+                    {currentIndex + 1} / {responses.length}
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNext}
+                    disabled={currentIndex === responses.length - 1}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
+              )}
+            </div>
+
+            {/* Current Response */}
+            {responses[currentIndex] && (
+              <div className="space-y-4">
+                {/* Question ID Badge */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">Question ID:</Label>
+                  <Badge variant="outline" className="font-mono">
+                    {responses[currentIndex].questionId}
+                  </Badge>
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Status</Label>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={responses[currentIndex].status === 200 ? "default" : "destructive"}>
+                      {responses[currentIndex].status}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">{responses[currentIndex].message}</span>
+                  </div>
+                </div>
+
+                {/* Explanation - only show if successful */}
+                {responses[currentIndex].data.explanation && (
+                  <>
+                    {/* Explanation */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Explanation</Label>
+                      <div className="p-4 rounded-lg bg-muted/50 border">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {responses[currentIndex].data.explanation}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Explanation (Katex) */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Explanation (Katex)</Label>
+                      <div className="p-4 rounded-lg bg-muted/50 border">
+                        <MarkdownRenderer>
+                          {responses[currentIndex].data.explanation}
+                        </MarkdownRenderer>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Errors (if any) */}
+                {responses[currentIndex].errors && responses[currentIndex].errors.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-destructive">Errors</Label>
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                      <pre className="text-xs text-destructive overflow-auto">
+                        {JSON.stringify(responses[currentIndex].errors, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
