@@ -17,6 +17,7 @@ interface ExamExplanationProps {
     questionId: string | null;
     gitEndpoint: GitEndpoint;
     authorizationToken: string;
+    customGitUrl?: string | null;
   };
 }
 
@@ -45,6 +46,7 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
   const [endpoint, setEndpoint] = useState<GitEndpoint>(initialConfig.gitEndpoint);
   const [questionIds, setQuestionIds] = useState(initialConfig.questionId || "");
   const [authToken, setAuthToken] = useState(initialConfig.authorizationToken);
+  const [customUrl, setCustomUrl] = useState<string>(initialConfig.customGitUrl || "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [responses, setResponses] = useState<ExplanationResponse[]>([]);
@@ -84,7 +86,8 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
       // Make API calls sequentially for each question ID
       for (const qId of idList) {
         try {
-          const apiResponse = await fetch(getExplanationUrl(endpoint), {
+          const apiUrl = customUrl && customUrl.trim() !== "" ? customUrl : getExplanationUrl(endpoint);
+          const apiResponse = await fetch(apiUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -213,14 +216,16 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
           </div>
         </div>
 
-        {/* API URL Display */}
+        {/* API URL (Editable) */}
         <div className="space-y-2">
           <Label>API Endpoint URL</Label>
           <Input
-            value={getExplanationUrl(endpoint)}
-            disabled
+            value={customUrl && customUrl.trim() !== "" ? customUrl : getExplanationUrl(endpoint)}
+            onChange={(e) => setCustomUrl(e.target.value)}
+            disabled={isLoading}
             className="font-mono text-sm"
           />
+          <p className="text-xs text-muted-foreground">You can edit the endpoint URL. Leave empty to use default for selected environment.</p>
         </div>
 
         {/* Authorization Token */}

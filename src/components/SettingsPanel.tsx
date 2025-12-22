@@ -117,7 +117,8 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
           initialConfig={{
             questionId: config.questionId,
             gitEndpoint: config.gitEndpoint,
-            authorizationToken: config.authorizationToken
+            authorizationToken: config.authorizationToken,
+            customGitUrl: config.customGitUrl
           }}
         />
       </div>
