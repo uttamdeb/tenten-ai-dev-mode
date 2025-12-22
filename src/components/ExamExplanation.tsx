@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { GitEndpoint } from "./SettingsPanel";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface ExamExplanationProps {
   onBack: () => void;
@@ -245,6 +246,16 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
                   {response.data.explanation}
                 </p>
+              </div>
+            </div>
+
+            {/* Explanation (Katex) */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Explanation (Katex)</Label>
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <MarkdownRenderer>
+                  {response.data.explanation}
+                </MarkdownRenderer>
               </div>
             </div>
 
