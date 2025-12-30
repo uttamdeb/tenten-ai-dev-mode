@@ -525,7 +525,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Select a segment or enter a custom segment ID. Will be mapped to: {config.segmentId !== null ? getSegmentIdValue(config.segmentId) : 'hsc'}
+                  Select a segment or enter a custom segment ID. Will be sent as: {config.segmentId !== null ? config.segmentId : 10}
                 </p>
               </div>
             </div>

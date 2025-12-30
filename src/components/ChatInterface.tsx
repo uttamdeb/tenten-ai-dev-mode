@@ -473,17 +473,9 @@ export function ChatInterface() {
         if (config.mode === 'tenten-git') {
           payload.thread_id = config.threadId;
           
-          // Add segment_id with mapping
+          // Add segment_id as number
           if (config.segmentId !== null) {
-            const segmentIdMap: Record<number, string> = {
-              6: "class-6",
-              7: "class-7",
-              8: "class-8",
-              9: "ssc",
-              10: "hsc",
-              101: "ssc"
-            };
-            payload.segment_id = segmentIdMap[config.segmentId] || `segment-${config.segmentId}`;
+            payload.segment_id = config.segmentId;
           }
         }
 
