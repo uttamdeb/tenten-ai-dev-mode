@@ -53,7 +53,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   gitEndpoint: "stage",
   contentType: null,
   contentId: null,
-  segmentId: null,
+  segmentId: 10,
   examId: null,
   examSessionId: null,
   questionId: null
@@ -67,6 +67,42 @@ const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
       return "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages";
     case "local":
       return "http://localhost:8000/api/v1/messages";
+  }
+};
+
+const getSegmentIdLabel = (segmentId: number): string => {
+  switch (segmentId) {
+    case 6:
+      return "Class 6";
+    case 7:
+      return "Class 7";
+    case 8:
+      return "Class 8";
+    case 9:
+    case 101:
+      return "SSC";
+    case 10:
+      return "HSC";
+    default:
+      return `Segment ${segmentId}`;
+  }
+};
+
+const getSegmentIdValue = (segmentId: number): string => {
+  switch (segmentId) {
+    case 6:
+      return "class-6";
+    case 7:
+      return "class-7";
+    case 8:
+      return "class-8";
+    case 9:
+    case 101:
+      return "ssc";
+    case 10:
+      return "hsc";
+    default:
+      return `segment-${segmentId}`;
   }
 };
 
@@ -450,6 +486,46 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Select a subject or enter a custom thread ID. Changes sync with subject selector.
+                </p>
+              </div>
+
+              {/* Segment ID */}
+              <div className="space-y-2">
+                <Label htmlFor="segment-id">Segment ID</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={config.segmentId !== null ? config.segmentId.toString() : "10"}
+                    onValueChange={(value) => updateConfig({ segmentId: parseInt(value) })}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue>
+                        {config.segmentId !== null
+                          ? `${getSegmentIdLabel(config.segmentId)} (ID: ${config.segmentId})`
+                          : "HSC (ID: 10)"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6">Class 6 (ID: 6)</SelectItem>
+                      <SelectItem value="7">Class 7 (ID: 7)</SelectItem>
+                      <SelectItem value="8">Class 8 (ID: 8)</SelectItem>
+                      <SelectItem value="9">SSC (ID: 9)</SelectItem>
+                      <SelectItem value="10">HSC (ID: 10)</SelectItem>
+                      <SelectItem value="101">SSC (ID: 101)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="segment-id"
+                    type="number"
+                    placeholder="Custom"
+                    value={config.segmentId !== null ? String(config.segmentId) : "10"}
+                    onChange={(e) => updateConfig({ 
+                      segmentId: e.target.value ? parseInt(e.target.value) : 10 
+                    })}
+                    className="w-24"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Select a segment or enter a custom segment ID. Will be mapped to: {config.segmentId !== null ? getSegmentIdValue(config.segmentId) : 'hsc'}
                 </p>
               </div>
             </div>

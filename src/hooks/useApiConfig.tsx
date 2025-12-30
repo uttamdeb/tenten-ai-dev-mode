@@ -11,7 +11,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   gitEndpoint: "stage",
   contentType: null,
   contentId: null,
-  segmentId: null,
+  segmentId: 10,
   examId: null,
   examSessionId: null,
   questionId: null

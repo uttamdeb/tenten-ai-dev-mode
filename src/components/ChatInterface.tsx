@@ -469,9 +469,22 @@ export function ChatInterface() {
           session_id: config.sessionId
         };
 
-        // thread_id is only used for the git workflow (not for video or exam)
+        // thread_id and segment_id are used for the git workflow (not for video or exam)
         if (config.mode === 'tenten-git') {
           payload.thread_id = config.threadId;
+          
+          // Add segment_id with mapping
+          if (config.segmentId !== null) {
+            const segmentIdMap: Record<number, string> = {
+              6: "class-6",
+              7: "class-7",
+              8: "class-8",
+              9: "ssc",
+              10: "hsc",
+              101: "ssc"
+            };
+            payload.segment_id = segmentIdMap[config.segmentId] || `segment-${config.segmentId}`;
+          }
         }
 
         // Add video mode specific fields when in tenten-video
