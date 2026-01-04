@@ -368,7 +368,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     ? "border-primary bg-primary/5" 
                     : "border-border hover:border-primary/50"
                 )}
-                onClick={() => updateConfig({ mode: "tenten-vectorize", threadId: null })}
+                onClick={() => updateConfig({ mode: "tenten-vectorize", threadId: null, authorizationToken: "tenms_stage_service_key" })}
               >
                 <div className="flex items-center gap-3">
                   <Database className="h-5 w-5 text-indigo-500" />
