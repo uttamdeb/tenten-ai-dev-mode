@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText, BookOpen } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText, BookOpen, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { EvaluationMode } from "./EvaluationMode";
 import { TokenGenerator } from "./TokenGenerator";
 import { ExamExplanation } from "./ExamExplanation";
+import { KnowledgeBaseVectorize } from "./KnowledgeBaseVectorize";
+import { APP_VERSION } from "@/config/version";
 import {
   Select,
   SelectContent,
@@ -111,6 +113,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
   const [isEvalMode, setIsEvalMode] = useState(false);
   const [isTokenGenerator, setIsTokenGenerator] = useState(false);
   const [isExamExplanation, setIsExamExplanation] = useState(false);
+  const [isKnowledgeBase, setIsKnowledgeBase] = useState(false);
 
   // Sync local state when currentConfig prop changes (e.g., after token refresh)
   useEffect(() => {
@@ -142,7 +145,20 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
     setIsExamExplanation(false);
   };
 
+  const handleBackFromKnowledgeBase = () => {
+    setIsKnowledgeBase(false);
+  };
+
   if (!isOpen) return null;
+
+  // Show Knowledge Base if activated
+  if (isKnowledgeBase) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <KnowledgeBaseVectorize onBack={handleBackFromKnowledgeBase} />
+      </div>
+    );
+  }
 
   // Show Exam Explanation if activated
   if (isExamExplanation) {
@@ -187,6 +203,9 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Settings className="h-5 w-5" />
               TenTen AI Settings
+              <Badge variant="secondary" className="ml-2 text-xs">
+                v{APP_VERSION}
+              </Badge>
             </CardTitle>
             <CardDescription>
               Configure API endpoints and authentication for different TenTen AI services
@@ -343,6 +362,25 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
                 <Badge variant="outline">
                   Explanation
+                </Badge>
+              </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  "border-border hover:border-primary/50"
+                )}
+                onClick={() => setIsKnowledgeBase(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <Database className="h-5 w-5 text-indigo-500" />
+                  <div>
+                    <div className="font-medium">TenTen Knowledge Base</div>
+                    <div className="text-sm text-muted-foreground">Vectorize academic documents for knowledge base</div>
+                  </div>
+                </div>
+                <Badge variant="outline">
+                  Vectorize
                 </Badge>
               </div>
             </div>
