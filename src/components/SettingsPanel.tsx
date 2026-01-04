@@ -121,6 +121,17 @@ const getSegmentIdValue = (segmentId: number): string => {
   }
 };
 
+const getVectorizeServiceKey = (endpoint: GitEndpoint): string => {
+  switch (endpoint) {
+    case "prod":
+      return "base64:ZFF0d6f47cfw5ICllJVL8p+D2IoZw+8tQaCq6RSQsVo=";
+    case "stage":
+      return "tenms_stage_service_key";
+    case "local":
+      return "tenms_stage_service_key";
+  }
+};
+
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
   const [isEvalMode, setIsEvalMode] = useState(false);
@@ -368,7 +379,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     ? "border-primary bg-primary/5" 
                     : "border-border hover:border-primary/50"
                 )}
-                onClick={() => updateConfig({ mode: "tenten-vectorize", threadId: null, authorizationToken: "tenms_stage_service_key" })}
+                onClick={() => updateConfig({ mode: "tenten-vectorize", threadId: null, gitEndpoint: "stage", authorizationToken: getVectorizeServiceKey("stage") })}
               >
                 <div className="flex items-center gap-3">
                   <Database className="h-5 w-5 text-indigo-500" />
@@ -967,7 +978,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined })}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, authorizationToken: getVectorizeServiceKey("stage") })}
                   >
                     <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
                       Stage
@@ -991,14 +1002,15 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Label htmlFor="vectorize-service-key">Service Key <span className="text-red-500">*</span></Label>
                 <Input
                   id="vectorize-service-key"
-                  placeholder="tenms_stage_service_key"
+                  type="password"
+                  placeholder="Enter service key"
                   value={config.authorizationToken}
                   onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
                   className="font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Service key for vectorization API authentication (sent as x-tenms-service-key header)
+                  Authentication key for the vectorization service
                 </p>
               </div>
 
