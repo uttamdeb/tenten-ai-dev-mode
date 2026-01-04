@@ -187,7 +187,7 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
   };
 
   return (
-    <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="space-y-1">
           <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -210,17 +210,16 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
           <div className="grid grid-cols-3 gap-2">
             <div 
               className={cn(
-                "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all cursor-not-allowed opacity-50",
                 config.endpointMode === "prod"
-                  ? "border-primary bg-primary/5 cursor-not-allowed opacity-50"
-                  : "border-border cursor-not-allowed opacity-50"
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
               )}
               title="Production endpoint is currently disabled"
             >
               <Badge variant={config.endpointMode === "prod" ? "default" : "outline"}>
                 Prod
               </Badge>
-              <span className="text-xs text-muted-foreground mt-1">Disabled</span>
             </div>
             <div 
               className={cn(
@@ -237,17 +236,16 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
             </div>
             <div 
               className={cn(
-                "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
+                "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all cursor-not-allowed opacity-50",
                 config.endpointMode === "local"
-                  ? "border-primary bg-primary/5 cursor-not-allowed opacity-50"
-                  : "border-border cursor-not-allowed opacity-50"
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
               )}
               title="Local endpoint is currently disabled"
             >
               <Badge variant={config.endpointMode === "local" ? "default" : "outline"}>
                 Local
               </Badge>
-              <span className="text-xs text-muted-foreground mt-1">Disabled</span>
             </div>
           </div>
         </div>
@@ -265,18 +263,6 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
           <p className="text-xs text-muted-foreground">
             Default: {getEndpointUrl(config.endpointMode)}
           </p>
-        </div>
-
-        {/* Service Key */}
-        <div className="space-y-2">
-          <Label htmlFor="service-key">Service Key</Label>
-          <Input
-            id="service-key"
-            value={config.serviceKey}
-            onChange={(e) => updateConfig({ serviceKey: e.target.value })}
-            className="font-mono text-sm"
-            placeholder="Enter service key"
-          />
         </div>
 
         {/* Source Title (Optional) */}
