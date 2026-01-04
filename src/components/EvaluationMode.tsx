@@ -355,12 +355,21 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
               </Badge>
             </div>
           </div>
+        </div>
+
+        {/* API Endpoint URL */}
+        <div className="space-y-2">
+          <Label htmlFor="endpoint-url">API Endpoint URL</Label>
           <Input
+            id="endpoint-url"
             value={config.customEndpoint}
             onChange={(e) => updateConfig({ customEndpoint: e.target.value })}
             className="font-mono text-sm"
             placeholder="Enter API endpoint URL"
           />
+          <p className="text-xs text-muted-foreground">
+            Default: {getEndpointUrl(config.endpointMode)}
+          </p>
         </div>
 
         <Separator />
