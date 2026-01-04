@@ -162,7 +162,7 @@ export function TokenGenerator({ onBack }: TokenGeneratorProps) {
         {/* API Endpoint Selection */}
         <div className="space-y-3">
           <Label className="text-base font-medium">Choose API Endpoint</Label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <div
               className={cn(
                 "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
@@ -187,19 +187,6 @@ export function TokenGenerator({ onBack }: TokenGeneratorProps) {
             >
               <Badge variant={endpoint === "stage" ? "default" : "outline"}>
                 Stage
-              </Badge>
-            </div>
-            <div
-              className={cn(
-                "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
-                endpoint === "local"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              )}
-              onClick={() => setEndpoint("local")}
-            >
-              <Badge variant={endpoint === "local" ? "default" : "outline"}>
-                Local
               </Badge>
             </div>
           </div>

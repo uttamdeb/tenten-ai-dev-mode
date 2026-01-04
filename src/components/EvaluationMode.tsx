@@ -313,7 +313,7 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
       <CardContent className="space-y-6">
         {/* API Endpoint Selection */}
         <div className="space-y-3">
-          <Label className="text-base font-medium">API Endpoint</Label>
+          <Label className="text-base font-medium">Choose API Endpoint</Label>
           <div className="grid grid-cols-3 gap-2">
             <div 
               className={cn(
