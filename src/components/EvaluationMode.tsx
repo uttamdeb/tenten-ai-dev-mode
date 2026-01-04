@@ -365,22 +365,6 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
 
         <Separator />
 
-        {/* Service Key */}
-        <div className="space-y-2">
-          <Label htmlFor="service-key">Service Key</Label>
-          <Input
-            id="service-key"
-            type="password"
-            value={config.serviceKey}
-            onChange={(e) => updateConfig({ serviceKey: e.target.value })}
-            placeholder="Enter service key"
-            className="font-mono"
-          />
-          <p className="text-xs text-muted-foreground">
-            Authentication key for the evaluation service
-          </p>
-        </div>
-
         {/* Experiment Name */}
         <div className="space-y-2">
           <Label htmlFor="experiment-name">Experiment Name</Label>

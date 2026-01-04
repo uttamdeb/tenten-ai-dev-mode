@@ -997,23 +997,6 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
               </div>
 
-              {/* Service Key */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-service-key">Service Key <span className="text-red-500">*</span></Label>
-                <Input
-                  id="vectorize-service-key"
-                  type="password"
-                  placeholder="Enter service key"
-                  value={config.authorizationToken}
-                  onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
-                  className="font-mono text-sm"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Authentication key for the vectorization service
-                </p>
-              </div>
-
               {/* Source Title (Optional) */}
               <div className="space-y-2">
                 <Label htmlFor="vectorize-source-title">Source Title (Optional)</Label>
