@@ -97,10 +97,18 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
 
   const addTopic = () => {
     if (newTopic.trim()) {
-      updateConfig({
-        topics: [...config.topics, newTopic.trim()]
-      });
-      setNewTopic("");
+      // Split by comma and add multiple topics
+      const newTopics = newTopic
+        .split(',')
+        .map(topic => topic.trim())
+        .filter(topic => topic.length > 0);
+      
+      if (newTopics.length > 0) {
+        updateConfig({
+          topics: [...config.topics, ...newTopics]
+        });
+        setNewTopic("");
+      }
     }
   };
 
@@ -364,7 +372,7 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
               value={newTopic}
               onChange={(e) => setNewTopic(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Enter a topic and press Enter or click Add"
+              placeholder="Enter topics (comma-separated or one at a time)"
             />
             <Button type="button" onClick={addTopic} size="sm">
               <Plus className="h-4 w-4 mr-1" />
@@ -388,7 +396,7 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Add at least one topic. Press Enter or click Add to add each topic.
+            Add at least one topic. You can enter multiple topics separated by commas, or add them one at a time. Press Enter or click Add.
           </p>
         </div>
 
