@@ -121,17 +121,6 @@ const getSegmentIdValue = (segmentId: number): string => {
   }
 };
 
-const getVectorizeServiceKey = (endpoint: GitEndpoint): string => {
-  switch (endpoint) {
-    case "prod":
-      return "base64:ZFF0d6f47cfw5ICllJVL8p+D2IoZw+8tQaCq6RSQsVo=";
-    case "stage":
-      return "tenms_stage_service_key";
-    case "local":
-      return "tenms_stage_service_key";
-  }
-};
-
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
   const [isEvalMode, setIsEvalMode] = useState(false);
@@ -379,7 +368,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     ? "border-primary bg-primary/5" 
                     : "border-border hover:border-primary/50"
                 )}
-                onClick={() => updateConfig({ mode: "tenten-vectorize", threadId: null, gitEndpoint: "stage", authorizationToken: getVectorizeServiceKey("stage") })}
+                onClick={() => updateConfig({ mode: "tenten-vectorize", threadId: null })}
               >
                 <div className="flex items-center gap-3">
                   <Database className="h-5 w-5 text-indigo-500" />
@@ -963,12 +952,13 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <div className="grid grid-cols-3 gap-2">
                   <div 
                     className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2",
-                      "border-border opacity-50"
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-not-allowed opacity-50",
+                      "border-border"
                     )}
+                    title="Production endpoint is currently disabled"
                   >
                     <Badge variant="outline">
-                      Prod
+                      Prod (Disabled)
                     </Badge>
                   </div>
                   <div 
@@ -978,7 +968,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                         ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, authorizationToken: getVectorizeServiceKey("stage") })}
+                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined })}
                   >
                     <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
                       Stage
@@ -986,12 +976,13 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   </div>
                   <div 
                     className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2",
-                      "border-border opacity-50"
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-not-allowed opacity-50",
+                      "border-border"
                     )}
+                    title="Local endpoint is currently disabled"
                   >
                     <Badge variant="outline">
-                      Local
+                      Local (Disabled)
                     </Badge>
                   </div>
                 </div>
@@ -1003,14 +994,13 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Input
                   id="vectorize-service-key"
                   type="password"
-                  placeholder="Enter service key"
+                  placeholder="tenms_stage_service_key"
                   value={config.authorizationToken}
                   onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
-                  className="font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Authentication key for the vectorization service
+                  <span className="text-red-500">Required:</span> x-tenms-service-key for authentication
                 </p>
               </div>
 

@@ -113,7 +113,7 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
   const handleEndpointModeChange = (mode: EndpointMode) => {
     const serviceKey = mode === "prod" 
       ? "base64:ZFF0d6f47cfw5ICllJVL8p+D2IoZw+8tQaCq6RSQsVo=" 
-      : "tenms_stage_service_key"; // stage and local use the same key
+      : "tenms_stage_service_key";
     
     updateConfig({
       endpointMode: mode,
@@ -370,10 +370,9 @@ export function EvaluationMode({ onBack }: EvaluationModeProps) {
           <Label htmlFor="service-key">Service Key</Label>
           <Input
             id="service-key"
-            type="password"
             value={config.serviceKey}
             onChange={(e) => updateConfig({ serviceKey: e.target.value })}
-            placeholder="Enter service key"
+            placeholder="Enter X-Tenms-Service-Key"
             className="font-mono"
           />
           <p className="text-xs text-muted-foreground">
