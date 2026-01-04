@@ -516,37 +516,6 @@ export function ChatInterface() {
             payload.extra.exam_session_id = config.examSessionId;
           }
         }
-
-        // Vectorize mode specific fields
-        if (config.mode === 'tenten-vectorize') {
-          // Validate required fields
-          if (!config.vectorizeSubject || !config.vectorizeChapter || 
-              !config.vectorizeSourceType || !config.vectorizeGrade || 
-              !config.vectorizeFileUrl || config.vectorizeTopics.length === 0) {
-            throw new Error("All required fields must be filled for vectorization: subject, chapter, source_type, grade, file_url, and topics");
-          }
-
-          // Override payload with vectorize structure
-          payload = {
-            subject: config.vectorizeSubject,
-            chapter: config.vectorizeChapter,
-            source_type: config.vectorizeSourceType,
-            grade: config.vectorizeGrade,
-            file_url: config.vectorizeFileUrl,
-            topics: config.vectorizeTopics
-          };
-
-          // Add optional source_title if provided
-          if (config.vectorizeSourceTitle) {
-            payload.source_title = config.vectorizeSourceTitle;
-          }
-
-          // Update headers for vectorize mode - use x-tenms-service-key
-          headers = {
-            'Content-Type': 'application/json',
-            'x-tenms-service-key': config.authorizationToken
-          } as any;
-        }
       } else {
         // N8N webhook payload format
         payload = {
@@ -587,57 +556,6 @@ export function ChatInterface() {
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // Special handling for vectorize mode - it returns a simple JSON response, not streaming
-      if (config.mode === 'tenten-vectorize') {
-        const jsonResponse = await response.json();
-        
-        // Update AI message with vectorization result
-        setMessages(prev => prev.map(msg => {
-          if (msg.id === aiMessageId) {
-            return {
-              ...msg,
-              content: `✅ **Vectorization completed successfully!**\n\n` +
-                      `**Document Details:**\n` +
-                      `- Subject: ${config.vectorizeSubject}\n` +
-                      `- Chapter: ${config.vectorizeChapter}\n` +
-                      `- Source Type: ${config.vectorizeSourceType}\n` +
-                      `- Grade: ${config.vectorizeGrade}\n` +
-                      `- File URL: ${config.vectorizeFileUrl}\n` +
-                      `- Topics: ${config.vectorizeTopics.length} topics\n\n` +
-                      `**Response:**\n\`\`\`json\n${JSON.stringify(jsonResponse, null, 2)}\n\`\`\``,
-              isStreaming: false,
-              timestamp: new Date()
-            };
-          }
-          return msg;
-        }));
-
-        // Store to Supabase if we have a session
-        if (currentSessionId) {
-          await storeMessageInDatabase(
-            userMessage.content,
-            { mode: 'vectorize', config: config },
-            jsonResponse,
-            `Vectorization completed for: ${config.vectorizeSubject} - ${config.vectorizeChapter}`,
-            currentMessageId,
-            currentSessionId
-          );
-        }
-
-        setIsLoading(false);
-        if (waitingTimerRef.current) {
-          clearInterval(waitingTimerRef.current);
-          waitingTimerRef.current = null;
-        }
-
-        toast({
-          title: "Vectorization Complete",
-          description: "Document has been successfully vectorized and indexed.",
-        });
-
-        return;
       }
 
       // Check if response is streaming - n8n might not set specific content-type headers

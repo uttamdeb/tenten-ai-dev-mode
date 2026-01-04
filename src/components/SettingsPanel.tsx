@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText, BookOpen, Database } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { getThreadOptions, getLabelFromThreadId } from "@/utils/threadMapping";
 
-export type ApiMode = "n8n" | "tenten-git" | "tenten-video" | "tenten-exam" | "tenten-exam-explanation" | "tenten-vectorize";
+export type ApiMode = "n8n" | "tenten-git" | "tenten-video" | "tenten-exam" | "tenten-exam-explanation";
 export type GitEndpoint = "prod" | "stage" | "local";
 
 export interface ApiConfiguration {
@@ -36,14 +36,6 @@ export interface ApiConfiguration {
   examId: string | null;
   examSessionId: string | null;
   questionId: string | null;
-  // Vectorize mode fields
-  vectorizeSourceTitle: string | null;
-  vectorizeSubject: string | null;
-  vectorizeChapter: string | null;
-  vectorizeSourceType: string | null;
-  vectorizeGrade: string | null;
-  vectorizeFileUrl: string | null;
-  vectorizeTopics: string[];
 }
 
 interface SettingsPanelProps {
@@ -64,14 +56,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   segmentId: 10,
   examId: null,
   examSessionId: null,
-  questionId: null,
-  vectorizeSourceTitle: null,
-  vectorizeSubject: null,
-  vectorizeChapter: null,
-  vectorizeSourceType: null,
-  vectorizeGrade: null,
-  vectorizeFileUrl: null,
-  vectorizeTopics: []
+  questionId: null
 };
 
 const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
@@ -118,17 +103,6 @@ const getSegmentIdValue = (segmentId: number): string => {
       return "hsc";
     default:
       return `segment-${segmentId}`;
-  }
-};
-
-const getVectorizeServiceKey = (endpoint: GitEndpoint): string => {
-  switch (endpoint) {
-    case "prod":
-      return "base64:ZFF0d6f47cfw5ICllJVL8p+D2IoZw+8tQaCq6RSQsVo=";
-    case "stage":
-      return "tenms_stage_service_key";
-    case "local":
-      return "tenms_stage_service_key";
   }
 };
 
@@ -369,27 +343,6 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
                 <Badge variant="outline">
                   Explanation
-                </Badge>
-              </div>
-
-              <div 
-                className={cn(
-                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
-                  config.mode === "tenten-vectorize" 
-                    ? "border-primary bg-primary/5" 
-                    : "border-border hover:border-primary/50"
-                )}
-                onClick={() => updateConfig({ mode: "tenten-vectorize", threadId: null, gitEndpoint: "stage", authorizationToken: getVectorizeServiceKey("stage") })}
-              >
-                <div className="flex items-center gap-3">
-                  <Database className="h-5 w-5 text-indigo-500" />
-                  <div>
-                    <div className="font-medium">TenTen Knowledge Base</div>
-                    <div className="text-sm text-muted-foreground">Vectorize and index academic documents</div>
-                  </div>
-                </div>
-                <Badge variant={config.mode === "tenten-vectorize" ? "default" : "outline"}>
-                  Vectorize
                 </Badge>
               </div>
             </div>
@@ -944,195 +897,6 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 />
                 <p className="text-xs text-muted-foreground">
                   Segment identifier. Leave empty for null.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Configuration for TenTen Vectorize mode */}
-          {config.mode === "tenten-vectorize" && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                <Label className="text-base font-medium">Knowledge Base Vectorization</Label>
-              </div>
-
-              {/* API Endpoint Selection */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Choose API Endpoint</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div 
-                    className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2",
-                      "border-border opacity-50"
-                    )}
-                  >
-                    <Badge variant="outline">
-                      Prod
-                    </Badge>
-                  </div>
-                  <div 
-                    className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all",
-                      config.gitEndpoint === "stage" 
-                        ? "border-primary bg-primary/5" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => updateConfig({ gitEndpoint: "stage", customGitUrl: undefined, authorizationToken: getVectorizeServiceKey("stage") })}
-                  >
-                    <Badge variant={config.gitEndpoint === "stage" ? "default" : "outline"}>
-                      Stage
-                    </Badge>
-                  </div>
-                  <div 
-                    className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2",
-                      "border-border opacity-50"
-                    )}
-                  >
-                    <Badge variant="outline">
-                      Local
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Source Title (Optional) */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-source-title">Source Title (Optional)</Label>
-                <Input
-                  id="vectorize-source-title"
-                  placeholder="e.g., Mathematics Textbook"
-                  value={config.vectorizeSourceTitle || ""}
-                  onChange={(e) => updateConfig({ 
-                    vectorizeSourceTitle: e.target.value.trim() || null 
-                  })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Optional: Title of the source document
-                </p>
-              </div>
-
-              {/* Subject - Required */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-subject">Subject <span className="text-red-500">*</span></Label>
-                <Input
-                  id="vectorize-subject"
-                  placeholder="e.g., Higher Math 2nd Paper"
-                  value={config.vectorizeSubject || ""}
-                  onChange={(e) => updateConfig({ 
-                    vectorizeSubject: e.target.value.trim() || null 
-                  })}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> Subject name
-                </p>
-              </div>
-
-              {/* Chapter - Required */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-chapter">Chapter <span className="text-red-500">*</span></Label>
-                <Input
-                  id="vectorize-chapter"
-                  placeholder="e.g., অধ্যায় ১০: বিস্তার পরিমাপ ও সম্ভাবনা"
-                  value={config.vectorizeChapter || ""}
-                  onChange={(e) => updateConfig({ 
-                    vectorizeChapter: e.target.value.trim() || null 
-                  })}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> Chapter name or identifier
-                </p>
-              </div>
-
-              {/* Source Type - Required */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-source-type">Source Type <span className="text-red-500">*</span></Label>
-                <Select
-                  value={config.vectorizeSourceType || ""}
-                  onValueChange={(value) => updateConfig({ vectorizeSourceType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select source type">
-                      {config.vectorizeSourceType || "Select source type"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lecture_sheet">Lecture Sheet</SelectItem>
-                    <SelectItem value="textbook">Textbook</SelectItem>
-                    <SelectItem value="notes">Notes</SelectItem>
-                    <SelectItem value="guide">Guide</SelectItem>
-                    <SelectItem value="reference">Reference</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> Type of document source
-                </p>
-              </div>
-
-              {/* Grade - Required */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-grade">Grade <span className="text-red-500">*</span></Label>
-                <Select
-                  value={config.vectorizeGrade || ""}
-                  onValueChange={(value) => updateConfig({ vectorizeGrade: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select grade">
-                      {config.vectorizeGrade || "Select grade"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="class-6">Class 6</SelectItem>
-                    <SelectItem value="class-7">Class 7</SelectItem>
-                    <SelectItem value="class-8">Class 8</SelectItem>
-                    <SelectItem value="ssc">SSC</SelectItem>
-                    <SelectItem value="hsc">HSC</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> Academic grade level
-                </p>
-              </div>
-
-              {/* File URL - Required */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-file-url">File URL <span className="text-red-500">*</span></Label>
-                <Input
-                  id="vectorize-file-url"
-                  placeholder="https://s3.ap-southeast-1.amazonaws.com/..."
-                  value={config.vectorizeFileUrl || ""}
-                  onChange={(e) => updateConfig({ 
-                    vectorizeFileUrl: e.target.value.trim() || null 
-                  })}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> URL to the PDF file to be vectorized
-                </p>
-              </div>
-
-              {/* Topics - Required */}
-              <div className="space-y-2">
-                <Label htmlFor="vectorize-topics">Topics <span className="text-red-500">*</span></Label>
-                <Textarea
-                  id="vectorize-topics"
-                  placeholder="Enter topics separated by commas or new lines"
-                  value={config.vectorizeTopics.join("\n")}
-                  onChange={(e) => {
-                    const topics = e.target.value
-                      .split(/[\n,]+/)
-                      .map(t => t.trim())
-                      .filter(t => t.length > 0);
-                    updateConfig({ vectorizeTopics: topics });
-                  }}
-                  className="min-h-[120px]"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> List of topics covered (one per line or comma-separated)
                 </p>
               </div>
             </div>

@@ -14,14 +14,7 @@ const DEFAULT_CONFIG: ApiConfiguration = {
   segmentId: 10,
   examId: null,
   examSessionId: null,
-  questionId: null,
-  vectorizeSourceTitle: null,
-  vectorizeSubject: null,
-  vectorizeChapter: null,
-  vectorizeSourceType: null,
-  vectorizeGrade: null,
-  vectorizeFileUrl: null,
-  vectorizeTopics: []
+  questionId: null
 };
 
 const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
@@ -32,17 +25,6 @@ const getGitEndpointUrl = (endpoint: GitEndpoint): string => {
       return "https://local-api.10minuteschool.net/tenten-ai-service/api/v1/messages";
     case "local":
       return "http://localhost:8000/api/v1/messages";
-  }
-};
-
-const getVectorizeEndpointUrl = (endpoint: GitEndpoint): string => {
-  switch (endpoint) {
-    case "prod":
-      return "https://api.10minuteschool.com/tenten-ai-service/api/v1/academic-documents/vectorize";
-    case "stage":
-      return "http://local-api.10minuteschool.net/tenten-ai-service/api/v1/academic-documents/vectorize";
-    case "local":
-      return "http://localhost:8000/api/v1/academic-documents/vectorize";
   }
 };
 
@@ -106,7 +88,7 @@ export const useApiConfig = () => {
   };
 
   const isGitMode = (mode: ApiMode) => {
-    return mode === "tenten-git" || mode === "tenten-video" || mode === "tenten-exam" || mode === "tenten-vectorize";
+    return mode === "tenten-git" || mode === "tenten-video" || mode === "tenten-exam";
 };
 
   const getApiUrl = () => {
@@ -115,8 +97,6 @@ export const useApiConfig = () => {
       case "tenten-video":
       case "tenten-exam":
         return config.customGitUrl || getGitEndpointUrl(config.gitEndpoint);
-      case "tenten-vectorize":
-        return config.customGitUrl || getVectorizeEndpointUrl(config.gitEndpoint);
       case "n8n":
       default:
         return "https://n8n-prod.10minuteschool.com/webhook/supersolve-ai-v1";
