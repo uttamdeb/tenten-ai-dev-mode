@@ -952,13 +952,12 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <div className="grid grid-cols-3 gap-2">
                   <div 
                     className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-not-allowed opacity-50",
-                      "border-border"
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2",
+                      "border-border opacity-50"
                     )}
-                    title="Production endpoint is currently disabled"
                   >
                     <Badge variant="outline">
-                      Prod (Disabled)
+                      Prod
                     </Badge>
                   </div>
                   <div 
@@ -976,13 +975,12 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                   </div>
                   <div 
                     className={cn(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-not-allowed opacity-50",
-                      "border-border"
+                      "flex flex-col items-center justify-center p-3 rounded-lg border-2",
+                      "border-border opacity-50"
                     )}
-                    title="Local endpoint is currently disabled"
                   >
                     <Badge variant="outline">
-                      Local (Disabled)
+                      Local
                     </Badge>
                   </div>
                 </div>
@@ -993,14 +991,14 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Label htmlFor="vectorize-service-key">Service Key <span className="text-red-500">*</span></Label>
                 <Input
                   id="vectorize-service-key"
-                  type="password"
                   placeholder="tenms_stage_service_key"
                   value={config.authorizationToken}
                   onChange={(e) => updateConfig({ authorizationToken: e.target.value })}
+                  className="font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500">Required:</span> x-tenms-service-key for authentication
+                  Service key for vectorization API authentication (sent as x-tenms-service-key header)
                 </p>
               </div>
 
