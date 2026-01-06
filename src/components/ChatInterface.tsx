@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Zap, Bot, Paperclip, X, Image, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { ChatMessage } from "./ChatMessage";
 import { SubjectSelector, Subject } from "./SubjectSelector";
 import { getThreadIdFromSubject, getSubjectFromThreadId } from "@/utils/threadMapping";
@@ -1070,7 +1071,14 @@ export function ChatInterface() {
                 />
               </div>
               <div>
-                <h1 className="text-lg font-semibold gradient-text">TenTen AI - Dev Mode</h1>
+                <h1 className="text-lg font-semibold gradient-text flex items-center gap-2">
+                  TenTen AI - Dev Mode
+                  {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
+                    <Badge variant="secondary" className="text-xs">
+                      {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
+                    </Badge>
+                  )}
+                </h1>
                 <p className="text-sm text-muted-foreground">HIGHLY CONFIDENTIAL</p>
               </div>
             </div>
