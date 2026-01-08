@@ -127,7 +127,9 @@ export function ChatInterface() {
           { value: "biology", label: "Biology" },
           { value: "bangla", label: "Bangla" },
           { value: "english", label: "English" },
-          { value: "ict", label: "ICT" }
+          { value: "ict", label: "ICT" },
+          { value: "science", label: "Science" },
+          { value: "higher-math", label: "Higher Math" }
         ];
         const newSubject = subjects.find(s => s.value === subjectValue);
         if (newSubject) {

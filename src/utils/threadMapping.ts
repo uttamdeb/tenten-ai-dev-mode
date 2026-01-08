@@ -10,30 +10,36 @@ export interface ThreadOption {
 export const THREAD_MAPPINGS = {
   prod: [
     { id: 1, label: "Physics", subject: "physics" },
-    { id: 34, label: "Bangla", subject: "bangla" },
-    { id: 3, label: "Math", subject: "mathematics" },
-    { id: 35, label: "English", subject: "english" },
     { id: 2, label: "Chemistry", subject: "chemistry" },
+    { id: 4, label: "Biology", subject: "biology" },
+    { id: 3, label: "Math", subject: "mathematics" },
+    { id: 69, label: "Science", subject: "science" },
+    { id: 35, label: "English", subject: "english" },
+    { id: 68, label: "Higher Math", subject: "higher-math" },
     { id: 67, label: "ICT", subject: "ict" },
-    { id: 4, label: "Biology", subject: "biology" }
+    { id: 34, label: "Bangla", subject: "bangla" }
   ],
   stage: [
     { id: 3, label: "ICT", subject: "ict" },
-    { id: 1, label: "Math", subject: "mathematics" },
     { id: 4, label: "Biology", subject: "biology" },
     { id: 2, label: "Chemistry", subject: "chemistry" },
     { id: 5, label: "Bangla", subject: "bangla" },
     { id: 7, label: "Physics", subject: "physics" },
-    { id: 6, label: "English", subject: "english" }
+    { id: 6, label: "English", subject: "english" },
+    { id: 1, label: "Math", subject: "mathematics" },
+    { id: 8, label: "Science", subject: "science" },
+    { id: 9, label: "Higher Math", subject: "higher-math" }
   ],
   local: [
     { id: 3, label: "ICT", subject: "ict" },
-    { id: 1, label: "Math", subject: "mathematics" },
     { id: 4, label: "Biology", subject: "biology" },
     { id: 2, label: "Chemistry", subject: "chemistry" },
     { id: 5, label: "Bangla", subject: "bangla" },
     { id: 7, label: "Physics", subject: "physics" },
-    { id: 6, label: "English", subject: "english" }
+    { id: 6, label: "English", subject: "english" },
+    { id: 1, label: "Math", subject: "mathematics" },
+    { id: 8, label: "Science", subject: "science" },
+    { id: 9, label: "Higher Math", subject: "higher-math" }
   ]
 };
 

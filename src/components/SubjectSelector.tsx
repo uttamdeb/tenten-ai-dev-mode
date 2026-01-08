@@ -56,6 +56,16 @@ const subjects: Subject[] = [
     value: "ict",
     label: "ICT",
     description: ""
+  },
+  {
+    value: "science",
+    label: "Science",
+    description: ""
+  },
+  {
+    value: "higher-math",
+    label: "Higher Math",
+    description: ""
   }
 ];
 
