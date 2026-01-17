@@ -76,6 +76,7 @@ export function ChatInterface() {
   const kbInset = useKeyboardInsets();
   const inputBarRef = useRef<HTMLDivElement>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [vw, setVw] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
   useEffect(() => {
@@ -1033,6 +1034,63 @@ export function ChatInterface() {
     fileInputRef.current?.click();
   };
 
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set to false if we're leaving the drop zone entirely
+    if (e.currentTarget === e.target) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    if (isLoading || isUploading) {
+      toast({
+        title: "Please wait",
+        description: "Another operation is in progress.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+    if (imageFiles.length === 0) {
+      toast({
+        title: "No images found",
+        description: "Please drop image files only.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Upload each image
+    for (const file of imageFiles) {
+      const uploadedImage = await uploadImage(file);
+      if (uploadedImage) {
+        setPendingAttachments(prev => [...prev, uploadedImage]);
+      }
+    }
+  };
+
   // Compute dynamic bottom padding so the last message isn't hidden
   const computedBottomPad = Math.max(
     96, // base padding
@@ -1265,7 +1323,13 @@ export function ChatInterface() {
             <Paperclip className="h-4 w-4" />
           </Button>
           
-          <div className="flex-1 relative">
+          <div 
+            className="flex-1 relative"
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <Textarea
               ref={textareaRef}
               value={inputValue}
@@ -1276,10 +1340,19 @@ export function ChatInterface() {
               placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
                 "chat-input resize-none min-h-[44px] max-h-32",
-                "placeholder:text-muted-foreground/70"
+                "placeholder:text-muted-foreground/70",
+                isDragOver && "ring-2 ring-primary ring-offset-2 border-primary"
               )}
               disabled={isLoading}
             />
+            {isDragOver && (
+              <div className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-md flex items-center justify-center pointer-events-none">
+                <div className="flex items-center gap-2 text-primary font-medium">
+                  <Image className="h-5 w-5" />
+                  <span>Drop images here</span>
+                </div>
+              </div>
+            )}
           </div>
           
           <Button
