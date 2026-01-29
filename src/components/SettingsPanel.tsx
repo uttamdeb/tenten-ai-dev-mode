@@ -34,7 +34,7 @@ export interface ApiConfiguration {
   customGitUrl?: string;
   contentType: string | null;
   contentId: string | null;
-  segmentId: number | null;
+  segmentId: number | string | null;
   examId: string | null;
   examSessionId: string | null;
   questionId: string | null;
@@ -538,7 +538,9 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                     <SelectTrigger className="flex-1">
                       <SelectValue>
                         {config.segmentId !== null
-                          ? `${getSegmentIdLabel(config.segmentId)} (ID: ${config.segmentId})`
+                          ? typeof config.segmentId === 'number'
+                            ? `${getSegmentIdLabel(config.segmentId)} (ID: ${config.segmentId})`
+                            : `Segment ${config.segmentId}`
                           : "HSC (ID: 10)"}
                       </SelectValue>
                     </SelectTrigger>
@@ -723,15 +725,24 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Label htmlFor="segment-id">Segment ID (Optional)</Label>
                 <Input
                   id="segment-id"
-                  type="number"
-                  placeholder="e.g., 10"
-                  value={config.segmentId !== null ? config.segmentId : ""}
-                  onChange={(e) => updateConfig({ 
-                    segmentId: e.target.value ? parseInt(e.target.value) : null 
-                  })}
+                  type="text"
+                  placeholder="e.g., 10 or segment-abc"
+                  value={config.segmentId !== null ? config.segmentId.toString() : ""}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
+                    if (!value) {
+                      updateConfig({ segmentId: null });
+                    } else {
+                      // Try to parse as number, otherwise keep as string
+                      const numValue = Number(value);
+                      updateConfig({ 
+                        segmentId: !isNaN(numValue) && value === numValue.toString() ? numValue : value
+                      });
+                    }
+                  }}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Segment identifier. Leave empty for null.
+                  Segment identifier (integer or string). Leave empty for null.
                 </p>
               </div>
             </div>
@@ -926,15 +937,24 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 <Label htmlFor="exam-segment-id">Segment ID (Optional)</Label>
                 <Input
                   id="exam-segment-id"
-                  type="number"
-                  placeholder="e.g., 10"
-                  value={config.segmentId !== null ? config.segmentId : ""}
-                  onChange={(e) => updateConfig({ 
-                    segmentId: e.target.value ? parseInt(e.target.value) : null 
-                  })}
+                  type="text"
+                  placeholder="e.g., 10 or segment-abc"
+                  value={config.segmentId !== null ? config.segmentId.toString() : ""}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
+                    if (!value) {
+                      updateConfig({ segmentId: null });
+                    } else {
+                      // Try to parse as number, otherwise keep as string
+                      const numValue = Number(value);
+                      updateConfig({ 
+                        segmentId: !isNaN(numValue) && value === numValue.toString() ? numValue : value
+                      });
+                    }
+                  }}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Segment identifier. Leave empty for null.
+                  Segment identifier (integer or string). Leave empty for null.
                 </p>
               </div>
             </div>
