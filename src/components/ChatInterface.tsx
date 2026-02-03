@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Send, Zap, Bot, Paperclip, X, Image, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,9 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { BookOpen } from "lucide-react";
 import { useKeyboardInsets } from "@/hooks/useKeyboardInsets";
+
+// 3D Atomic Simulator URL constant
+const ATOMIC_SIMULATOR_URL = "https://service-3d-atomic-simulator-by-tenten-23594790708.us-west1.run.app/";
 
 interface ImageAttachment {
   id: string;
@@ -88,6 +91,13 @@ export function ChatInterface() {
 
   // Handler to refresh sessions list in sidebar
   const sessionSidebarRef = useRef<SessionSidebarHandle>(null);
+
+  // Check if 3D Atomic Simulator URL exists in any message
+  const hasAtomicSimulatorLink = useMemo(() => {
+    return messages.some(message => 
+      message.role === "assistant" && message.content.includes(ATOMIC_SIMULATOR_URL)
+    );
+  }, [messages]);
   
   useEffect(() => {
     if (sessionSidebarRef.current?.refresh) {
@@ -1285,6 +1295,23 @@ export function ChatInterface() {
         className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sm:sticky sm:bottom-0 z-20 pb-safe"
         style={isMobile && isInputFocused ? { position: 'fixed', bottom: `${kbInset}px`, left: 0, right: 0 } : undefined}
       >
+        {/* 3D Atomic Simulator Button */}
+        {hasAtomicSimulatorLink && (
+          <div className="mb-3 max-w-4xl mx-auto">
+            <Button
+              onClick={() => window.location.href = ATOMIC_SIMULATOR_URL}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
+            >
+              <img 
+                src={tentenIcon} 
+                alt="TenTen" 
+                className="w-6 h-6 rounded-full"
+              />
+              <span>Enter TenTen 3D Atomic Simulator</span>
+            </Button>
+          </div>
+        )}
+
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
           <div className="mb-3 max-w-4xl mx-auto">
