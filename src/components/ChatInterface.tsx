@@ -81,6 +81,7 @@ export function ChatInterface() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [vw, setVw] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [isSimulatorLoading, setIsSimulatorLoading] = useState(false);
 
   useEffect(() => {
     const onResize = () => setVw(window.innerWidth);
@@ -98,6 +99,15 @@ export function ChatInterface() {
       message.role === "assistant" && message.content.includes(ATOMIC_SIMULATOR_URL)
     );
   }, [messages]);
+
+  // Handle 3D Atomic Simulator button click with animation
+  const handleSimulatorClick = () => {
+    setIsSimulatorLoading(true);
+    // Show animation for 1.5 seconds before navigating
+    setTimeout(() => {
+      window.location.href = ATOMIC_SIMULATOR_URL;
+    }, 1500);
+  };
   
   useEffect(() => {
     if (sessionSidebarRef.current?.refresh) {
@@ -1299,15 +1309,27 @@ export function ChatInterface() {
         {hasAtomicSimulatorLink && (
           <div className="mb-3 max-w-4xl mx-auto">
             <Button
-              onClick={() => window.location.href = ATOMIC_SIMULATOR_URL}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
+              onClick={handleSimulatorClick}
+              disabled={isSimulatorLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden"
             >
               <img 
                 src={tentenIcon} 
                 alt="TenTen" 
-                className="w-6 h-6 rounded-full"
+                className={cn(
+                  "w-6 h-6 rounded-full transition-transform duration-500",
+                  isSimulatorLoading && "animate-spin"
+                )}
               />
-              <span>Enter TenTen 3D Atomic Simulator</span>
+              <span className={cn(
+                "transition-opacity duration-300",
+                isSimulatorLoading && "opacity-70"
+              )}>
+                {isSimulatorLoading ? "Entering Simulator..." : "Enter TenTen 3D Atomic Simulator"}
+              </span>
+              {isSimulatorLoading && (
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 animate-pulse" />
+              )}
             </Button>
           </div>
         )}
@@ -1414,6 +1436,33 @@ export function ChatInterface() {
         currentConfig={config}
         onConfigChange={updateConfig}
       />
+
+      {/* 3D Atomic Simulator Loading Animation Overlay */}
+      {isSimulatorLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="flex flex-col items-center gap-6 animate-in zoom-in duration-500">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-50 animate-pulse" />
+              <img 
+                src={tentenIcon} 
+                alt="TenTen" 
+                className="w-24 h-24 rounded-full relative z-10 animate-spin shadow-2xl"
+                style={{ animationDuration: '2s' }}
+              />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-bold text-white animate-pulse">
+                Entering 3D Atomic Simulator
+              </h3>
+              <div className="flex gap-1 justify-center">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </div>
   );
