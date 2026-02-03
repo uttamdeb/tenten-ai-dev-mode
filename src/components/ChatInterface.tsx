@@ -1278,6 +1278,40 @@ export function ChatInterface() {
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} userAvatarUrl={userProfile?.avatar_url || user?.user_metadata?.avatar_url} />
             ))}
+            
+            {/* 3D Atomic Simulator Button - Appears after messages like suggested replies */}
+            {hasAtomicSimulatorLink && !isLoading && (
+              <div className="flex gap-3 p-4">
+                <div className="flex-shrink-0 w-8" />
+                <div className="max-w-[85%] sm:max-w-[70%]">
+                  <Button
+                    onClick={handleSimulatorClick}
+                    disabled={isSimulatorLoading}
+                    variant="outline"
+                    className="bg-transparent border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/10 hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] text-foreground font-medium py-2 px-4 rounded-full transition-all duration-300 flex items-center gap-2 group"
+                  >
+                    <img 
+                      src={tentenIcon} 
+                      alt="TenTen" 
+                      className={cn(
+                        "w-5 h-5 rounded-full transition-transform duration-500 group-hover:scale-110",
+                        isSimulatorLoading && "animate-spin"
+                      )}
+                    />
+                    <span className={cn(
+                      "text-sm transition-opacity duration-300",
+                      isSimulatorLoading && "opacity-70"
+                    )}>
+                      {isSimulatorLoading ? "Entering Simulator..." : "Enter TenTen 3D Atomic Simulator"}
+                    </span>
+                    {isSimulatorLoading && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 animate-pulse rounded-full" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             {isLoading && waitingTime > 0 && (
               <div className="flex gap-3 p-4">
                 <div className="flex-shrink-0">
@@ -1305,35 +1339,6 @@ export function ChatInterface() {
         className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sm:sticky sm:bottom-0 z-20 pb-safe"
         style={isMobile && isInputFocused ? { position: 'fixed', bottom: `${kbInset}px`, left: 0, right: 0 } : undefined}
       >
-        {/* 3D Atomic Simulator Button */}
-        {hasAtomicSimulatorLink && (
-          <div className="mb-3 max-w-4xl mx-auto">
-            <Button
-              onClick={handleSimulatorClick}
-              disabled={isSimulatorLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden"
-            >
-              <img 
-                src={tentenIcon} 
-                alt="TenTen" 
-                className={cn(
-                  "w-6 h-6 rounded-full transition-transform duration-500",
-                  isSimulatorLoading && "animate-spin"
-                )}
-              />
-              <span className={cn(
-                "transition-opacity duration-300",
-                isSimulatorLoading && "opacity-70"
-              )}>
-                {isSimulatorLoading ? "Entering Simulator..." : "Enter TenTen 3D Atomic Simulator"}
-              </span>
-              {isSimulatorLoading && (
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 animate-pulse" />
-              )}
-            </Button>
-          </div>
-        )}
-
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
           <div className="mb-3 max-w-4xl mx-auto">
