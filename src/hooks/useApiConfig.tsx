@@ -40,7 +40,7 @@ export const useApiConfig = () => {
         const parsed = JSON.parse(savedConfig);
         
         // Migrate old config format to new format
-        let migratedConfig = { ...parsed };
+        const migratedConfig = { ...parsed };
         
         // If old mode exists, convert to new format
         if (parsed.mode === "prod-git") {

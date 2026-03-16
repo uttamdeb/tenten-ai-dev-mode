@@ -1,15 +1,17 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+
+type AuthResult = Promise<{ error: AuthError | null }>;
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<{ error: any }>;
-  signInWithProvider: (provider: 'google' | 'github' | 'twitter') => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string) => AuthResult;
+  signIn: (email: string, password: string) => AuthResult;
+  signOut: () => AuthResult;
+  signInWithProvider: (provider: 'google' | 'github' | 'twitter') => AuthResult;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

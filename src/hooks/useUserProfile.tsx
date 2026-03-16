@@ -16,7 +16,7 @@ export const useUserProfile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const fetchProfile = async () => {
     if (!user) {
@@ -36,7 +36,8 @@ export const useUserProfile = () => {
       setProfile(data as UserProfile);
       setError(null);
     } catch (e) {
-      setError(e);
+      const profileError = e instanceof Error ? e : new Error("Failed to fetch user profile");
+      setError(profileError);
       console.error("Error fetching user profile:", e);
     } finally {
       setLoading(false);
@@ -68,7 +69,9 @@ export const useUserProfile = () => {
     return () => {
       try {
         supabase.removeChannel(channel);
-      } catch {}
+      } catch {
+        // Ignore cleanup failures from stale realtime channels.
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);

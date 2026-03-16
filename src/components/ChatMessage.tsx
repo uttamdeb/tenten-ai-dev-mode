@@ -7,6 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useApiConfig } from "@/hooks/useApiConfig";
 import tentenIcon from "@/assets/tenten-icon.png";
+import type { Json } from "@/integrations/supabase/types";
+
+interface MessageDebugData {
+  webhookRequest?: {
+    thread_id?: number;
+  };
+  webhookResponse?: Json;
+  finalResponse?: Json;
+  fullResponse?: string;
+  [key: string]: Json | { thread_id?: number } | undefined;
+}
 
 interface ChatMessageProps {
   message: {
@@ -16,7 +27,7 @@ interface ChatMessageProps {
     timestamp: Date;
     isStreaming?: boolean;
     reasoning?: string;
-    debugData?: any;
+    debugData?: MessageDebugData;
     waitingTime?: number;
     attachments?: {
       id: string;

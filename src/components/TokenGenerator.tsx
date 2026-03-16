@@ -24,13 +24,18 @@ interface TokenResponse {
       expires_at: string;
       refresh_expires_at: string;
     };
-    user_info: any;
+    user_info: Record<string, unknown>;
     otp_token: string;
-    devices: any[];
+    devices: Record<string, unknown>[];
     device_limit: string;
-    device_message: any;
+    device_message: Record<string, unknown> | string | null;
   };
   message: string;
+}
+
+interface TokenErrorResponse {
+  message?: string;
+  status?: number;
 }
 
 const getAuthUrl = (endpoint: GitEndpoint): string => {
@@ -113,19 +118,20 @@ export function TokenGenerator({ onBack }: TokenGeneratorProps) {
         })
       });
 
-      const data = await response.json();
+      const data = await response.json() as TokenResponse | TokenErrorResponse;
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
-      if (data.status !== 0) {
+      if ((data as TokenResponse).status !== 0) {
         throw new Error(data.message || "Login failed");
       }
 
-      setTokenResponse(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to generate token");
+      setTokenResponse(data as TokenResponse);
+    } catch (err) {
+      const tokenError = err instanceof Error ? err : new Error("Failed to generate token");
+      setError(tokenError.message);
     } finally {
       setIsLoading(false);
     }

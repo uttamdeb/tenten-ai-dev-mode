@@ -197,6 +197,21 @@ All colors MUST be HSL for consistency
 
 @layer components {
   /* Chat specific component styles */
+  .chat-shell {
+    min-height: 100svh;
+  }
+
+  .chat-messages-scroll {
+    padding-bottom: var(--chat-bottom-pad, 96px);
+  }
+
+  .chat-mobile-input-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--chat-mobile-input-bottom, 0px);
+  }
+
   .message-bubble {
     @apply rounded-2xl px-4 py-3 max-w-[80%] break-words;
     transition: var(--transition-smooth);
@@ -260,6 +275,33 @@ All colors MUST be HSL for consistency
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes simulatorSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@layer utilities {
+  .simulator-logo-spin {
+    animation: simulatorSpin 2s linear infinite;
+  }
+
+  .simulator-bounce-dot {
+    animation: bounce 1s infinite;
+  }
+
+  .simulator-bounce-dot-delay-1 {
+    animation-delay: 150ms;
+  }
+
+  .simulator-bounce-dot-delay-2 {
+    animation-delay: 300ms;
   }
 }
 

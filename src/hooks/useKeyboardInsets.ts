@@ -10,7 +10,7 @@ export function useKeyboardInsets() {
   const [inset, setInset] = useState(0);
 
   useEffect(() => {
-    const vp = (window as any).visualViewport as VisualViewport | undefined;
+    const vp = window.visualViewport;
     if (!vp) return;
 
     const update = () => {

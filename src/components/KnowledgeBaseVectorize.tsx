@@ -38,8 +38,18 @@ interface VectorizeConfig {
 interface VectorizeResponse {
   status: number;
   message: string;
-  data?: any;
-  errors?: any[];
+  data?: Record<string, unknown>;
+  errors?: Array<Record<string, unknown> | string>;
+}
+
+interface VectorizePayload {
+  subject: string;
+  chapter: string;
+  source_type: string;
+  grade: string;
+  file_url: string;
+  topics: string[];
+  source_title?: string;
 }
 
 const getEndpointUrl = (mode: EndpointMode): string => {
@@ -84,14 +94,10 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
   };
 
   const handleEndpointModeChange = (mode: EndpointMode) => {
-    const serviceKey = mode === "prod" 
-      ? "base64:ZFF0d6f47cfw5ICllJVL8p+D2IoZw+8tQaCq6RSQsVo=" 
-      : "tenms_stage_service_key";
-    
     updateConfig({
       endpointMode: mode,
       customEndpoint: getEndpointUrl(mode),
-      serviceKey: serviceKey
+      serviceKey: getServiceKey(mode)
     });
   };
 
@@ -147,7 +153,7 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
     setResult(null);
 
     try {
-      const payload: any = {
+      const payload: VectorizePayload = {
         subject: config.subject,
         chapter: config.chapter,
         source_type: config.sourceType,
@@ -177,7 +183,7 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
 
       console.log('Response status:', response.status);
       
-      const data = await response.json();
+      const data = await response.json() as VectorizeResponse;
       console.log('Response data:', data);
       
       if (response.ok) {
@@ -186,9 +192,10 @@ export function KnowledgeBaseVectorize({ onBack }: KnowledgeBaseVectorizeProps) 
         setError(data.message || `HTTP error! status: ${response.status}`);
         setResult(data);
       }
-    } catch (err: any) {
+    } catch (err) {
+      const vectorizeError = err instanceof Error ? err : new Error("Failed to vectorize document");
       console.error('Error during vectorization:', err);
-      setError(err.message || "Failed to vectorize document");
+      setError(vectorizeError.message);
     } finally {
       setIsLoading(false);
     }

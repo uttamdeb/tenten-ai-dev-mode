@@ -1,3 +1,8 @@
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 // Register service worker
 export const registerSW = () => {
   if ('serviceWorker' in navigator) {
@@ -10,7 +15,7 @@ export const registerSW = () => {
     });
 
     // Optional: Handle messages from the Service Worker
-    navigator.serviceWorker.addEventListener('message', (event: MessageEvent<any>) => {
+    navigator.serviceWorker.addEventListener('message', (event: MessageEvent<{ type?: string }>) => {
       if (event.data?.type === 'SW_ACTIVATED') {
         console.log('Service Worker activated and controlling this page');
         // If a new SW activated, ensure the page refreshes so it loads the newest index.html
@@ -37,14 +42,14 @@ export const registerSW = () => {
 };
 
 // PWA install prompt
-let deferredPrompt: any;
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
 export const initPWAInstall = () => {
   window.addEventListener('beforeinstallprompt', (e) => {
     // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
     // Stash the event so it can be triggered later
-    deferredPrompt = e;
+    deferredPrompt = e as BeforeInstallPromptEvent;
   });
 };
 

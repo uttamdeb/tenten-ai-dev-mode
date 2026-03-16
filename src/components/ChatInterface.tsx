@@ -21,9 +21,23 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { BookOpen } from "lucide-react";
 import { useKeyboardInsets } from "@/hooks/useKeyboardInsets";
+import type { Json } from "@/integrations/supabase/types";
+import type { UserProfile } from "@/hooks/useUserProfile";
 
 // 3D Atomic Simulator URL constant
 const ATOMIC_SIMULATOR_URL = "https://service-3d-atomic-simulator-by-tenten-23594790708.us-west1.run.app/";
+
+const SUBJECT_OPTIONS: Subject[] = [
+  { value: "mathematics", label: "Math", description: "" },
+  { value: "physics", label: "Physics", description: "" },
+  { value: "chemistry", label: "Chemistry", description: "" },
+  { value: "biology", label: "Biology", description: "" },
+  { value: "bangla", label: "Bangla", description: "" },
+  { value: "english", label: "English", description: "" },
+  { value: "ict", label: "ICT", description: "" },
+  { value: "science", label: "Science", description: "" },
+  { value: "higher-math", label: "Higher Math", description: "" },
+];
 
 interface ImageAttachment {
   id: string;
@@ -39,7 +53,7 @@ interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   reasoning?: string;
-  debugData?: any;
+  debugData?: Record<string, Json | undefined>;
   waitingTime?: number;
   attachments?: ImageAttachment[];
   dbId?: string; // UUID from database
@@ -48,6 +62,77 @@ interface Message {
   statusInfo?: { state: string };
   usedTenergy?: number;
   threadId?: number;
+}
+
+interface ChatMessageRow {
+  id: string;
+  question: string | null;
+  final_answer: string | null;
+  created_at: string;
+  updated_at: string;
+  webhook_request: Record<string, Json> | null;
+  webhook_response: Record<string, Json> | null;
+}
+
+interface TokenRefreshResponse {
+  data?: {
+    token?: {
+      access_token?: string;
+    };
+  };
+}
+
+interface StoredMessagePayload {
+  session_id: number;
+  user_id: string;
+  message_id: string;
+  question: string;
+  webhook_request: Json;
+  webhook_response: Json;
+  final_answer: string;
+  api_session_id?: number;
+}
+
+interface ExamExtraPayload {
+  exam_id?: string;
+  exam_session_id?: string;
+}
+
+interface GitPayload {
+  body: {
+    text: string;
+    attachments: Array<{
+      url: string;
+      type: string;
+    }>;
+  };
+  session_id: string | null;
+  thread_id?: number | null;
+  segment_id?: string | number;
+  content_type?: string;
+  content_id?: string;
+  extra?: ExamExtraPayload;
+}
+
+interface N8nPayload {
+  auth_user_id: string;
+  user_name: string;
+  session_id?: string;
+  live_class_id: string;
+  date: number;
+  question: string;
+  messageId: string;
+  live_class_name: string;
+  course_name: string;
+  program_name: string;
+  attachments?: Array<{
+    file_url: string;
+  }>;
+}
+
+interface StoredMessageInsertError {
+  message?: string;
+  code?: string;
 }
 
 export function ChatInterface() {
@@ -61,7 +146,7 @@ export function ChatInterface() {
   const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messageIdCounter, setMessageIdCounter] = useState(3001);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSubjectSheetOpen, setIsSubjectSheetOpen] = useState(false);
   const [sessionRefreshTrigger, setSessionRefreshTrigger] = useState(0);
@@ -94,7 +179,7 @@ export function ChatInterface() {
   const sessionSidebarRef = useRef<SessionSidebarHandle>(null);
 
   // Check if 3D Atomic Simulator URL exists in any message
-  const hasAtomicSimulatorLink = useMemo(() => {
+  const hasAtomicSimulatorLink =useMemo(() => {
     return messages.some(message => 
       message.role === "assistant" && message.content.includes(ATOMIC_SIMULATOR_URL)
     );
@@ -104,7 +189,7 @@ export function ChatInterface() {
   const handleSimulatorClick = () => {
     setIsSimulatorLoading(true);
     // Show animation for 1.5 seconds before navigating
-    setTimeout(() => {
+    window.setTimeout(() => {
       window.location.href = ATOMIC_SIMULATOR_URL;
     }, 1500);
   };
@@ -141,21 +226,10 @@ export function ChatInterface() {
     else if (config.threadId !== prevThreadIdRef.current) {
       const subjectValue = getSubjectFromThreadId(config.threadId, config.gitEndpoint);
       if (subjectValue && subjectValue !== selectedSubject?.value) {
-        const subjects = [
-          { value: "mathematics", label: "Math" },
-          { value: "physics", label: "Physics" },
-          { value: "chemistry", label: "Chemistry" },
-          { value: "biology", label: "Biology" },
-          { value: "bangla", label: "Bangla" },
-          { value: "english", label: "English" },
-          { value: "ict", label: "ICT" },
-          { value: "science", label: "Science" },
-          { value: "higher-math", label: "Higher Math" }
-        ];
-        const newSubject = subjects.find(s => s.value === subjectValue);
+        const newSubject = SUBJECT_OPTIONS.find((subject) => subject.value === subjectValue);
         if (newSubject) {
           prevSubjectRef.current = newSubject.value;
-          setSelectedSubject({ ...newSubject, description: "" });
+          setSelectedSubject(newSubject);
         }
       }
       prevThreadIdRef.current = config.threadId;
@@ -241,7 +315,7 @@ export function ChatInterface() {
         throw new Error(`Token refresh failed: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as TokenRefreshResponse;
       const newToken = data?.data?.token?.access_token;
 
       if (newToken) {
@@ -293,7 +367,7 @@ export function ChatInterface() {
 
       const loadedMessages: Message[] = [];
       
-      for (const msg of data || []) {
+      for (const msg of (data as ChatMessageRow[] | null) || []) {
         // Add user message
         if (msg.question) {
           loadedMessages.push({
@@ -315,7 +389,7 @@ export function ChatInterface() {
               webhookRequest: msg.webhook_request,
               webhookResponse: msg.webhook_response,
             },
-            threadId: (msg as any)?.webhook_request?.thread_id ?? undefined,
+            threadId: typeof msg.webhook_request?.thread_id === "number" ? msg.webhook_request.thread_id : undefined,
             dbId: msg.id, // Store the database UUID
           });
         }
@@ -329,8 +403,8 @@ export function ChatInterface() {
 
   const storeMessageInDatabase = async (
     question: string, 
-    webhookRequest: any, 
-    webhookResponse: any, 
+    webhookRequest: Json, 
+    webhookResponse: Json, 
     finalAnswer: string, 
     messageId: string,
     sessionIdToUse: number,
@@ -339,7 +413,7 @@ export function ChatInterface() {
     if (!user || !sessionIdToUse) return null;
 
     // Base payload always valid regardless of schema changes
-    const basePayload: any = {
+    const basePayload: StoredMessagePayload = {
       session_id: sessionIdToUse,
       user_id: user.id,
       message_id: messageId,
@@ -361,10 +435,11 @@ export function ChatInterface() {
 
       if (error) throw error;
       return data.id; // Return the UUID
-    } catch (err: any) {
+    } catch (err) {
+      const insertError = err as StoredMessageInsertError;
       // If the insert failed because api_session_id column doesn't exist, retry without it
-      const msg = err?.message || "";
-      const code = err?.code || "";
+      const msg = insertError.message || "";
+      const code = insertError.code || "";
       const columnMissing = msg.includes('api_session_id') || code === '42703'; // 42703 = undefined_column
       if (apiSessionId && columnMissing) {
         try {
@@ -476,9 +551,9 @@ export function ChatInterface() {
 
     try {
       // Prepare payload based on API mode
-      let payload: any;
-      let apiUrl = getApiUrl();
-      let headers = getAuthHeader();
+      let payload: GitPayload | N8nPayload;
+      const apiUrl = getApiUrl();
+      const headers = getAuthHeader();
 
       if (isGitMode) {
         // FastAPI payload format
@@ -598,7 +673,6 @@ export function ChatInterface() {
       let messageInfo: { id: number } | undefined;
       let statusInfo: { state: string } | undefined;
       let usedTenergy: number | undefined;
-      let storedApiSessionForCurrent = false;
       let currentStreamSessionId: number | null = null; // Track session ID across multiple session events
 
       if (response.body) {
@@ -739,7 +813,7 @@ export function ChatInterface() {
                         if (parsedChunk.data?.delta) {
                           aiResponse += parsedChunk.data.delta;
                           // Clean leading zeros and numbers
-                          let cleanedResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
+                          const cleanedResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
                           setMessages(prev => prev.map(msg => 
                             msg.id === aiMessageId 
                               ? { ...msg, content: cleanedResponse, isStreaming: true }
@@ -785,7 +859,7 @@ export function ChatInterface() {
                       }
                       
                       // Clean leading zeros and numbers from the accumulated response
-                      let cleanedResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
+                      const cleanedResponse = aiResponse.replace(/^[0-9\s]+/, '').trim();
                       
                       // Update UI in real-time with cleaned response
                       setMessages(prev => prev.map(msg => 
@@ -954,8 +1028,8 @@ export function ChatInterface() {
       // Store the complete conversation in database
       const dbId = await storeMessageInDatabase(
         userMessage.content,
-        payload,
-        data,
+        payload as unknown as Json,
+        data as unknown as Json,
         aiResponse,
         (messageInfo?.id ?? currentMessageId).toString(),
         (sessionInfo?.id ?? currentSessionId) as number,
@@ -1117,6 +1191,17 @@ export function ChatInterface() {
     (inputBarRef.current?.offsetHeight || 80) + (kbInset || 0) + 16
   );
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--chat-bottom-pad", `${computedBottomPad}px`);
+    root.style.setProperty("--chat-mobile-input-bottom", `${kbInset}px`);
+
+    return () => {
+      root.style.removeProperty("--chat-bottom-pad");
+      root.style.removeProperty("--chat-mobile-input-bottom");
+    };
+  }, [computedBottomPad, kbInset]);
+
   // Ensure we scroll to bottom on input focus
   const handleTextareaFocus = () => {
     setIsInputFocused(true);
@@ -1129,7 +1214,7 @@ export function ChatInterface() {
   const handleTextareaBlur = () => setIsInputFocused(false);
 
   return (
-    <div className="flex bg-background" style={{ minHeight: '100svh' }}>
+    <div className="chat-shell flex bg-background">
       {/* Sidebar + Main */}
       <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
         {/* Header */}
@@ -1245,8 +1330,7 @@ export function ChatInterface() {
       {/* Messages */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto chat-scroll px-3 sm:px-4"
-        style={{ paddingBottom: `${computedBottomPad}px` }}
+        className="chat-messages-scroll flex-1 overflow-y-auto chat-scroll px-3 sm:px-4"
         onClick={() => textareaRef.current?.blur()}
       >
         {messages.length === 0 ? (
@@ -1336,8 +1420,10 @@ export function ChatInterface() {
       {/* Input */}
       <div
         ref={inputBarRef}
-        className="border-t border-border bg-card/80 backdrop-blur-sm p-4 sm:sticky sm:bottom-0 z-20 pb-safe"
-        style={isMobile && isInputFocused ? { position: 'fixed', bottom: `${kbInset}px`, left: 0, right: 0 } : undefined}
+        className={cn(
+          "border-t border-border bg-card/80 backdrop-blur-sm p-4 sm:sticky sm:bottom-0 z-20 pb-safe",
+          isMobile && isInputFocused && "chat-mobile-input-bar"
+        )}
       >
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
@@ -1451,8 +1537,7 @@ export function ChatInterface() {
               <img 
                 src={tentenIcon} 
                 alt="TenTen" 
-                className="w-24 h-24 rounded-full relative z-10 animate-spin shadow-2xl"
-                style={{ animationDuration: '2s' }}
+                className="simulator-logo-spin w-24 h-24 rounded-full relative z-10 shadow-2xl"
               />
             </div>
             <div className="text-center space-y-2">
@@ -1460,9 +1545,9 @@ export function ChatInterface() {
                 Entering 3D Atomic Simulator
               </h3>
               <div className="flex gap-1 justify-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="simulator-bounce-dot w-2 h-2 bg-blue-400 rounded-full" />
+                <div className="simulator-bounce-dot simulator-bounce-dot-delay-1 w-2 h-2 bg-purple-400 rounded-full" />
+                <div className="simulator-bounce-dot simulator-bounce-dot-delay-2 w-2 h-2 bg-blue-400 rounded-full" />
               </div>
             </div>
           </div>

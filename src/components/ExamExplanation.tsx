@@ -25,9 +25,18 @@ interface ExplanationResponse {
   questionId: string;
   status: number;
   message: string;
-  errors: any[];
+  errors: Array<string | Record<string, unknown>>;
   data: {
     explanation: string;
+  };
+}
+
+interface ExplanationApiResponse {
+  status: number;
+  message?: string;
+  errors?: Array<string | Record<string, unknown>>;
+  data?: {
+    explanation?: string;
   };
 }
 
@@ -98,7 +107,7 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
             })
           });
 
-          const data = await apiResponse.json();
+          const data = await apiResponse.json() as ExplanationApiResponse;
 
           if (!apiResponse.ok) {
             results.push({
@@ -119,15 +128,21 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
           } else {
             results.push({
               questionId: qId,
-              ...data
+              status: data.status,
+              message: data.message || "Success",
+              errors: data.errors || [],
+              data: {
+                explanation: data.data?.explanation || "",
+              },
             });
           }
-        } catch (err: any) {
+        } catch (err) {
+          const explanationError = err instanceof Error ? err : new Error("Failed to fetch");
           results.push({
             questionId: qId,
             status: 0,
             message: "Error",
-            errors: [err.message || "Failed to fetch"],
+            errors: [explanationError.message],
             data: { explanation: "" }
           });
         }
@@ -137,8 +152,9 @@ export function ExamExplanation({ onBack, initialConfig }: ExamExplanationProps)
       if (results.length === 0) {
         setError("No explanations could be generated");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to generate explanations");
+    } catch (err) {
+      const explanationError = err instanceof Error ? err : new Error("Failed to generate explanations");
+      setError(explanationError.message);
     } finally {
       setIsLoading(false);
     }
