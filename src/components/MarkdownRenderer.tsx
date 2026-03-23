@@ -11,7 +11,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ children, className = "" }: MarkdownRendererProps) {
   return (
-    <div className={`prose prose-sm dark:prose-invert max-w-none ${className}`}>
+    <div className={`prose prose-sm dark:prose-invert max-w-none prose-headings:tracking-tight prose-p:text-inherit prose-p:leading-7 prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-transparent ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
@@ -24,7 +24,7 @@ export function MarkdownRenderer({ children, className = "" }: MarkdownRendererP
             if (isInline) {
               return (
                 <code 
-                  className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" 
+                  className="rounded-md bg-white/8 px-1.5 py-0.5 text-[0.92em] font-mono text-primary" 
                   {...props}
                 >
                   {children}
@@ -33,7 +33,7 @@ export function MarkdownRenderer({ children, className = "" }: MarkdownRendererP
             }
             
             return (
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+              <pre className="nebula-well overflow-x-auto rounded-[1.25rem] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                 <code className={className} {...props}>
                   {children}
                 </code>
@@ -46,7 +46,7 @@ export function MarkdownRenderer({ children, className = "" }: MarkdownRendererP
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:text-primary-glow underline transition-colors"
+              className="text-primary hover:text-primary-glow underline decoration-primary/40 underline-offset-4 transition-colors"
               {...props}
             >
               {children}
@@ -54,41 +54,41 @@ export function MarkdownRenderer({ children, className = "" }: MarkdownRendererP
           ),
           // Customize headings
           h1: ({ children, ...props }) => (
-            <h1 className="text-xl font-bold mb-3 text-foreground" {...props}>
+            <h1 className="mb-4 text-2xl font-semibold text-foreground" {...props}>
               {children}
             </h1>
           ),
           h2: ({ children, ...props }) => (
-            <h2 className="text-lg font-semibold mb-2 text-foreground" {...props}>
+            <h2 className="mb-3 text-xl font-semibold text-foreground" {...props}>
               {children}
             </h2>
           ),
           h3: ({ children, ...props }) => (
-            <h3 className="text-base font-medium mb-2 text-foreground" {...props}>
+            <h3 className="mb-2 text-lg font-medium text-foreground" {...props}>
               {children}
             </h3>
           ),
           // Customize lists
           ul: ({ children, ...props }) => (
-            <ul className="list-disc list-inside space-y-1 mb-3" {...props}>
+            <ul className="mb-4 list-disc space-y-2 pl-5" {...props}>
               {children}
             </ul>
           ),
           ol: ({ children, ...props }) => (
-            <ol className="list-decimal list-inside space-y-1 mb-3" {...props}>
+            <ol className="mb-4 list-decimal space-y-2 pl-5" {...props}>
               {children}
             </ol>
           ),
           // Customize paragraphs
           p: ({ children, ...props }) => (
-            <p className="mb-3 leading-relaxed" {...props}>
+            <p className="mb-4 leading-7 text-[0.96rem]" {...props}>
               {children}
             </p>
           ),
           // Customize blockquotes
           blockquote: ({ children, ...props }) => (
             <blockquote 
-              className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground bg-muted/30 py-2 rounded-r-md" 
+              className="nebula-well rounded-[1.1rem] border-l-0 px-4 py-3 italic text-muted-foreground" 
               {...props}
             >
               {children}

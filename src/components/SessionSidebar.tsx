@@ -93,7 +93,7 @@ export const SessionSidebar = forwardRef<SessionSidebarHandle, SessionSidebarPro
         variant="ghost"
         size="icon"
         onClick={onToggle}
-        className="shrink-0"
+        className="nebula-ghost-button shrink-0 rounded-full border-0"
       >
         <MessageCircle className="h-5 w-5" />
       </Button>
@@ -102,16 +102,21 @@ export const SessionSidebar = forwardRef<SessionSidebarHandle, SessionSidebarPro
 
   // When open, render into a portal so it is not clipped by header/backdrop contexts
   return createPortal(
-    <div className="fixed left-0 top-0 h-screen w-80 bg-background border-r z-[100] flex flex-col shadow-lg">
-      <div className="p-4 border-b flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Recent Sessions</h2>
-        <Button variant="ghost" size="icon" onClick={onToggle}>
+    <div className="fixed left-0 top-0 h-screen w-80 z-[100] flex flex-col bg-[hsl(var(--sidebar-background)/0.92)] backdrop-blur-3xl shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)]">
+      <div className="px-6 pt-6 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="eyebrow-label mb-2">History</p>
+            <h2 className="text-2xl font-semibold">Recent Sessions</h2>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onToggle} className="nebula-ghost-button rounded-full border-0">
           <ChevronLeft className="h-5 w-5" />
         </Button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2">
+        <div className="px-3 pb-6">
           {loading ? (
             <div className="text-center text-muted-foreground py-8">Loading sessions...</div>
           ) : sessions.length === 0 ? (
@@ -121,21 +126,22 @@ export const SessionSidebar = forwardRef<SessionSidebarHandle, SessionSidebarPro
               <button
                 key={session.id}
                 onClick={() => onSessionSelect(session.id)}
-                className={`w-full p-3 rounded-lg text-left hover:bg-accent transition-colors mb-2 ${
-                  currentSessionId === session.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                }`}
+                data-active={currentSessionId === session.id}
+                className="nebula-sidebar-item w-full rounded-[1.1rem] px-4 py-3 text-left transition-colors mb-3"
               >
                 <div className="flex items-start gap-3">
-                  <MessageCircle className="h-5 w-5 mt-1 flex-shrink-0" />
+                  <div className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/5">
+                    <MessageCircle className="h-4 w-4" />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">
+                    <h3 className="font-medium truncate text-sm">
                       {session.session_name || generateSessionName(session.id)}
                     </h3>
-                    <p className="text-sm opacity-70 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {formatTimeAgo(session.created_at)}
                     </p>
                   </div>
-                  <div className="text-xs opacity-60 flex-shrink-0">
+                  <div className="text-[0.7rem] text-muted-foreground flex-shrink-0 rounded-full bg-white/5 px-2 py-1">
                     {session.message_count}
                   </div>
                 </div>

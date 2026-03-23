@@ -61,7 +61,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
     )}>
       {!isUser && (
         <div className="flex-shrink-0">
-          <div className="w-8 h-8 rounded-full overflow-hidden border border-border shadow-glow bg-muted">
+          <div className="nebula-glass w-9 h-9 rounded-full overflow-hidden bg-muted/40">
             <img src={tentenIcon} alt="TenTen AI" className="w-full h-full object-cover" />
           </div>
         </div>
@@ -75,14 +75,14 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
           <>
             {/* Attachments for user messages */}
             {message.attachments && message.attachments.length > 0 && (
-              <div className="mb-2">
+              <div className="mb-3">
                 <div className="flex flex-wrap gap-2">
                   {message.attachments.map((attachment) => (
-                    <div key={attachment.id} className="w-24 h-24 rounded-lg overflow-hidden border border-border bg-muted/20">
+                    <div key={attachment.id} className="nebula-well w-24 h-24 rounded-[1rem] overflow-hidden bg-muted/20 p-1">
                       <img 
                         src={attachment.url} 
                         alt={attachment.name}
-                        className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                        className="w-full h-full rounded-[0.8rem] object-cover cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => window.open(attachment.url, '_blank')}
                       />
                     </div>
@@ -90,32 +90,32 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
                 </div>
               </div>
             )}
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm leading-7 whitespace-pre-wrap">
               {message.content}
             </p>
           </>
         ) : (
-          <div className="text-sm">
+          <div className="text-sm space-y-3">
             {/* Session, Message Info, and Used Tenergy */}
             {(message.sessionInfo || message.messageInfo || message.usedTenergy !== undefined || effectiveThreadId !== undefined) && (
-              <div className="mb-2 p-2 bg-muted/30 rounded-lg border border-border">
+              <div className="nebula-well rounded-[1.1rem] px-3 py-2.5">
                 {message.sessionInfo && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[0.72rem] text-muted-foreground uppercase tracking-[0.16em]">
                     <span className="font-medium">Session ID:</span> {message.sessionInfo.id}
                   </p>
                 )}
                 {message.messageInfo && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[0.72rem] text-muted-foreground uppercase tracking-[0.16em]">
                     <span className="font-medium">Message ID:</span> {message.messageInfo.id}
                   </p>
                 )}
                 {effectiveThreadId !== undefined && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[0.72rem] text-muted-foreground uppercase tracking-[0.16em]">
                     <span className="font-medium">Thread ID:</span> {effectiveThreadId}
                   </p>
                 )}
                 {message.usedTenergy !== undefined && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[0.72rem] text-muted-foreground uppercase tracking-[0.16em]">
                     <span className="font-medium">Used Tenergy:</span> {message.usedTenergy}
                   </p>
                 )}
@@ -124,16 +124,16 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
             
             {/* Status Information */}
             {message.statusInfo && (
-              <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+              <div className="rounded-[1.1rem] bg-[hsl(var(--success)/0.12)] px-3 py-2.5 outline outline-1 outline-[hsl(var(--success)/0.18)]">
+                <p className="text-[0.72rem] uppercase tracking-[0.16em] text-[hsl(var(--success))] font-medium">
                   Status: {message.statusInfo.state}
                 </p>
               </div>
             )}
             
             {message.waitingTime && message.waitingTime > 0 && (
-              <div className="mb-2">
-                <p className="text-xs text-muted-foreground">
+              <div>
+                <p className="text-[0.72rem] uppercase tracking-[0.16em] text-muted-foreground">
                   Thought for {message.waitingTime} seconds
                 </p>
               </div>
@@ -144,16 +144,16 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-6 text-xs text-muted-foreground hover:text-foreground mb-2 p-1"
+                    className="nebula-ghost-button h-8 rounded-full border-0 px-3 text-[0.72rem] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
                   >
                     <Brain className="h-3 w-3 mr-1" />
                     {isReasoningOpen ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
                     Show thinking
                   </Button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="mb-3">
-                  <div className="p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
-                    <p className="text-xs text-muted-foreground italic">
+                <CollapsibleContent className="pt-3">
+                  <div className="nebula-well rounded-[1.2rem] p-4">
+                    <p className="text-sm text-muted-foreground italic leading-7">
                       {message.reasoning}
                     </p>
                   </div>
@@ -166,60 +166,60 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-6 text-xs text-muted-foreground hover:text-foreground mb-2 p-1"
+                    className="nebula-ghost-button h-8 rounded-full border-0 px-3 text-[0.72rem] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
                   >
                     <Bug className="h-3 w-3 mr-1" />
                     {isDebugOpen ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
                     Debugging information
                   </Button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="mb-3">
+                <CollapsibleContent className="pt-3">
                   <div className="space-y-3">
                     {/* Server API Configuration */}
-                    <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                      <h4 className="text-xs font-medium text-foreground mb-2">Server API Configuration</h4>
+                    <div className="nebula-well rounded-[1.2rem] p-4">
+                      <h4 className="eyebrow-label mb-3">Server API Configuration</h4>
                       <div className="space-y-2">
                         <div>
-                          <span className="text-xs font-medium text-muted-foreground">API Mode:</span>
-                          <pre className="text-xs text-muted-foreground mt-1">{config.mode}</pre>
+                          <span className="text-[0.72rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">API Mode:</span>
+                          <pre className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">{config.mode}</pre>
                         </div>
                         <div>
-                          <span className="text-xs font-medium text-muted-foreground">API URL:</span>
-                          <pre className="text-xs text-muted-foreground mt-1">{getApiUrl()}</pre>
+                          <span className="text-[0.72rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">API URL:</span>
+                          <pre className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">{getApiUrl()}</pre>
                         </div>
                       </div>
                     </div>
 
                     {/* Request Body */}
                     {message.debugData.webhookRequest && (
-                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                        <h4 className="text-xs font-medium text-foreground mb-2">Request Body</h4>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
+                      <div className="nebula-well rounded-[1.2rem] p-4">
+                        <h4 className="eyebrow-label mb-3">Request Body</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32 rounded-[1rem] bg-black/20 p-3">
                           {JSON.stringify(message.debugData.webhookRequest, null, 2)}
                         </pre>
                       </div>
                     )}
 
                     {message.debugData.webhookResponse && (
-                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                        <h4 className="text-xs font-medium text-foreground mb-2">Raw Webhook Response</h4>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
+                      <div className="nebula-well rounded-[1.2rem] p-4">
+                        <h4 className="eyebrow-label mb-3">Raw Webhook Response</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32 rounded-[1rem] bg-black/20 p-3">
                           {JSON.stringify(message.debugData.webhookResponse, null, 2)}
                         </pre>
                       </div>
                     )}
                     {message.debugData.finalResponse && (
-                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                        <h4 className="text-xs font-medium text-foreground mb-2">Final Response</h4>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32">
+                      <div className="nebula-well rounded-[1.2rem] p-4">
+                        <h4 className="eyebrow-label mb-3">Final Response</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-32 rounded-[1rem] bg-black/20 p-3">
                           {JSON.stringify(message.debugData.finalResponse, null, 2)}
                         </pre>
                       </div>
                     )}
                     {message.debugData.fullResponse && (
-                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                        <h4 className="text-xs font-medium text-foreground mb-2">Full Payload (Streaming Events)</h4>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-64 scrollbar-thin">
+                      <div className="nebula-well rounded-[1.2rem] p-4">
+                        <h4 className="eyebrow-label mb-3">Full Payload (Streaming Events)</h4>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-64 scrollbar-thin rounded-[1rem] bg-black/20 p-3">
                           {message.debugData.fullResponse.length > 10000 
                             ? `${message.debugData.fullResponse.substring(0, 10000)}...\n\n[Truncated - Full payload is ${message.debugData.fullResponse.length} characters]`
                             : message.debugData.fullResponse
@@ -228,8 +228,8 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
                       </div>
                     )}
                     {!message.debugData.webhookRequest && !message.debugData.webhookResponse && !message.debugData.finalResponse && !message.debugData.messageInfo && (
-                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-48">
+                      <div className="nebula-well rounded-[1.2rem] p-4">
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-48 rounded-[1rem] bg-black/20 p-3">
                           {JSON.stringify(message.debugData, null, 2)}
                         </pre>
                       </div>
@@ -242,7 +242,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
               {message.content}
             </MarkdownRenderer>
             {isStreaming && (
-              <div className="typing-indicator mt-2">
+              <div className="typing-indicator mt-2 nebula-well rounded-full w-fit px-3 py-2">
                 <div className="typing-dot"></div>
                 <div className="typing-dot"></div>
                 <div className="typing-dot"></div>
@@ -255,7 +255,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
         )}
         
         <div className={cn(
-          "text-xs mt-2 opacity-70",
+          "text-[0.68rem] mt-3 uppercase tracking-[0.18em] opacity-70",
           isUser ? "text-primary-foreground/70" : "text-muted-foreground"
         )}>
           {message.timestamp.toLocaleTimeString([], { 
@@ -267,7 +267,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
 
       {isUser && (
         <div className="flex-shrink-0">
-          <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center">
+          <div className="nebula-glass w-9 h-9 rounded-full overflow-hidden bg-muted/40 flex items-center justify-center">
             {userAvatarUrl ? (
               <img src={userAvatarUrl} alt="You" className="w-full h-full object-cover" />
             ) : (

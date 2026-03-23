@@ -67,8 +67,8 @@ export const MessageFeedback = ({ messageId, sessionId }: MessageFeedbackProps) 
         size="sm"
         onClick={() => handleFeedback('helpful')}
         disabled={loading}
-        className={`flex items-center gap-1 ${
-          feedback === 'helpful' ? 'text-green-600 bg-green-50' : ''
+        className={`nebula-ghost-button flex items-center gap-1 rounded-full border-0 px-3 ${
+          feedback === 'helpful' ? 'text-[hsl(var(--success))] bg-[hsl(var(--success)/0.12)]' : ''
         }`}
       >
         <ThumbsUp className={`h-4 w-4 ${feedback === 'helpful' ? 'fill-current' : ''}`} />
@@ -79,8 +79,8 @@ export const MessageFeedback = ({ messageId, sessionId }: MessageFeedbackProps) 
         size="sm"
         onClick={() => handleFeedback('needs_improvement')}
         disabled={loading}
-        className={`flex items-center gap-1 ${
-          feedback === 'needs_improvement' ? 'text-red-600 bg-red-50' : ''
+        className={`nebula-ghost-button flex items-center gap-1 rounded-full border-0 px-3 ${
+          feedback === 'needs_improvement' ? 'text-[hsl(var(--destructive))] bg-[hsl(var(--destructive)/0.12)]' : ''
         }`}
       >
         <ThumbsDown className={`h-4 w-4 ${feedback === 'needs_improvement' ? 'fill-current' : ''}`} />

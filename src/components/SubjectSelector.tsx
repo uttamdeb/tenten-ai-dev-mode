@@ -84,7 +84,7 @@ export function SubjectSelector({ selectedSubject, onSubjectChange }: SubjectSel
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-48 justify-between bg-card border-border hover:bg-accent"
+          className="nebula-ghost-button w-52 justify-between rounded-full border-0 px-4 hover:bg-accent/20"
         >
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -95,7 +95,7 @@ export function SubjectSelector({ selectedSubject, onSubjectChange }: SubjectSel
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-popover border-border">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-0 nebula-glass rounded-[1.5rem] overflow-hidden">
         <Command>
           <CommandInput placeholder="Search subjects..." className="h-9" />
           <CommandEmpty>No subject found.</CommandEmpty>

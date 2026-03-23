@@ -154,7 +154,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
   // Show Knowledge Base if activated
   if (isKnowledgeBase) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xl">
         <KnowledgeBaseVectorize onBack={handleBackFromKnowledgeBase} />
       </div>
     );
@@ -163,7 +163,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
   // Show Exam Explanation if activated
   if (isExamExplanation) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xl">
         <ExamExplanation 
           onBack={handleBackFromExamExplanation} 
           initialConfig={{
@@ -180,7 +180,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
   // Show Token Generator if activated
   if (isTokenGenerator) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xl">
         <TokenGenerator onBack={handleBackFromTokenGenerator} />
       </div>
     );
@@ -189,21 +189,22 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
   // Show Evaluation Mode if activated
   if (isEvalMode) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xl">
         <EvaluationMode onBack={handleBackFromEval} />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xl">
+      <Card className="nebula-glass w-full max-w-5xl max-h-[90vh] overflow-y-auto border-0 rounded-[2rem]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div className="space-y-1">
-            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <p className="eyebrow-label">Dev Console</p>
+            <CardTitle className="text-3xl font-semibold flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              TenTen AI Settings
-              <Badge variant="secondary" className="ml-2 text-xs">
+              Settings
+              <Badge variant="secondary" className="ml-2 rounded-full border-0 bg-white/8 px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-foreground/80">
                 v{APP_VERSION}
               </Badge>
             </CardTitle>
@@ -211,7 +212,7 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
               Configure API endpoints and authentication for different TenTen AI services
             </CardDescription>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="nebula-ghost-button rounded-full border-0">
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>

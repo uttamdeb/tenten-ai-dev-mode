@@ -1214,12 +1214,12 @@ export function ChatInterface() {
   const handleTextareaBlur = () => setIsInputFocused(false);
 
   return (
-    <div className="chat-shell flex bg-background">
+    <div className="chat-shell flex bg-background text-foreground">
       {/* Sidebar + Main */}
       <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
         {/* Header */}
-        <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 pt-safe">
-          <div className="flex items-center justify-between p-4">
+        <header className="sticky top-0 z-10 pt-safe px-3 sm:px-5">
+          <div className="nebula-glass mt-3 flex items-center justify-between rounded-[1.75rem] px-4 py-3 sm:px-5">
             <div className="flex items-center gap-3">
               <SessionSidebar 
                 ref={sessionSidebarRef}
@@ -1228,23 +1228,24 @@ export function ChatInterface() {
                 currentSessionId={currentSessionId}
                 onSessionSelect={handleSessionSelect}
               />
-              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
+              <div className="w-11 h-11 rounded-[1.25rem] overflow-hidden shadow-glow ring-1 ring-white/10">
                 <img 
                   src={tentenIcon} 
                   alt="TenTen AI" 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div>
-                <h1 className="text-lg font-semibold gradient-text flex items-center gap-2">
-                  TenTen AI - Dev Mode
+              <div className="space-y-1">
+                <p className="eyebrow-label">Workspace</p>
+                <h1 className="text-lg sm:text-xl font-semibold gradient-text flex items-center gap-2">
+                  TenTenAI
                   {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="rounded-full border-0 bg-white/8 px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-foreground/80">
                       {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
                     </Badge>
                   )}
                 </h1>
-                <p className="text-sm text-muted-foreground">HIGHLY CONFIDENTIAL</p>
+                <p className="text-sm text-muted-foreground">AI Dev Mode</p>
               </div>
             </div>
             
@@ -1279,7 +1280,7 @@ export function ChatInterface() {
                 variant="outline"
                 size="icon"
                 onClick={handleNewChat}
-                className="flex items-center gap-2 h-9 w-9 sm:hidden"
+                className="nebula-ghost-button flex items-center gap-2 h-9 w-9 rounded-full border-0 sm:hidden"
                 aria-label="New Chat"
               >
                 <Plus className="h-4 w-4" />
@@ -1288,7 +1289,7 @@ export function ChatInterface() {
                 variant="outline"
                 size="sm"
                 onClick={handleNewChat}
-                className="items-center gap-2 hidden sm:flex"
+                className="nebula-primary-button items-center gap-2 hidden rounded-full border-0 px-4 text-primary-foreground sm:flex"
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden md:inline">New Chat</span>
@@ -1307,7 +1308,7 @@ export function ChatInterface() {
                 variant="secondary"
                 size="icon"
                 onClick={() => setIsSettingsOpen(true)}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 sm:hidden"
+                className="nebula-primary-button h-9 w-9 rounded-full border-0 text-primary-foreground sm:hidden"
                 aria-label="Settings"
               >
                 <Settings className="h-4 w-4" />
@@ -1316,7 +1317,7 @@ export function ChatInterface() {
                 variant="secondary"
                 size="sm"
                 onClick={() => setIsSettingsOpen(true)}
-                className="items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 hidden sm:flex"
+                className="nebula-ghost-button items-center gap-2 hidden rounded-full border-0 px-4 sm:flex"
               >
                 <Settings className="h-4 w-4" />
                 <span className="hidden md:inline">Settings</span>
@@ -1330,35 +1331,50 @@ export function ChatInterface() {
       {/* Messages */}
       <div
         ref={chatContainerRef}
-        className="chat-messages-scroll flex-1 overflow-y-auto chat-scroll px-3 sm:px-4"
+        className="chat-messages-scroll flex-1 overflow-y-auto chat-scroll px-3 pt-6 sm:px-6 sm:pt-8"
         onClick={() => textareaRef.current?.blur()}
       >
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-            <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
+          <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
+            <div className="nebula-glass mb-8 flex h-24 w-24 items-center justify-center rounded-[2rem]">
               <img 
                 src={tentenIcon} 
                 alt="TenTen AI" 
-                className="w-full h-full object-cover"
+                className="h-12 w-12 object-cover"
               />
             </div>
-            <h2 className="text-xl font-semibold mb-2 gradient-text">
-              Hello! I'm TenTen
+            <p className="eyebrow-label mb-4">Obsidian Nebula</p>
+            <h2 className="max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
+              Ready to <span className="gradient-text">Create?</span>
             </h2>
-            <p className="text-muted-foreground max-w-md">
-              I'm here to help you solve your doubts and understand complex concepts. 
+            <p className="text-lg text-muted-foreground max-w-2xl leading-8">
+              Start a new session to explore deep learning, code optimization, and subject-focused reasoning with TenTen's neural engine.
+            </p>
+            <div className="mt-10 grid w-full max-w-3xl gap-4 sm:grid-cols-2">
+              <div className="nebula-panel rounded-[1.75rem] p-5 text-left">
+                <p className="eyebrow-label mb-3">Code Architect</p>
+                <p className="text-lg font-semibold">Review complex logic</p>
+                <p className="mt-2 text-sm text-muted-foreground">Use TenTen to inspect flows, debug payloads, and reason through implementation details.</p>
+              </div>
+              <div className="nebula-panel rounded-[1.75rem] p-5 text-left">
+                <p className="eyebrow-label mb-3">Creative Flow</p>
+                <p className="text-lg font-semibold">Draft and refine ideas</p>
+                <p className="mt-2 text-sm text-muted-foreground">Shape explanations, brainstorm approaches, and iterate on polished responses.</p>
+              </div>
+            </div>
+            <p className="mt-10 text-muted-foreground max-w-md">
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
             {isLoading && waitingTime > 0 && (
-              <div className="mt-4 p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
-                <p className="text-sm text-primary font-medium">
+              <div className="nebula-panel mt-6 rounded-[1.5rem] p-4">
+                <p className="text-sm font-medium text-[hsl(var(--success))]">
                   🤔 Thinking... {waitingTime}s
                 </p>
               </div>
             )}
           </div>
         ) : (
-          <div className="space-y-2 px-4">
+          <div className="space-y-3 px-2 sm:px-4">
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} userAvatarUrl={userProfile?.avatar_url || user?.user_metadata?.avatar_url} />
             ))}
@@ -1372,7 +1388,7 @@ export function ChatInterface() {
                     onClick={handleSimulatorClick}
                     disabled={isSimulatorLoading}
                     variant="outline"
-                    className="bg-transparent border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/10 hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] text-foreground font-medium py-2 px-4 rounded-full transition-all duration-300 flex items-center gap-2 group"
+                    className="nebula-ghost-button relative border-0 text-foreground font-medium py-2 px-4 rounded-full transition-all duration-300 flex items-center gap-2 group"
                   >
                     <img 
                       src={tentenIcon} 
@@ -1399,13 +1415,13 @@ export function ChatInterface() {
             {isLoading && waitingTime > 0 && (
               <div className="flex gap-3 p-4">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-elegant">
+                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
                     <Bot className="w-4 h-4 text-primary-foreground" />
                   </div>
                 </div>
                 <div className="message-bubble ai max-w-[85%] sm:max-w-[70%] px-3 py-2 sm:px-4 sm:py-3">
-                  <div className="p-3 bg-muted/50 rounded-lg border-l-2 border-primary/30">
-                    <p className="text-sm text-primary font-medium">
+                  <div className="nebula-well rounded-[1.2rem] p-3">
+                    <p className="text-sm font-medium text-[hsl(var(--success))]">
                       🤔 Thinking... {waitingTime}s
                     </p>
                   </div>
@@ -1421,7 +1437,7 @@ export function ChatInterface() {
       <div
         ref={inputBarRef}
         className={cn(
-          "border-t border-border bg-card/80 backdrop-blur-sm p-4 sm:sticky sm:bottom-0 z-20 pb-safe",
+          "mx-3 mb-3 mt-4 rounded-[1.75rem] p-4 sm:sticky sm:bottom-4 z-20 pb-safe nebula-glass",
           isMobile && isInputFocused && "chat-mobile-input-bar"
         )}
       >
@@ -1458,7 +1474,7 @@ export function ChatInterface() {
             size="icon"
             onClick={handleAttachClick}
             disabled={isLoading || isUploading}
-            className="h-11 w-11 shrink-0"
+            className="nebula-ghost-button h-11 w-11 shrink-0 rounded-full border-0"
           >
             <Paperclip className="h-4 w-4" />
           </Button>
@@ -1498,7 +1514,7 @@ export function ChatInterface() {
           <Button
             onClick={handleSendMessage}
             disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
-            className="h-11 w-11 p-0 bg-gradient-primary hover:shadow-glow transition-all duration-300 shrink-0"
+            className="nebula-primary-button h-11 w-11 p-0 border-0 transition-all duration-300 shrink-0 rounded-full"
             size="icon"
           >
             <Send className="h-4 w-4" />
@@ -1515,7 +1531,7 @@ export function ChatInterface() {
           aria-label="Upload image files"
         />
         
-        <p className="text-xs text-muted-foreground text-center mt-2">
+        <p className="text-xs text-muted-foreground text-center mt-3 tracking-[0.18em] uppercase">
           TenTen can make mistakes. Please verify important information.
         </p>
       </div>
@@ -1531,7 +1547,7 @@ export function ChatInterface() {
       {/* 3D Atomic Simulator Loading Animation Overlay */}
       {isSimulatorLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="flex flex-col items-center gap-6 animate-in zoom-in duration-500">
+          <div className="nebula-glass flex flex-col items-center gap-6 rounded-[2rem] px-10 py-12 animate-in zoom-in duration-500">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-50 animate-pulse" />
               <img 
