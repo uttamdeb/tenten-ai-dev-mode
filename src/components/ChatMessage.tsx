@@ -93,12 +93,12 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
                 </div>
               </div>
             )}
-            <p className={cn("whitespace-pre-wrap", isMobile ? "text-[0.92rem] leading-6" : "text-sm leading-7")}>
+            <p className={cn("whitespace-pre-wrap", isMobile ? "text-[0.84rem] leading-[1.45]" : "text-sm leading-7")}>
               {message.content}
             </p>
           </>
         ) : (
-          <div className={cn("space-y-3", isMobile ? "text-[0.92rem]" : "text-sm")}>
+          <div className={cn("space-y-3", isMobile ? "text-[0.84rem]" : "text-sm")}>
             {/* Session, Message Info, and Used Tenergy */}
             {(message.sessionInfo || message.messageInfo || message.usedTenergy !== undefined || effectiveThreadId !== undefined) && (
               <div className="nebula-well rounded-[1.1rem] px-3 py-2.5">
