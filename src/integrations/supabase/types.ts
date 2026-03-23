@@ -26,7 +26,6 @@ export type Database = {
           user_id: string
           webhook_request: Json | null
           webhook_response: Json | null
-          api_session_id: number | null
         }
         Insert: {
           created_at?: string
@@ -39,7 +38,6 @@ export type Database = {
           user_id: string
           webhook_request?: Json | null
           webhook_response?: Json | null
-          api_session_id?: number | null
         }
         Update: {
           created_at?: string
@@ -52,7 +50,6 @@ export type Database = {
           user_id?: string
           webhook_request?: Json | null
           webhook_response?: Json | null
-          api_session_id?: number | null
         }
         Relationships: [
           {
@@ -71,7 +68,6 @@ export type Database = {
           session_name: string | null
           updated_at: string
           user_id: string
-          api_session_id: number | null
         }
         Insert: {
           created_at?: string
@@ -79,7 +75,6 @@ export type Database = {
           session_name?: string | null
           updated_at?: string
           user_id: string
-          api_session_id?: number | null
         }
         Update: {
           created_at?: string
@@ -87,7 +82,6 @@ export type Database = {
           session_name?: string | null
           updated_at?: string
           user_id?: string
-          api_session_id?: number | null
         }
         Relationships: []
       }
@@ -192,7 +186,7 @@ export type Tables<
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

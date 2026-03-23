@@ -1,8 +1,13 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  className?: string;
+}
+
+export function ThemeToggle({ className }: ThemeToggleProps) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
@@ -33,7 +38,10 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="h-9 w-9 hover:bg-accent hover:text-accent-foreground transition-colors"
+      className={cn(
+        "nebula-ghost-button rounded-full border-0 hover:bg-accent hover:text-accent-foreground transition-colors",
+        className ?? "h-9 w-9"
+      )}
     >
       {theme === "light" ? (
         <Moon className="h-4 w-4" />
