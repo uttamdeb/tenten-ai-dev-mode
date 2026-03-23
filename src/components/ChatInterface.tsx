@@ -1214,9 +1214,9 @@ export function ChatInterface() {
   const handleTextareaBlur = () => setIsInputFocused(false);
 
   return (
-    <div className="chat-shell flex bg-background text-foreground">
+    <div className="chat-shell flex bg-background text-foreground overflow-hidden">
       {/* Sidebar + Main */}
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
+      <div className={cn("flex min-h-0 flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
         {/* Header */}
         <header className="sticky top-0 z-30 pt-safe px-3 sm:px-5">
           <div className={cn(
@@ -1367,7 +1367,7 @@ export function ChatInterface() {
       <div
         ref={chatContainerRef}
         className={cn(
-          "chat-messages-scroll flex-1 overflow-y-auto chat-scroll",
+          "chat-messages-scroll flex-1 overflow-y-auto chat-scroll min-h-0 overscroll-contain",
           isMobile ? "px-2 pt-3" : "px-3 pt-6 sm:px-6 sm:pt-8"
         )}
         onClick={() => textareaRef.current?.blur()}

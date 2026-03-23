@@ -11,7 +11,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ children, className = "" }: MarkdownRendererProps) {
   return (
-    <div className={`prose prose-sm dark:prose-invert max-w-none prose-headings:tracking-tight prose-p:text-inherit prose-p:leading-7 prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-transparent ${className}`}>
+    <div className={`prose prose-sm dark:prose-invert max-w-none prose-headings:tracking-tight prose-p:text-inherit prose-p:leading-7 prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-transparent prose-p:text-[0.92rem] prose-li:text-[0.92rem] sm:prose-p:text-[0.96rem] sm:prose-li:text-[0.96rem] ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
@@ -81,7 +81,7 @@ export function MarkdownRenderer({ children, className = "" }: MarkdownRendererP
           ),
           // Customize paragraphs
           p: ({ children, ...props }) => (
-            <p className="mb-4 leading-7 text-[0.96rem]" {...props}>
+            <p className="mb-4 text-[0.92rem] leading-6 sm:text-[0.96rem] sm:leading-7" {...props}>
               {children}
             </p>
           ),

@@ -49,6 +49,7 @@ interface ChatMessageProps {
 export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isStreaming = message.isStreaming;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
   const [isReasoningOpen, setIsReasoningOpen] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const { config, getApiUrl } = useApiConfig();
@@ -56,19 +57,21 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
 
   return (
     <div className={cn(
-      "flex gap-3 p-4 slide-up",
+      "flex slide-up",
+      isMobile ? "gap-2 px-2 py-2.5" : "gap-3 p-4",
       isUser ? "justify-end" : "justify-start"
     )}>
       {!isUser && (
         <div className="flex-shrink-0">
-          <div className="nebula-glass w-9 h-9 rounded-full overflow-hidden bg-muted/40">
+          <div className={cn("nebula-glass rounded-full overflow-hidden bg-muted/40", isMobile ? "h-8 w-8" : "w-9 h-9")}>
             <img src={tentenIcon} alt="TenTen AI" className="w-full h-full object-cover" />
           </div>
         </div>
       )}
       
       <div className={cn(
-        "message-bubble max-w-[85%] sm:max-w-[70%] px-3 py-2 sm:px-4 sm:py-3",
+        "message-bubble max-w-[85%] sm:max-w-[70%]",
+        isMobile ? "px-2.5 py-2" : "px-3 py-2 sm:px-4 sm:py-3",
         isUser ? "user" : "ai"
       )}>
         {isUser ? (
@@ -90,12 +93,12 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
                 </div>
               </div>
             )}
-            <p className="text-sm leading-7 whitespace-pre-wrap">
+            <p className={cn("whitespace-pre-wrap", isMobile ? "text-[0.92rem] leading-6" : "text-sm leading-7")}>
               {message.content}
             </p>
           </>
         ) : (
-          <div className="text-sm space-y-3">
+          <div className={cn("space-y-3", isMobile ? "text-[0.92rem]" : "text-sm")}>
             {/* Session, Message Info, and Used Tenergy */}
             {(message.sessionInfo || message.messageInfo || message.usedTenergy !== undefined || effectiveThreadId !== undefined) && (
               <div className="nebula-well rounded-[1.1rem] px-3 py-2.5">
@@ -267,7 +270,7 @@ export function ChatMessage({ message, sessionId, userAvatarUrl }: ChatMessagePr
 
       {isUser && (
         <div className="flex-shrink-0">
-          <div className="nebula-glass w-9 h-9 rounded-full overflow-hidden bg-muted/40 flex items-center justify-center">
+          <div className={cn("nebula-glass rounded-full overflow-hidden bg-muted/40 flex items-center justify-center", isMobile ? "h-8 w-8" : "w-9 h-9")}>
             {userAvatarUrl ? (
               <img src={userAvatarUrl} alt="You" className="w-full h-full object-cover" />
             ) : (
