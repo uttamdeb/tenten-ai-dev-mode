@@ -1227,13 +1227,6 @@ export function ChatInterface() {
           )}>
             <div className="flex items-center justify-between gap-2 sm:gap-4">
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                <SessionSidebar 
-                  ref={sessionSidebarRef}
-                  isOpen={isSidebarOpen}
-                  onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-                  currentSessionId={currentSessionId}
-                  onSessionSelect={handleSessionSelect}
-                />
                 <div className={cn(
                   "shrink-0 overflow-hidden ring-1 ring-white/10",
                   isMobile ? "h-8 w-8 rounded-[0.75rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
@@ -1246,25 +1239,36 @@ export function ChatInterface() {
                 </div>
                 <div className="min-w-0 space-y-0.5 sm:space-y-1">
                   {!isMobile && <p className="eyebrow-label">HIGHLY CONFIDENTIAL</p>}
-                  <h1 className={cn(
-                    "font-semibold gradient-text flex items-center gap-1.5 min-w-0",
-                    isMobile ? "text-sm leading-none" : "text-lg sm:text-xl"
-                  )}>
-                    <span className="truncate">TenTenAI</span>
-                    {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
-                      <Badge variant="secondary" className={cn(
-                        "rounded-full border-0 bg-white/8 uppercase tracking-[0.18em] text-foreground/80",
-                        isMobile ? "px-1.5 py-0.5 text-[0.5rem]" : "px-2.5 py-1 text-[0.65rem]"
-                      )}>
-                        {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
-                      </Badge>
-                    )}
-                  </h1>
-                  <p className={cn("text-muted-foreground", isMobile ? "text-[0.7rem] leading-none" : "text-sm")}>Dev Mode</p>
+                  {isMobile ? (
+                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-foreground/80">
+                      {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
+                    </p>
+                  ) : (
+                    <>
+                      <h1 className="font-semibold gradient-text flex items-center gap-1.5 min-w-0 text-lg sm:text-xl">
+                        <span className="truncate">TenTenAI</span>
+                        {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
+                          <Badge variant="secondary" className="rounded-full border-0 bg-white/8 px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-foreground/80">
+                            {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
+                          </Badge>
+                        )}
+                      </h1>
+                      <p className="text-sm text-muted-foreground">Dev Mode</p>
+                    </>
+                  )}
                 </div>
               </div>
 
               <div className={cn("flex shrink-0 items-center", isMobile ? "gap-1" : "gap-2 flex-wrap")}>
+                {isMobile && (
+                  <SessionSidebar 
+                    ref={sessionSidebarRef}
+                    isOpen={isSidebarOpen}
+                    onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                    currentSessionId={currentSessionId}
+                    onSessionSelect={handleSessionSelect}
+                  />
+                )}
                 {/* Mobile Subject Selector (Sheet) */}
                 <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
                   <SheetTrigger asChild>
@@ -1397,7 +1401,7 @@ export function ChatInterface() {
             </h2>
             <p className={cn(
               "text-muted-foreground max-w-2xl",
-              isMobile ? "w-full text-[0.95rem] leading-7 break-words" : "text-lg leading-8"
+              isMobile ? "w-full text-[0.88rem] leading-6 break-words" : "text-lg leading-8"
             )}>
               This is a testing web app for TenTen, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
             </p>
@@ -1461,16 +1465,9 @@ export function ChatInterface() {
                     </span>
                     {isSimulatorLoading && (
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 animate-pulse rounded-full" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {isLoading && waitingTime > 0 && (
-              <div className="flex gap-3 p-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
+                    {isMobile ? (
+                      <ThemeToggle className="h-8 w-8" />
+                    ) : (
                     <Bot className="w-4 h-4 text-primary-foreground" />
                   </div>
                 </div>
@@ -1561,7 +1558,7 @@ export function ChatInterface() {
               placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
                 "chat-input resize-none max-h-32",
-                isMobile ? "!min-h-0 h-[38px] text-[16px] rounded-[1rem] px-3 py-2 leading-5" : "min-h-[44px]",
+                isMobile ? "!min-h-0 h-[38px] text-[14px] rounded-[1rem] px-3 py-2 leading-5 placeholder:text-[13px]" : "min-h-[44px]",
                 "placeholder:text-muted-foreground/70",
                 isDragOver && "ring-2 ring-primary ring-offset-2 border-primary"
               )}
