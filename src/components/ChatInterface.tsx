@@ -1470,6 +1470,9 @@ export function ChatInterface() {
                 </div>
               </div>
             )}
+            {isLoading && waitingTime > 0 && (
+              <div className="flex gap-3 p-4">
+                <div className="flex-shrink-0 w-8" />
                 <div className="message-bubble ai max-w-[85%] sm:max-w-[70%] px-3 py-2 sm:px-4 sm:py-3">
                   <div className="nebula-well rounded-[1.2rem] p-3">
                     <p className="text-sm font-medium text-[hsl(var(--success))]">
@@ -1481,7 +1484,6 @@ export function ChatInterface() {
             )}
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
