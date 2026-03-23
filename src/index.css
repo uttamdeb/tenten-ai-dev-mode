@@ -363,14 +363,14 @@ All colors MUST be HSL for consistency
   @media (max-width: 639px) {
     .chat-shell {
       min-height: 100dvh;
-      overflow: hidden;
+      overflow: clip;
     }
 
     .chat-messages-scroll {
       -webkit-mask-image: none;
       mask-image: none;
       overscroll-behavior: contain;
-      padding-bottom: var(--chat-bottom-pad, 156px);
+      padding-bottom: var(--chat-bottom-pad, 144px);
     }
 
     .chat-mobile-input-bar {
