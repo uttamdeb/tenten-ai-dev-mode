@@ -359,10 +359,15 @@ All colors MUST be HSL for consistency
       -webkit-mask-image: none;
       mask-image: none;
       overscroll-behavior: contain;
+      padding-bottom: var(--chat-bottom-pad, 156px);
     }
 
     .chat-mobile-input-bar {
-      padding-bottom: max(env(safe-area-inset-bottom), 8px);
+      padding-bottom: max(env(safe-area-inset-bottom), 6px);
+    }
+
+    .eyebrow-label {
+      letter-spacing: 0.22em;
     }
   }
   

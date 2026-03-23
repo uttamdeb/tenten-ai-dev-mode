@@ -1220,127 +1220,146 @@ export function ChatInterface() {
         {/* Header */}
         <header className="sticky top-0 z-30 pt-safe px-3 sm:px-5">
           <div className={cn(
-            "mt-3 flex items-center justify-between",
+            "mt-3",
             isMobile
               ? "rounded-[1.35rem] border border-white/8 bg-[hsl(var(--card)/0.58)] px-3 py-2.5 backdrop-blur-xl"
               : "nebula-glass rounded-[1.75rem] px-4 py-3 sm:px-5"
           )}>
-            <div className="flex min-w-0 items-center gap-3">
-              <SessionSidebar 
-                ref={sessionSidebarRef}
-                isOpen={isSidebarOpen}
-                onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-                currentSessionId={currentSessionId}
-                onSessionSelect={handleSessionSelect}
-              />
-              <div className={cn(
-                "overflow-hidden ring-1 ring-white/10",
-                isMobile ? "h-10 w-10 rounded-[1rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
-              )}>
-                <img 
-                  src={tentenIcon} 
-                  alt="TenTen AI" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="min-w-0 space-y-0.5 sm:space-y-1">
-                <p className={cn("eyebrow-label", isMobile && "text-[0.58rem] tracking-[0.24em]")}>HIGHLY CONFIDENTIAL</p>
-                <h1 className={cn(
-                  "font-semibold gradient-text flex items-center gap-2 min-w-0",
-                  isMobile ? "text-base leading-none" : "text-lg sm:text-xl"
-                )}>
-                  TenTenAI
-                  {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
-                    <Badge variant="secondary" className={cn(
-                      "rounded-full border-0 bg-white/8 uppercase tracking-[0.18em] text-foreground/80",
-                      isMobile ? "px-2 py-0.5 text-[0.55rem]" : "px-2.5 py-1 text-[0.65rem]"
-                    )}>
-                      {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
-                    </Badge>
-                  )}
-                </h1>
-                <p className={cn("text-muted-foreground", isMobile ? "text-xs" : "text-sm")}>Dev Mode</p>
-              </div>
-            </div>
-            
-            <div className={cn("flex items-center", isMobile ? "gap-1.5" : "gap-2 flex-wrap")}>
-              {/* Mobile Subject Selector (Sheet) */}
-              <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 border-0 bg-white/5 sm:hidden"
-                    aria-label="Choose subject"
-                  >
-                    <BookOpen className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="pb-safe h-[85dvh] max-h-[90dvh] overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>Select Subject</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 px-2">
-                    <SubjectSelector 
-                      selectedSubject={selectedSubject} 
-                      onSubjectChange={(s) => { setSelectedSubject(s); setIsSubjectSheetOpen(false); }}
+            <div className={cn(isMobile ? "space-y-2.5" : "flex items-center justify-between")}>
+              <div className={cn("flex min-w-0 items-center gap-3", isMobile && "justify-between") }>
+                <div className="flex min-w-0 items-center gap-3">
+                  <SessionSidebar 
+                    ref={sessionSidebarRef}
+                    isOpen={isSidebarOpen}
+                    onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                    currentSessionId={currentSessionId}
+                    onSessionSelect={handleSessionSelect}
+                  />
+                  <div className={cn(
+                    "overflow-hidden ring-1 ring-white/10",
+                    isMobile ? "h-10 w-10 rounded-[1rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
+                  )}>
+                    <img 
+                      src={tentenIcon} 
+                      alt="TenTen AI" 
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                </SheetContent>
-              </Sheet>
+                  <div className="min-w-0 space-y-0.5 sm:space-y-1">
+                    <p className={cn("eyebrow-label", isMobile && "text-[0.56rem] tracking-[0.22em]")}>HIGHLY CONFIDENTIAL</p>
+                    <h1 className={cn(
+                      "font-semibold gradient-text flex items-center gap-2 min-w-0",
+                      isMobile ? "text-base leading-none" : "text-lg sm:text-xl"
+                    )}>
+                      <span className="truncate">TenTenAI</span>
+                      {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
+                        <Badge variant="secondary" className={cn(
+                          "rounded-full border-0 bg-white/8 uppercase tracking-[0.18em] text-foreground/80",
+                          isMobile ? "px-2 py-0.5 text-[0.52rem]" : "px-2.5 py-1 text-[0.65rem]"
+                        )}>
+                          {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
+                        </Badge>
+                      )}
+                    </h1>
+                    <p className={cn("text-muted-foreground", isMobile ? "text-[0.78rem]" : "text-sm")}>Dev Mode</p>
+                  </div>
+                </div>
 
-              {/* New Chat: icon on mobile, text on desktop */}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleNewChat}
-                className="nebula-ghost-button flex items-center gap-2 h-8 w-8 rounded-full border-0 sm:hidden"
-                aria-label="New Chat"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNewChat}
-                className="nebula-primary-button items-center gap-2 hidden rounded-full border-0 px-4 text-primary-foreground sm:flex"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden md:inline">New Chat</span>
-              </Button>
-
-              {/* Subject selector visible on sm+ */}
-              <div className="hidden sm:block">
-                <SubjectSelector 
-                  selectedSubject={selectedSubject} 
-                  onSubjectChange={setSelectedSubject} 
-                />
+                {isMobile && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="scale-[0.9] origin-right">
+                      <ThemeToggle />
+                    </div>
+                    <div className="scale-[0.9] origin-right">
+                      <UserMenu />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Settings: icon on mobile, text on desktop */}
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => setIsSettingsOpen(true)}
-                className="nebula-primary-button h-8 w-8 rounded-full border-0 text-primary-foreground sm:hidden"
-                aria-label="Settings"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsSettingsOpen(true)}
-                className="nebula-ghost-button items-center gap-2 hidden rounded-full border-0 px-4 sm:flex"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="hidden md:inline">Settings</span>
-              </Button>
-              <div className="scale-[0.92] sm:scale-100">
-                <ThemeToggle />
-              </div>
-              <div className="scale-[0.92] sm:scale-100">
-                <UserMenu />
+              <div className={cn("flex items-center", isMobile ? "justify-end gap-1.5" : "gap-2 flex-wrap")}>
+                {/* Mobile Subject Selector (Sheet) */}
+                <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 border-0 bg-white/5 sm:hidden"
+                      aria-label="Choose subject"
+                    >
+                      <BookOpen className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="pb-safe h-[85dvh] max-h-[90dvh] overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle>Select Subject</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4 px-2">
+                      <SubjectSelector 
+                        selectedSubject={selectedSubject} 
+                        onSubjectChange={(s) => { setSelectedSubject(s); setIsSubjectSheetOpen(false); }}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                {/* New Chat: icon on mobile, text on desktop */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNewChat}
+                  className="nebula-ghost-button flex items-center gap-2 h-8 w-8 rounded-full border-0 sm:hidden"
+                  aria-label="New Chat"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNewChat}
+                  className="nebula-primary-button items-center gap-2 hidden rounded-full border-0 px-4 text-primary-foreground sm:flex"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden md:inline">New Chat</span>
+                </Button>
+
+                {/* Subject selector visible on sm+ */}
+                <div className="hidden sm:block">
+                  <SubjectSelector 
+                    selectedSubject={selectedSubject} 
+                    onSubjectChange={setSelectedSubject} 
+                  />
+                </div>
+
+                {/* Settings: icon on mobile, text on desktop */}
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="nebula-primary-button h-8 w-8 rounded-full border-0 text-primary-foreground sm:hidden"
+                  aria-label="Settings"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="nebula-ghost-button items-center gap-2 hidden rounded-full border-0 px-4 sm:flex"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden md:inline">Settings</span>
+                </Button>
+                {!isMobile && (
+                  <>
+                    <div className="scale-[0.92] sm:scale-100">
+                      <ThemeToggle />
+                    </div>
+                    <div className="scale-[0.92] sm:scale-100">
+                      <UserMenu />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -1358,37 +1377,38 @@ export function ChatInterface() {
         {messages.length === 0 ? (
           <div className={cn(
             "flex flex-col items-center justify-center text-center",
-            isMobile ? "min-h-[calc(100svh-13rem)] px-4 py-8" : "h-full px-6 py-12"
+            isMobile ? "min-h-[calc(100svh-10.5rem)] px-4 py-5" : "h-full px-6 py-12"
           )}>
             <div className={cn(
               "floating-brand-icon flex items-center justify-center",
-              isMobile ? "mb-6 h-24 w-24" : "mb-10 h-28 w-28"
+              isMobile ? "mb-4 h-20 w-20" : "mb-10 h-28 w-28"
             )}>
               <img 
                 src={tentenIcon} 
                 alt="TenTen AI" 
                 className={cn(
                   "object-contain",
-                  isMobile ? "h-16 w-16" : "h-20 w-20 sm:h-24 sm:w-24"
+                  isMobile ? "h-14 w-14" : "h-20 w-20 sm:h-24 sm:w-24"
                 )}
               />
             </div>
-            <p className={cn("eyebrow-label mb-4", isMobile && "text-[0.62rem] tracking-[0.24em]")}>TenTen AI - Dev Mode</p>
+            <p className={cn("eyebrow-label mb-3", isMobile && "text-[0.58rem] tracking-[0.22em]")}>TenTen AI - Dev Mode</p>
             <h2 className={cn(
               "max-w-2xl font-semibold tracking-tight mb-4",
-              isMobile ? "text-[2.35rem] leading-[0.95]" : "text-4xl sm:text-5xl"
+              isMobile ? "text-[2rem] leading-[0.96]" : "text-4xl sm:text-5xl"
             )}>
               Ready to <span className="gradient-text">Chat?</span>
             </h2>
             <p className={cn(
               "text-muted-foreground max-w-2xl",
-              isMobile ? "text-base leading-8" : "text-lg leading-8"
+              isMobile ? "text-[0.95rem] leading-7" : "text-lg leading-8"
             )}>
               This is a testing web app for TenTen, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
             </p>
             <div className={cn(
-              "mt-10 grid w-full max-w-3xl gap-4",
-              isMobile ? "grid-cols-1" : "sm:grid-cols-2"
+              "grid w-full max-w-3xl gap-4",
+              isMobile ? "mt-6 grid-cols-1" : "mt-10",
+              !isMobile && "sm:grid-cols-2"
             )}>
               <div className="nebula-panel rounded-[1.75rem] p-5 text-left">
                 <p className="eyebrow-label mb-3">Code Architect</p>
@@ -1401,7 +1421,7 @@ export function ChatInterface() {
                 <p className="mt-2 text-sm text-muted-foreground">Shape explanations, brainstorm approaches, and iterate on polished responses.</p>
               </div>
             </div>
-            <p className={cn("text-muted-foreground max-w-md", isMobile ? "mt-8 text-sm" : "mt-10")}>
+            <p className={cn("text-muted-foreground max-w-md", isMobile ? "mt-6 text-sm" : "mt-10")}>
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
             {isLoading && waitingTime > 0 && (
@@ -1484,7 +1504,7 @@ export function ChatInterface() {
       >
         <div className={cn(
           isMobile
-            ? "rounded-[1.5rem] border border-white/10 bg-[hsl(var(--card)/0.82)] p-3 shadow-[0_-18px_48px_-28px_rgba(0,0,0,0.85)] backdrop-blur-2xl"
+            ? "rounded-[1.35rem] border border-white/10 bg-[hsl(var(--card)/0.82)] p-2.5 shadow-[0_-18px_48px_-28px_rgba(0,0,0,0.85)] backdrop-blur-2xl"
             : ""
         )}>
         {/* Pending Attachments */}
@@ -1522,7 +1542,7 @@ export function ChatInterface() {
             disabled={isLoading || isUploading}
             className={cn(
               "nebula-ghost-button shrink-0 rounded-full border-0",
-              isMobile ? "h-10 w-10" : "h-11 w-11"
+              isMobile ? "h-9 w-9" : "h-11 w-11"
             )}
           >
             <Paperclip className="h-4 w-4" />
@@ -1545,7 +1565,7 @@ export function ChatInterface() {
               placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
                 "chat-input resize-none max-h-32",
-                isMobile ? "min-h-[46px] text-base rounded-[1.2rem] px-4 py-3" : "min-h-[44px]",
+                isMobile ? "min-h-[42px] text-[16px] rounded-[1rem] px-3.5 py-2.5" : "min-h-[44px]",
                 "placeholder:text-muted-foreground/70",
                 isDragOver && "ring-2 ring-primary ring-offset-2 border-primary"
               )}
@@ -1566,7 +1586,7 @@ export function ChatInterface() {
             disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
             className={cn(
               "nebula-primary-button p-0 border-0 transition-all duration-300 shrink-0 rounded-full",
-              isMobile ? "h-10 w-10" : "h-11 w-11"
+              isMobile ? "h-9 w-9" : "h-11 w-11"
             )}
             size="icon"
           >
@@ -1586,7 +1606,7 @@ export function ChatInterface() {
         
         <p className={cn(
           "text-xs text-muted-foreground text-center mt-3 tracking-[0.18em] uppercase",
-          isMobile && "mt-2 text-[0.62rem] tracking-[0.14em]"
+          isMobile && "mt-2 text-[0.58rem] tracking-[0.12em]"
         )}>
           TenTen can make mistakes. Please verify important information.
         </p>
