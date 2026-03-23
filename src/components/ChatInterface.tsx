@@ -1227,6 +1227,15 @@ export function ChatInterface() {
           )}>
             <div className="flex items-center justify-between gap-2 sm:gap-4">
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                {isMobile && (
+                  <SessionSidebar 
+                    ref={sessionSidebarRef}
+                    isOpen={isSidebarOpen}
+                    onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                    currentSessionId={currentSessionId}
+                    onSessionSelect={handleSessionSelect}
+                  />
+                )}
                 <div className={cn(
                   "shrink-0 overflow-hidden ring-1 ring-white/10",
                   isMobile ? "h-8 w-8 rounded-[0.75rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
@@ -1260,15 +1269,6 @@ export function ChatInterface() {
               </div>
 
               <div className={cn("flex shrink-0 items-center", isMobile ? "gap-1" : "gap-2 flex-wrap")}>
-                {isMobile && (
-                  <SessionSidebar 
-                    ref={sessionSidebarRef}
-                    isOpen={isSidebarOpen}
-                    onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-                    currentSessionId={currentSessionId}
-                    onSessionSelect={handleSessionSelect}
-                  />
-                )}
                 {/* Mobile Subject Selector (Sheet) */}
                 <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
                   <SheetTrigger asChild>
