@@ -1336,19 +1336,19 @@ export function ChatInterface() {
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
-            <div className="nebula-glass mb-8 flex h-24 w-24 items-center justify-center rounded-[2rem]">
+            <div className="floating-brand-icon mb-8 flex h-24 w-24 items-center justify-center shadow-[0_30px_80px_-40px_hsl(var(--primary)/0.9)]">
               <img 
                 src={tentenIcon} 
                 alt="TenTen AI" 
-                className="h-12 w-12 object-cover"
+                className="h-16 w-16 object-contain"
               />
             </div>
-            <p className="eyebrow-label mb-4">Obsidian Nebula</p>
+            <p className="eyebrow-label mb-4">HIGHLY CONFIDENTIAL</p>
             <h2 className="max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
               Ready to <span className="gradient-text">Create?</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl leading-8">
-              Start a new session to explore deep learning, code optimization, and subject-focused reasoning with TenTen's neural engine.
+              This is the testing frontend for the actual TenTen app, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
             </p>
             <div className="mt-10 grid w-full max-w-3xl gap-4 sm:grid-cols-2">
               <div className="nebula-panel rounded-[1.75rem] p-5 text-left">

@@ -29,13 +29,13 @@ All colors MUST be HSL for consistency
     --popover-foreground: 232 22% 16%;
     
     /* Brand colors - Obsidian Nebula */
-    --primary: 336 92% 72%;
+    --primary: 2 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 292 88% 70%;
+    --primary-glow: 8 92% 66%;
     
     /* Chat specific colors */
-    --chat-user: 336 92% 72%;
-    --chat-ai: 292 88% 70%;
+    --chat-user: 2 84% 60%;
+    --chat-ai: 8 92% 66%;
     --chat-bg: 228 24% 95%;
     --chat-input: 228 20% 99%;
     
@@ -48,8 +48,8 @@ All colors MUST be HSL for consistency
     --muted-foreground: 232 10% 46%;
     
     /* Accent */
-    --accent: 320 70% 94%;
-    --accent-foreground: 336 92% 52%;
+    --accent: 8 72% 94%;
+    --accent-foreground: 2 84% 48%;
     
     /* Status colors */
     --destructive: 0 85% 60%;
@@ -61,18 +61,18 @@ All colors MUST be HSL for consistency
     /* Interactive elements */
     --border: 228 18% 88%;
     --input: 228 18% 94%;
-    --ring: 336 92% 72%;
+    --ring: 2 84% 60%;
     
     /* Design system tokens */
     --radius: 18px;
     --shadow-elegant: 0 24px 60px -28px hsl(232 30% 12% / 0.28);
-    --shadow-glow: 0 0 42px hsl(320 100% 72% / 0.22);
+    --shadow-glow: 0 0 42px hsl(2 100% 64% / 0.22);
     --ghost-border: hsl(0 0% 100% / 0.12);
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(336 92% 72%), hsl(292 88% 70%));
-    --gradient-subtle: radial-gradient(circle at top, hsl(320 90% 96%), hsl(228 24% 96%) 55%);
-    --gradient-chat: radial-gradient(circle at 50% 20%, hsl(320 90% 94% / 0.7), transparent 35%), linear-gradient(180deg, hsl(228 24% 97%), hsl(228 24% 95%));
+    --gradient-primary: linear-gradient(135deg, hsl(2 84% 60%), hsl(8 92% 66%));
+    --gradient-subtle: radial-gradient(circle at top, hsl(8 90% 95%), hsl(228 24% 96%) 55%);
+    --gradient-chat: radial-gradient(circle at 50% 20%, hsl(8 90% 92% / 0.72), transparent 35%), linear-gradient(180deg, hsl(228 24% 97%), hsl(228 24% 95%));
     
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -81,12 +81,12 @@ All colors MUST be HSL for consistency
     /* Sidebar theme */
     --sidebar-background: 228 22% 94%;
     --sidebar-foreground: 232 18% 28%;
-    --sidebar-primary: 336 92% 72%;
+    --sidebar-primary: 2 84% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 320 70% 94%;
+    --sidebar-accent: 8 72% 94%;
     --sidebar-accent-foreground: 232 18% 24%;
     --sidebar-border: 228 18% 88%;
-    --sidebar-ring: 336 92% 72%;
+    --sidebar-ring: 2 84% 60%;
   }
 
   .dark {
@@ -102,13 +102,13 @@ All colors MUST be HSL for consistency
     --popover-foreground: 220 20% 94%;
     
     /* Brand colors remain vibrant in dark mode */
-    --primary: 336 92% 72%;
+    --primary: 2 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 292 88% 70%;
+    --primary-glow: 8 92% 66%;
     
     /* Chat specific colors for dark mode */
-    --chat-user: 336 92% 72%;
-    --chat-ai: 292 88% 70%;
+    --chat-user: 2 84% 60%;
+    --chat-ai: 8 92% 66%;
     --chat-bg: 222 38% 8%;
     --chat-input: 224 30% 14%;
     
@@ -122,7 +122,7 @@ All colors MUST be HSL for consistency
     
     /* Accent */
     --accent: 224 24% 16%;
-    --accent-foreground: 336 92% 72%;
+    --accent-foreground: 2 84% 60%;
     
     /* Status colors */
     --destructive: 0 85% 65%;
@@ -134,27 +134,27 @@ All colors MUST be HSL for consistency
     /* Interactive elements */
     --border: 224 22% 18%;
     --input: 224 24% 14%;
-    --ring: 336 92% 72%;
+    --ring: 2 84% 60%;
     
     /* Enhanced shadows for dark mode */
     --shadow-elegant: 0 30px 80px -36px hsl(222 60% 2% / 0.9);
-    --shadow-glow: 0 0 48px hsl(320 100% 72% / 0.24);
+    --shadow-glow: 0 0 48px hsl(2 100% 64% / 0.24);
     --ghost-border: hsl(0 0% 100% / 0.12);
     
     /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(336 92% 72%), hsl(292 88% 70%));
-    --gradient-subtle: radial-gradient(circle at top, hsl(292 88% 18% / 0.35), transparent 35%), radial-gradient(circle at bottom, hsl(336 92% 18% / 0.28), transparent 30%), linear-gradient(180deg, hsl(222 38% 7%), hsl(224 34% 9%));
-    --gradient-chat: radial-gradient(circle at 50% 20%, hsl(292 88% 18% / 0.28), transparent 30%), radial-gradient(circle at 50% 80%, hsl(336 92% 18% / 0.22), transparent 35%), linear-gradient(180deg, hsl(222 38% 7%), hsl(224 34% 9%));
+    --gradient-primary: linear-gradient(135deg, hsl(2 84% 60%), hsl(8 92% 66%));
+    --gradient-subtle: radial-gradient(circle at top, hsl(8 88% 18% / 0.35), transparent 35%), radial-gradient(circle at bottom, hsl(2 84% 18% / 0.28), transparent 30%), linear-gradient(180deg, hsl(222 38% 7%), hsl(224 34% 9%));
+    --gradient-chat: radial-gradient(circle at 50% 20%, hsl(8 88% 18% / 0.28), transparent 30%), radial-gradient(circle at 50% 80%, hsl(2 84% 18% / 0.22), transparent 35%), linear-gradient(180deg, hsl(222 38% 7%), hsl(224 34% 9%));
     
     /* Sidebar dark theme */
     --sidebar-background: 224 34% 10%;
     --sidebar-foreground: 220 18% 88%;
-    --sidebar-primary: 336 92% 72%;
+    --sidebar-primary: 2 84% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 24% 16%;
     --sidebar-accent-foreground: 220 18% 88%;
     --sidebar-border: 224 22% 18%;
-    --sidebar-ring: 336 92% 72%;
+    --sidebar-ring: 2 84% 60%;
   }
 }
 
@@ -301,6 +301,11 @@ All colors MUST be HSL for consistency
     box-shadow: 0 0 18px hsl(var(--primary) / 0.45);
   }
 
+  .floating-brand-icon {
+    animation: floatingBrandIcon 5.8s ease-in-out infinite;
+    transform-origin: center;
+  }
+
   .message-bubble {
     @apply rounded-[1.6rem] px-4 py-3 max-w-[80%] break-words;
     transition: var(--transition-smooth);
@@ -398,6 +403,16 @@ All colors MUST be HSL for consistency
 
   .simulator-bounce-dot-delay-1 {
     animation-delay: 150ms;
+  }
+
+  @keyframes floatingBrandIcon {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -8px, 0);
+    }
   }
 
   .simulator-bounce-dot-delay-2 {
