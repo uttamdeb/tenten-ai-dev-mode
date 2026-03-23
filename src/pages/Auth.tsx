@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Github, Twitter } from 'lucide-react';
+
 
 const Auth = () => {
   const { user, signIn, signUp, signInWithProvider, loading } = useAuth();
