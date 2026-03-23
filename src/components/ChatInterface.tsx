@@ -1484,6 +1484,7 @@ export function ChatInterface() {
             )}
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
