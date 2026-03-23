@@ -1187,8 +1187,8 @@ export function ChatInterface() {
 
   // Compute dynamic bottom padding so the last message isn't hidden
   const computedBottomPad = Math.max(
-    96, // base padding
-    (inputBarRef.current?.offsetHeight || 80) + (kbInset || 0) + 16
+    isMobile ? 148 : 96,
+    (inputBarRef.current?.offsetHeight || (isMobile ? 132 : 80)) + (kbInset || 0) + (isMobile ? 24 : 16)
   );
 
   useEffect(() => {
@@ -1218,9 +1218,14 @@ export function ChatInterface() {
       {/* Sidebar + Main */}
       <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "md:ml-80" : "ml-0")}> 
         {/* Header */}
-        <header className="sticky top-0 z-10 pt-safe px-3 sm:px-5">
-          <div className="nebula-glass mt-3 flex items-center justify-between rounded-[1.75rem] px-4 py-3 sm:px-5">
-            <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 pt-safe px-3 sm:px-5">
+          <div className={cn(
+            "mt-3 flex items-center justify-between",
+            isMobile
+              ? "rounded-[1.35rem] border border-white/8 bg-[hsl(var(--card)/0.58)] px-3 py-2.5 backdrop-blur-xl"
+              : "nebula-glass rounded-[1.75rem] px-4 py-3 sm:px-5"
+          )}>
+            <div className="flex min-w-0 items-center gap-3">
               <SessionSidebar 
                 ref={sessionSidebarRef}
                 isOpen={isSidebarOpen}
@@ -1228,35 +1233,44 @@ export function ChatInterface() {
                 currentSessionId={currentSessionId}
                 onSessionSelect={handleSessionSelect}
               />
-              <div className="w-11 h-11 rounded-[1.25rem] overflow-hidden shadow-glow ring-1 ring-white/10">
+              <div className={cn(
+                "overflow-hidden ring-1 ring-white/10",
+                isMobile ? "h-10 w-10 rounded-[1rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
+              )}>
                 <img 
                   src={tentenIcon} 
                   alt="TenTen AI" 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="space-y-1">
-                <p className="eyebrow-label">HIGHLY CONFIDENTIAL</p>
-                <h1 className="text-lg sm:text-xl font-semibold gradient-text flex items-center gap-2">
+              <div className="min-w-0 space-y-0.5 sm:space-y-1">
+                <p className={cn("eyebrow-label", isMobile && "text-[0.58rem] tracking-[0.24em]")}>HIGHLY CONFIDENTIAL</p>
+                <h1 className={cn(
+                  "font-semibold gradient-text flex items-center gap-2 min-w-0",
+                  isMobile ? "text-base leading-none" : "text-lg sm:text-xl"
+                )}>
                   TenTenAI
                   {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
-                    <Badge variant="secondary" className="rounded-full border-0 bg-white/8 px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-foreground/80">
+                    <Badge variant="secondary" className={cn(
+                      "rounded-full border-0 bg-white/8 uppercase tracking-[0.18em] text-foreground/80",
+                      isMobile ? "px-2 py-0.5 text-[0.55rem]" : "px-2.5 py-1 text-[0.65rem]"
+                    )}>
                       {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
                     </Badge>
                   )}
                 </h1>
-                <p className="text-sm text-muted-foreground">Dev Mode</p>
+                <p className={cn("text-muted-foreground", isMobile ? "text-xs" : "text-sm")}>Dev Mode</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className={cn("flex items-center", isMobile ? "gap-1.5" : "gap-2 flex-wrap")}>
               {/* Mobile Subject Selector (Sheet) */}
               <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
                 <SheetTrigger asChild>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-9 w-9 sm:hidden"
+                    className="h-8 w-8 border-0 bg-white/5 sm:hidden"
                     aria-label="Choose subject"
                   >
                     <BookOpen className="h-4 w-4" />
@@ -1280,7 +1294,7 @@ export function ChatInterface() {
                 variant="outline"
                 size="icon"
                 onClick={handleNewChat}
-                className="nebula-ghost-button flex items-center gap-2 h-9 w-9 rounded-full border-0 sm:hidden"
+                className="nebula-ghost-button flex items-center gap-2 h-8 w-8 rounded-full border-0 sm:hidden"
                 aria-label="New Chat"
               >
                 <Plus className="h-4 w-4" />
@@ -1308,7 +1322,7 @@ export function ChatInterface() {
                 variant="secondary"
                 size="icon"
                 onClick={() => setIsSettingsOpen(true)}
-                className="nebula-primary-button h-9 w-9 rounded-full border-0 text-primary-foreground sm:hidden"
+                className="nebula-primary-button h-8 w-8 rounded-full border-0 text-primary-foreground sm:hidden"
                 aria-label="Settings"
               >
                 <Settings className="h-4 w-4" />
@@ -1322,8 +1336,12 @@ export function ChatInterface() {
                 <Settings className="h-4 w-4" />
                 <span className="hidden md:inline">Settings</span>
               </Button>
-              <ThemeToggle />
-              <UserMenu />
+              <div className="scale-[0.92] sm:scale-100">
+                <ThemeToggle />
+              </div>
+              <div className="scale-[0.92] sm:scale-100">
+                <UserMenu />
+              </div>
             </div>
           </div>
         </header>
@@ -1331,26 +1349,47 @@ export function ChatInterface() {
       {/* Messages */}
       <div
         ref={chatContainerRef}
-        className="chat-messages-scroll flex-1 overflow-y-auto chat-scroll px-3 pt-6 sm:px-6 sm:pt-8"
+        className={cn(
+          "chat-messages-scroll flex-1 overflow-y-auto chat-scroll",
+          isMobile ? "px-2 pt-3" : "px-3 pt-6 sm:px-6 sm:pt-8"
+        )}
         onClick={() => textareaRef.current?.blur()}
       >
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
-            <div className="floating-brand-icon mb-10 flex h-28 w-28 items-center justify-center">
+          <div className={cn(
+            "flex flex-col items-center justify-center text-center",
+            isMobile ? "min-h-[calc(100svh-13rem)] px-4 py-8" : "h-full px-6 py-12"
+          )}>
+            <div className={cn(
+              "floating-brand-icon flex items-center justify-center",
+              isMobile ? "mb-6 h-24 w-24" : "mb-10 h-28 w-28"
+            )}>
               <img 
                 src={tentenIcon} 
                 alt="TenTen AI" 
-                className="h-20 w-20 object-contain sm:h-24 sm:w-24"
+                className={cn(
+                  "object-contain",
+                  isMobile ? "h-16 w-16" : "h-20 w-20 sm:h-24 sm:w-24"
+                )}
               />
             </div>
-            <p className="eyebrow-label mb-4">TenTen AI - Dev Mode</p>
-            <h2 className="max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
+            <p className={cn("eyebrow-label mb-4", isMobile && "text-[0.62rem] tracking-[0.24em]")}>TenTen AI - Dev Mode</p>
+            <h2 className={cn(
+              "max-w-2xl font-semibold tracking-tight mb-4",
+              isMobile ? "text-[2.35rem] leading-[0.95]" : "text-4xl sm:text-5xl"
+            )}>
               Ready to <span className="gradient-text">Chat?</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl leading-8">
-              This is a testing frontend for TenTen, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
+            <p className={cn(
+              "text-muted-foreground max-w-2xl",
+              isMobile ? "text-base leading-8" : "text-lg leading-8"
+            )}>
+              This is a testing web app for TenTen, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
             </p>
-            <div className="mt-10 grid w-full max-w-3xl gap-4 sm:grid-cols-2">
+            <div className={cn(
+              "mt-10 grid w-full max-w-3xl gap-4",
+              isMobile ? "grid-cols-1" : "sm:grid-cols-2"
+            )}>
               <div className="nebula-panel rounded-[1.75rem] p-5 text-left">
                 <p className="eyebrow-label mb-3">Code Architect</p>
                 <p className="text-lg font-semibold">Review complex logic</p>
@@ -1362,7 +1401,7 @@ export function ChatInterface() {
                 <p className="mt-2 text-sm text-muted-foreground">Shape explanations, brainstorm approaches, and iterate on polished responses.</p>
               </div>
             </div>
-            <p className="mt-10 text-muted-foreground max-w-md">
+            <p className={cn("text-muted-foreground max-w-md", isMobile ? "mt-8 text-sm" : "mt-10")}>
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
             {isLoading && waitingTime > 0 && (
@@ -1374,7 +1413,7 @@ export function ChatInterface() {
             )}
           </div>
         ) : (
-          <div className="space-y-3 px-2 sm:px-4">
+          <div className={cn("space-y-3", isMobile ? "px-0.5" : "px-2 sm:px-4")}>
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} sessionId={currentSessionId ?? undefined} userAvatarUrl={userProfile?.avatar_url || user?.user_metadata?.avatar_url} />
             ))}
@@ -1437,10 +1476,17 @@ export function ChatInterface() {
       <div
         ref={inputBarRef}
         className={cn(
-          "mx-3 mb-3 mt-4 rounded-[1.75rem] p-4 sm:sticky sm:bottom-4 z-20 pb-safe nebula-glass",
-          isMobile && isInputFocused && "chat-mobile-input-bar"
+          "z-20 pb-safe",
+          isMobile
+            ? "chat-mobile-input-bar px-2 pb-2"
+            : "mx-3 mb-3 mt-4 rounded-[1.75rem] p-4 sm:sticky sm:bottom-4 nebula-glass"
         )}
       >
+        <div className={cn(
+          isMobile
+            ? "rounded-[1.5rem] border border-white/10 bg-[hsl(var(--card)/0.82)] p-3 shadow-[0_-18px_48px_-28px_rgba(0,0,0,0.85)] backdrop-blur-2xl"
+            : ""
+        )}>
         {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
           <div className="mb-3 max-w-4xl mx-auto">
@@ -1468,13 +1514,16 @@ export function ChatInterface() {
           </div>
         )}
 
-        <div className="flex gap-3 items-end max-w-4xl mx-auto">
+        <div className={cn("flex items-end max-w-4xl mx-auto", isMobile ? "gap-2" : "gap-3")}>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleAttachClick}
             disabled={isLoading || isUploading}
-            className="nebula-ghost-button h-11 w-11 shrink-0 rounded-full border-0"
+            className={cn(
+              "nebula-ghost-button shrink-0 rounded-full border-0",
+              isMobile ? "h-10 w-10" : "h-11 w-11"
+            )}
           >
             <Paperclip className="h-4 w-4" />
           </Button>
@@ -1495,7 +1544,8 @@ export function ChatInterface() {
               onBlur={handleTextareaBlur}
               placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
-                "chat-input resize-none min-h-[44px] max-h-32",
+                "chat-input resize-none max-h-32",
+                isMobile ? "min-h-[46px] text-base rounded-[1.2rem] px-4 py-3" : "min-h-[44px]",
                 "placeholder:text-muted-foreground/70",
                 isDragOver && "ring-2 ring-primary ring-offset-2 border-primary"
               )}
@@ -1514,7 +1564,10 @@ export function ChatInterface() {
           <Button
             onClick={handleSendMessage}
             disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
-            className="nebula-primary-button h-11 w-11 p-0 border-0 transition-all duration-300 shrink-0 rounded-full"
+            className={cn(
+              "nebula-primary-button p-0 border-0 transition-all duration-300 shrink-0 rounded-full",
+              isMobile ? "h-10 w-10" : "h-11 w-11"
+            )}
             size="icon"
           >
             <Send className="h-4 w-4" />
@@ -1531,9 +1584,13 @@ export function ChatInterface() {
           aria-label="Upload image files"
         />
         
-        <p className="text-xs text-muted-foreground text-center mt-3 tracking-[0.18em] uppercase">
+        <p className={cn(
+          "text-xs text-muted-foreground text-center mt-3 tracking-[0.18em] uppercase",
+          isMobile && "mt-2 text-[0.62rem] tracking-[0.14em]"
+        )}>
           TenTen can make mistakes. Please verify important information.
         </p>
+        </div>
       </div>
       
       {/* Settings Panel */}

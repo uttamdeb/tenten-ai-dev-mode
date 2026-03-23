@@ -223,6 +223,7 @@ All colors MUST be HSL for consistency
     padding-bottom: var(--chat-bottom-pad, 96px);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 24px, black calc(100% - 48px), transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0, black 24px, black calc(100% - 48px), transparent 100%);
+    min-height: 0;
   }
 
   .chat-mobile-input-bar {
@@ -230,6 +231,7 @@ All colors MUST be HSL for consistency
     left: 0;
     right: 0;
     bottom: var(--chat-mobile-input-bottom, 0px);
+    z-index: 40;
   }
 
   .nebula-glass {
@@ -345,6 +347,23 @@ All colors MUST be HSL for consistency
     background: hsl(var(--chat-input) / 0.72);
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.04);
     transition: var(--transition-smooth);
+  }
+
+  @media (max-width: 639px) {
+    .chat-shell {
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    .chat-messages-scroll {
+      -webkit-mask-image: none;
+      mask-image: none;
+      overscroll-behavior: contain;
+    }
+
+    .chat-mobile-input-bar {
+      padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    }
   }
   
   .subject-badge {
