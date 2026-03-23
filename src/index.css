@@ -203,9 +203,11 @@ All colors MUST be HSL for consistency
   /* Chat specific component styles */
   .chat-shell {
     min-height: 100svh;
+    height: 100svh;
     background-image: var(--gradient-chat);
     position: relative;
     isolation: isolate;
+    overflow: hidden;
   }
 
   .chat-shell::before {
@@ -232,6 +234,18 @@ All colors MUST be HSL for consistency
     right: 0;
     bottom: var(--chat-mobile-input-bottom, 0px);
     z-index: 40;
+  }
+
+  @media (max-width: 639px) {
+    .chat-shell {
+      min-height: 100dvh;
+      height: 100dvh;
+    }
+
+    .chat-messages-scroll {
+      padding-bottom: calc(var(--chat-bottom-pad, 148px) + 8px);
+      overscroll-behavior-y: contain;
+    }
   }
 
   .nebula-glass {
