@@ -1465,12 +1465,11 @@ export function ChatInterface() {
                     </span>
                     {isSimulatorLoading && (
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 animate-pulse rounded-full" />
-                    {isMobile ? (
-                      <ThemeToggle className="h-8 w-8" />
-                    ) : (
-                    <Bot className="w-4 h-4 text-primary-foreground" />
-                  </div>
+                    )}
+                  </Button>
                 </div>
+              </div>
+            )}
                 <div className="message-bubble ai max-w-[85%] sm:max-w-[70%] px-3 py-2 sm:px-4 sm:py-3">
                   <div className="nebula-well rounded-[1.2rem] p-3">
                     <p className="text-sm font-medium text-[hsl(var(--success))]">
