@@ -1225,59 +1225,46 @@ export function ChatInterface() {
               ? "rounded-[1.35rem] border border-white/8 bg-[hsl(var(--card)/0.58)] px-3 py-2.5 backdrop-blur-xl"
               : "nebula-glass rounded-[1.75rem] px-4 py-3 sm:px-5"
           )}>
-            <div className={cn(isMobile ? "space-y-2.5" : "flex items-center justify-between")}>
-              <div className={cn("flex min-w-0 items-center gap-3", isMobile && "justify-between") }>
-                <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-                  <SessionSidebar 
-                    ref={sessionSidebarRef}
-                    isOpen={isSidebarOpen}
-                    onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-                    currentSessionId={currentSessionId}
-                    onSessionSelect={handleSessionSelect}
+            <div className="flex items-center justify-between gap-2 sm:gap-4">
+              <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                <SessionSidebar 
+                  ref={sessionSidebarRef}
+                  isOpen={isSidebarOpen}
+                  onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                  currentSessionId={currentSessionId}
+                  onSessionSelect={handleSessionSelect}
+                />
+                <div className={cn(
+                  "shrink-0 overflow-hidden ring-1 ring-white/10",
+                  isMobile ? "h-8 w-8 rounded-[0.75rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
+                )}>
+                  <img 
+                    src={tentenIcon} 
+                    alt="TenTen AI" 
+                    className="w-full h-full object-cover"
                   />
-                  <div className={cn(
-                    "overflow-hidden ring-1 ring-white/10",
-                    isMobile ? "h-10 w-10 rounded-[1rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
-                  )}>
-                    <img 
-                      src={tentenIcon} 
-                      alt="TenTen AI" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="min-w-0 space-y-0.5 sm:space-y-1">
-                    <p className={cn("eyebrow-label", isMobile && "text-[0.56rem] tracking-[0.22em]")}>HIGHLY CONFIDENTIAL</p>
-                    <h1 className={cn(
-                      "font-semibold gradient-text flex items-center gap-2 min-w-0",
-                      isMobile ? "text-base leading-none" : "text-lg sm:text-xl"
-                    )}>
-                      <span className="truncate">TenTenAI</span>
-                      {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
-                        <Badge variant="secondary" className={cn(
-                          "rounded-full border-0 bg-white/8 uppercase tracking-[0.18em] text-foreground/80",
-                          isMobile ? "px-2 py-0.5 text-[0.52rem]" : "px-2.5 py-1 text-[0.65rem]"
-                        )}>
-                          {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
-                        </Badge>
-                      )}
-                    </h1>
-                    <p className={cn("text-muted-foreground", isMobile ? "text-[0.78rem]" : "text-sm")}>Dev Mode</p>
-                  </div>
                 </div>
-
-                {isMobile && (
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <div className="scale-[0.9] origin-right">
-                      <ThemeToggle />
-                    </div>
-                    <div className="scale-[0.9] origin-right">
-                      <UserMenu />
-                    </div>
-                  </div>
-                )}
+                <div className="min-w-0 space-y-0.5 sm:space-y-1">
+                  {!isMobile && <p className="eyebrow-label">HIGHLY CONFIDENTIAL</p>}
+                  <h1 className={cn(
+                    "font-semibold gradient-text flex items-center gap-1.5 min-w-0",
+                    isMobile ? "text-sm leading-none" : "text-lg sm:text-xl"
+                  )}>
+                    <span className="truncate">TenTenAI</span>
+                    {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
+                      <Badge variant="secondary" className={cn(
+                        "rounded-full border-0 bg-white/8 uppercase tracking-[0.18em] text-foreground/80",
+                        isMobile ? "px-1.5 py-0.5 text-[0.5rem]" : "px-2.5 py-1 text-[0.65rem]"
+                      )}>
+                        {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
+                      </Badge>
+                    )}
+                  </h1>
+                  <p className={cn("text-muted-foreground", isMobile ? "text-[0.7rem] leading-none" : "text-sm")}>Dev Mode</p>
+                </div>
               </div>
 
-              <div className={cn("flex items-center", isMobile ? "justify-end gap-1.5" : "gap-2 flex-wrap")}>
+              <div className={cn("flex shrink-0 items-center", isMobile ? "gap-1" : "gap-2 flex-wrap")}>
                 {/* Mobile Subject Selector (Sheet) */}
                 <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
                   <SheetTrigger asChild>
@@ -1350,7 +1337,16 @@ export function ChatInterface() {
                   <Settings className="h-4 w-4" />
                   <span className="hidden md:inline">Settings</span>
                 </Button>
-                {!isMobile && (
+                {isMobile ? (
+                  <>
+                    <div className="scale-[0.85] origin-center">
+                      <ThemeToggle />
+                    </div>
+                    <div className="scale-[0.85] origin-center">
+                      <UserMenu />
+                    </div>
+                  </>
+                ) : (
                   <>
                     <div className="scale-[0.92] sm:scale-100">
                       <ThemeToggle />
@@ -1377,7 +1373,7 @@ export function ChatInterface() {
         {messages.length === 0 ? (
           <div className={cn(
             "flex flex-col items-center text-center",
-            isMobile ? "min-h-full w-full justify-start px-4 pb-6 pt-5" : "h-full justify-center px-6 py-12"
+            isMobile ? "w-full px-4 pb-8 pt-5" : "h-full justify-center px-6 py-12"
           )}>
             <div className={cn(
               "floating-brand-icon flex items-center justify-center",
@@ -1565,7 +1561,7 @@ export function ChatInterface() {
               placeholder="Ask me anything... (Shift+Enter for new line)"
               className={cn(
                 "chat-input resize-none max-h-32",
-                isMobile ? "min-h-0 h-[56px] text-[16px] rounded-[1rem] px-3 py-2.5 leading-6" : "min-h-[44px]",
+                isMobile ? "!min-h-0 h-[38px] text-[16px] rounded-[1rem] px-3 py-2 leading-5" : "min-h-[44px]",
                 "placeholder:text-muted-foreground/70",
                 isDragOver && "ring-2 ring-primary ring-offset-2 border-primary"
               )}
