@@ -1236,7 +1236,7 @@ export function ChatInterface() {
                 />
               </div>
               <div className="space-y-1">
-                <p className="eyebrow-label">Workspace</p>
+                <p className="eyebrow-label">HIGHLY CONFIDENTIAL</p>
                 <h1 className="text-lg sm:text-xl font-semibold gradient-text flex items-center gap-2">
                   TenTenAI
                   {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
@@ -1245,7 +1245,7 @@ export function ChatInterface() {
                     </Badge>
                   )}
                 </h1>
-                <p className="text-sm text-muted-foreground">AI Dev Mode</p>
+                <p className="text-sm text-muted-foreground">Dev Mode</p>
               </div>
             </div>
             
@@ -1336,19 +1336,19 @@ export function ChatInterface() {
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
-            <div className="floating-brand-icon mb-8 flex h-24 w-24 items-center justify-center shadow-[0_30px_80px_-40px_hsl(var(--primary)/0.9)]">
+            <div className="floating-brand-icon mb-10 flex h-28 w-28 items-center justify-center">
               <img 
                 src={tentenIcon} 
                 alt="TenTen AI" 
-                className="h-16 w-16 object-contain"
+                className="h-20 w-20 object-contain sm:h-24 sm:w-24"
               />
             </div>
-            <p className="eyebrow-label mb-4">HIGHLY CONFIDENTIAL</p>
+            <p className="eyebrow-label mb-4">TenTen AI - Dev Mode</p>
             <h2 className="max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
-              Ready to <span className="gradient-text">Create?</span>
+              Ready to <span className="gradient-text">Chat?</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl leading-8">
-              This is the testing frontend for the actual TenTen app, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
+              This is a testing frontend for TenTen, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
             </p>
             <div className="mt-10 grid w-full max-w-3xl gap-4 sm:grid-cols-2">
               <div className="nebula-panel rounded-[1.75rem] p-5 text-left">
