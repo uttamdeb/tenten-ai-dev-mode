@@ -1392,7 +1392,7 @@ export function ChatInterface() {
                 )}
               />
             </div>
-            <p className={cn("eyebrow-label mb-3", isMobile && "text-[0.58rem] tracking-[0.22em]")}>TenTen AI - Dev Mode</p>
+            <p className={cn("eyebrow-label mb-2 text-[0.82rem] tracking-[0.24em] sm:text-[0.92rem]", isMobile && "text-[0.68rem] tracking-[0.2em]")}>TenTen AI - Dev Mode</p>
             <h2 className={cn(
               "max-w-2xl font-semibold tracking-tight mb-4",
               isMobile ? "text-[2rem] leading-[0.96]" : "text-4xl sm:text-5xl"
@@ -1605,8 +1605,8 @@ export function ChatInterface() {
         />
         
         <p className={cn(
-          "text-xs text-muted-foreground text-center mt-3 tracking-[0.18em] uppercase",
-          isMobile && "mt-2 text-[0.58rem] tracking-[0.12em]"
+          "text-[0.64rem] text-muted-foreground text-center mt-3 tracking-[0.14em] uppercase sm:text-[0.68rem]",
+          isMobile && "mt-2 text-[0.52rem] tracking-[0.1em]"
         )}>
           TenTen can make mistakes. Please verify important information.
         </p>

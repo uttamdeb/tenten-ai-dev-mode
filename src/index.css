@@ -309,6 +309,17 @@ All colors MUST be HSL for consistency
     will-change: transform;
   }
 
+  .avatar-crop-image {
+    transform: translate(calc(-50% + var(--avatar-crop-x, 0px)), calc(-50% + var(--avatar-crop-y, 0px))) scale(var(--avatar-crop-scale, 1));
+    transform-origin: center center;
+  }
+
+  .avatar-crop-stage {
+    --avatar-crop-x: 0px;
+    --avatar-crop-y: 0px;
+    --avatar-crop-scale: 1;
+  }
+
   .message-bubble {
     @apply rounded-[1.6rem] px-4 py-3 max-w-[80%] break-words;
     transition: var(--transition-smooth);

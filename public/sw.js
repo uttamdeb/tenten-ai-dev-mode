@@ -1,6 +1,6 @@
 // Bump cache name to force PWA clients to fetch the new index.html (dark mode default)
 // NOTE: When updating version, also update src/config/version.ts
-const CACHE_NAME = 'tenten-ai-v3.0.3';
+const CACHE_NAME = 'tenten-ai-v3.0.4';
 const urlsToCache = [
   '/',
   '/index.html',

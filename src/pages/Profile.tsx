@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -7,16 +7,22 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AvatarCropDialog } from '@/components/AvatarCropDialog';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { uploadImage, isUploading } = useImageUpload();
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [cropSource, setCropSource] = useState<string | null>(null);
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -76,6 +82,53 @@ const Profile = () => {
     }
   };
 
+  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please choose an image file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setCropSource(objectUrl);
+    setIsCropOpen(true);
+    event.target.value = '';
+  };
+
+  const handleCroppedAvatarConfirm = async (file: File, previewUrl: string) => {
+    const uploaded = await uploadImage(file);
+    if (!uploaded) {
+      URL.revokeObjectURL(previewUrl);
+      return;
+    }
+
+    setAvatarUrl(uploaded.url);
+    URL.revokeObjectURL(previewUrl);
+    if (cropSource) {
+      URL.revokeObjectURL(cropSource);
+    }
+    setCropSource(null);
+
+    toast({
+      title: 'Profile picture ready',
+      description: 'Save your profile to apply the new picture.',
+    });
+  };
+
+  const handleCropOpenChange = (open: boolean) => {
+    setIsCropOpen(open);
+    if (!open && cropSource) {
+      URL.revokeObjectURL(cropSource);
+      setCropSource(null);
+    }
+  };
+
   const displayName = fullName || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
 
   return (
@@ -106,6 +159,43 @@ const Profile = () => {
                     {displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
+                <div className="flex flex-col items-center gap-2">
+                  <Label htmlFor="profile-avatar-upload" className="sr-only">
+                    Upload profile picture
+                  </Label>
+                  <input
+                    id="profile-avatar-upload"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarFileChange}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="rounded-full"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Profile Picture
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Upload an image, crop it, then save your profile.
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -133,20 +223,6 @@ const Profile = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="avatarUrl">Avatar URL</Label>
-                <Input
-                  id="avatarUrl"
-                  type="url"
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="https://example.com/avatar.jpg"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter a URL to your profile picture
-                </p>
-              </div>
-
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? (
                   <>
@@ -161,6 +237,13 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AvatarCropDialog
+        open={isCropOpen}
+        imageSrc={cropSource}
+        onOpenChange={handleCropOpenChange}
+        onConfirm={handleCroppedAvatarConfirm}
+      />
     </div>
   );
 };
