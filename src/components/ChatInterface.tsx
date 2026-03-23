@@ -787,6 +787,7 @@ export function ChatInterface() {
       {/* Main Chat Interface */}
       <div className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen ? "ml-80" : "ml-0")}>
         {/* Header */}
+<<<<<<< Updated upstream
         <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
@@ -799,15 +800,155 @@ export function ChatInterface() {
                 />
               )}
               <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-elegant">
+=======
+        <header className="sticky top-0 z-30 pt-safe px-3 sm:px-5">
+          <div className={cn(
+            "mt-3",
+            isMobile
+              ? "rounded-[1.2rem] border border-white/8 bg-[hsl(var(--card)/0.58)] px-2.5 py-2 backdrop-blur-xl"
+              : "nebula-glass rounded-[1.75rem] px-4 py-3 sm:px-5"
+          )}>
+            <div className={cn(
+              isMobile ? "flex items-center gap-2 min-w-0" : "flex items-center justify-between"
+            )}>
+              <SessionSidebar 
+                ref={sessionSidebarRef}
+                isOpen={isSidebarOpen}
+                onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+                currentSessionId={currentSessionId}
+                onSessionSelect={handleSessionSelect}
+              />
+
+              <div className={cn(
+                "overflow-hidden ring-1 ring-white/10 shrink-0",
+                isMobile ? "h-9 w-9 rounded-[0.95rem]" : "w-11 h-11 rounded-[1.25rem] shadow-glow"
+              )}>
+>>>>>>> Stashed changes
                 <img 
                   src={tentenIcon} 
                   alt="TenTen AI" 
                   className="w-full h-full object-cover"
                 />
               </div>
+<<<<<<< Updated upstream
               <div>
                 <h1 className="text-lg font-semibold gradient-text">TenTen AI - Dev Mode</h1>
                 <p className="text-sm text-muted-foreground">HIGHLY CONFIDENTIAL</p>
+=======
+
+              <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1 overflow-hidden">
+                <p className={cn("eyebrow-label truncate", isMobile && "text-[0.52rem] tracking-[0.18em]")}>HIGHLY CONFIDENTIAL</p>
+                <h1 className={cn(
+                  "font-semibold gradient-text flex items-center gap-2 min-w-0",
+                  isMobile ? "text-[0.95rem] leading-none" : "text-lg sm:text-xl"
+                )}>
+                  <span className="truncate">TenTenAI</span>
+                  {(config.mode === "tenten-git" || config.mode === "tenten-video" || config.mode === "tenten-exam") && (
+                    <Badge variant="secondary" className={cn(
+                      "rounded-full border-0 bg-white/8 uppercase tracking-[0.18em] text-foreground/80 shrink-0",
+                      isMobile ? "px-1.5 py-0.5 text-[0.48rem]" : "px-2.5 py-1 text-[0.65rem]"
+                    )}>
+                      {config.gitEndpoint.charAt(0).toUpperCase() + config.gitEndpoint.slice(1)}
+                    </Badge>
+                  )}
+                </h1>
+                <p className={cn("text-muted-foreground truncate", isMobile ? "text-[0.72rem]" : "text-sm")}>Dev Mode</p>
+              </div>
+
+              <div className={cn("flex items-center shrink-0", isMobile ? "gap-1" : "gap-2 flex-wrap")}>
+                {/* Mobile Subject Selector (Sheet) */}
+                <Sheet open={isSubjectSheetOpen} onOpenChange={setIsSubjectSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 border-0 bg-white/5 sm:hidden"
+                      aria-label="Choose subject"
+                    >
+                      <BookOpen className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="pb-safe h-[85dvh] max-h-[90dvh] overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle>Select Subject</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4 px-2">
+                      <SubjectSelector 
+                        selectedSubject={selectedSubject} 
+                        onSubjectChange={(s) => { setSelectedSubject(s); setIsSubjectSheetOpen(false); }}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                {/* New Chat: icon on mobile, text on desktop */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNewChat}
+                  className="nebula-ghost-button flex items-center gap-2 h-8 w-8 rounded-full border-0 sm:hidden"
+                  aria-label="New Chat"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNewChat}
+                  className="nebula-primary-button items-center gap-2 hidden rounded-full border-0 px-4 text-primary-foreground sm:flex"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden md:inline">New Chat</span>
+                </Button>
+
+                {/* Subject selector visible on sm+ */}
+                <div className="hidden sm:block">
+                  <SubjectSelector 
+                    selectedSubject={selectedSubject} 
+                    onSubjectChange={setSelectedSubject} 
+                  />
+                </div>
+
+                {/* Settings: icon on mobile, text on desktop */}
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="nebula-primary-button h-8 w-8 rounded-full border-0 text-primary-foreground sm:hidden"
+                  aria-label="Settings"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                {isMobile && (
+                  <div className="scale-[0.82] origin-center">
+                    <ThemeToggle />
+                  </div>
+                )}
+                {isMobile && (
+                  <div className="scale-[0.82] origin-center">
+                    <UserMenu />
+                  </div>
+                )}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="nebula-ghost-button items-center gap-2 hidden rounded-full border-0 px-4 sm:flex"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden md:inline">Settings</span>
+                </Button>
+                {!isMobile && (
+                  <>
+                    <div className="scale-[0.92] sm:scale-100">
+                      <ThemeToggle />
+                    </div>
+                    <div className="scale-[0.92] sm:scale-100">
+                      <UserMenu />
+                    </div>
+                  </>
+                )}
+>>>>>>> Stashed changes
               </div>
             </div>
             
@@ -844,6 +985,7 @@ export function ChatInterface() {
       {/* Messages */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto chat-scroll pb-4">
         {messages.length === 0 ? (
+<<<<<<< Updated upstream
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-16 h-16 rounded-full overflow-hidden shadow-glow mb-4">
               <img 
@@ -857,6 +999,55 @@ export function ChatInterface() {
             </h2>
             <p className="text-muted-foreground max-w-md">
               I'm here to help you solve your doubts and understand complex concepts. 
+=======
+          <div className={cn(
+            "flex flex-col items-center text-center",
+            isMobile ? "min-h-0 px-4 py-4" : "justify-center h-full px-6 py-12"
+          )}>
+            <div className={cn(
+              "floating-brand-icon flex items-center justify-center",
+              isMobile ? "mb-3 h-16 w-16" : "mb-10 h-28 w-28"
+            )}>
+              <img 
+                src={tentenIcon} 
+                alt="TenTen AI" 
+                className={cn(
+                  "object-contain",
+                  isMobile ? "h-12 w-12" : "h-20 w-20 sm:h-24 sm:w-24"
+                )}
+              />
+            </div>
+            <p className={cn("eyebrow-label mb-2 text-[0.82rem] tracking-[0.24em] sm:text-[0.92rem]", isMobile && "text-[0.68rem] tracking-[0.2em]")}>TenTen AI - Dev Mode</p>
+            <h2 className={cn(
+              "max-w-2xl font-semibold tracking-tight mb-4",
+              isMobile ? "text-[1.7rem] leading-[0.98]" : "text-4xl sm:text-5xl"
+            )}>
+              Ready to <span className="gradient-text">Chat?</span>
+            </h2>
+            <p className={cn(
+              "text-muted-foreground max-w-2xl",
+              isMobile ? "text-[0.92rem] leading-6" : "text-lg leading-8"
+            )}>
+              This is a testing web app for TenTen, built to validate prompts, flows, and subject-focused reasoning in Dev Mode before production rollout.
+            </p>
+            <div className={cn(
+              "grid w-full max-w-3xl gap-4",
+              isMobile ? "mt-5 grid-cols-1" : "mt-10",
+              !isMobile && "sm:grid-cols-2"
+            )}>
+              <div className={cn("nebula-panel text-left", isMobile ? "rounded-[1.35rem] p-4" : "rounded-[1.75rem] p-5")}>
+                <p className="eyebrow-label mb-3">Code Architect</p>
+                <p className="text-lg font-semibold">Review complex logic</p>
+                <p className="mt-2 text-sm text-muted-foreground">Use TenTen to inspect flows, debug payloads, and reason through implementation details.</p>
+              </div>
+              <div className={cn("nebula-panel text-left", isMobile ? "rounded-[1.35rem] p-4" : "rounded-[1.75rem] p-5")}>
+                <p className="eyebrow-label mb-3">Creative Flow</p>
+                <p className="text-lg font-semibold">Draft and refine ideas</p>
+                <p className="mt-2 text-sm text-muted-foreground">Shape explanations, brainstorm approaches, and iterate on polished responses.</p>
+              </div>
+            </div>
+            <p className={cn("text-muted-foreground max-w-md", isMobile ? "mt-5 mb-2 text-sm" : "mt-10")}>
+>>>>>>> Stashed changes
               Ask me anything about {selectedSubject?.label.toLowerCase() || "any subject"}!
             </p>
             {isLoading && waitingTime > 0 && (
@@ -967,7 +1158,14 @@ export function ChatInterface() {
           className="hidden"
         />
         
+<<<<<<< Updated upstream
         <p className="text-xs text-muted-foreground text-center mt-2">
+=======
+        <p className={cn(
+          "text-[0.64rem] text-muted-foreground text-center mt-3 tracking-[0.14em] uppercase sm:text-[0.68rem]",
+          isMobile && "mt-2 text-[0.52rem] tracking-[0.1em]"
+        )}>
+>>>>>>> Stashed changes
           TenTen can make mistakes. Please verify important information.
         </p>
       </div>
