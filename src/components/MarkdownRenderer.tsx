@@ -363,6 +363,33 @@ const getExtensionForMimeType = (mimeType: string) => {
   return '';
 };
 
+const getFileExtension = (value: string) => {
+  try {
+    return new URL(value).pathname.split('.').pop()?.toLowerCase() ?? '';
+  } catch {
+    return value.split('?')[0].split('#')[0].split('.').pop()?.toLowerCase() ?? '';
+  }
+};
+
+const getMimeTypeForFileName = (fileName: string) => {
+  const extension = getFileExtension(fileName);
+  switch (extension) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'webp':
+      return 'image/webp';
+    case 'gif':
+      return 'image/gif';
+    case 'svg':
+      return 'image/svg+xml';
+    default:
+      return '';
+  }
+};
+
 const ensureFileExtension = (fileName: string, mimeType: string) => {
   if (/\.[a-z0-9]{2,5}$/i.test(fileName)) return fileName;
 
@@ -377,11 +404,15 @@ const fetchImageBlob = async (src: string) => {
   }
 
   const blob = await response.blob();
-  if (!blob.type.startsWith('image/')) {
+  const responseType = blob.type || response.headers.get('content-type') || getMimeTypeForFileName(src);
+
+  if (responseType && !responseType.startsWith('image/') && responseType !== 'application/octet-stream') {
     throw new Error('The downloaded asset is not an image.');
   }
 
-  return blob;
+  return blob.type || !responseType
+    ? blob
+    : blob.slice(0, blob.size, responseType === 'application/octet-stream' ? getMimeTypeForFileName(src) : responseType);
 };
 
 const convertImageBlobToPng = async (blob: Blob) => {
@@ -449,17 +480,6 @@ const downloadImage = async (src: string, fileName: string) => {
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 250);
 };
 
-const directDownloadImage = (src: string, fileName: string) => {
-  const anchor = document.createElement('a');
-  anchor.href = src;
-  anchor.download = fileName;
-  anchor.target = '_blank';
-  anchor.rel = 'noopener noreferrer';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-};
-
 function MarkdownImage({
   src,
   alt = '',
@@ -505,8 +525,7 @@ function MarkdownImage({
       await downloadImage(src, fileName);
       toast.success('Image download started');
     } catch {
-      directDownloadImage(src, fileName);
-      toast.message('Opening image download');
+      toast.error('This image host blocked direct download');
     } finally {
       setIsDownloading(false);
     }
@@ -516,34 +535,36 @@ function MarkdownImage({
     <span className="flex items-center gap-2">
       <Button
         type="button"
-        size="icon"
         variant="secondary"
         disabled={isCopying}
         onClick={(event) => {
           event.stopPropagation();
           void handleCopy();
         }}
-        className="h-10 w-10 rounded-full border border-white/14 bg-black/58 text-white shadow-lg backdrop-blur-md hover:bg-black/72 focus-visible:ring-white/70 sm:h-9 sm:w-9"
+        className="h-10 rounded-full border border-white/25 bg-slate-950/90 px-3 text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-md hover:bg-slate-950 focus-visible:ring-white/70 disabled:bg-slate-950/70 sm:h-9"
         aria-label="Copy image"
         title="Copy image"
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        <span className="ml-1 hidden text-xs font-semibold sm:inline">
+          {copied ? 'Copied' : 'Copy'}
+        </span>
       </Button>
 
       <Button
         type="button"
-        size="icon"
         variant="secondary"
         disabled={isDownloading}
         onClick={(event) => {
           event.stopPropagation();
           void handleDownload();
         }}
-        className="h-10 w-10 rounded-full border border-white/14 bg-black/58 text-white shadow-lg backdrop-blur-md hover:bg-black/72 focus-visible:ring-white/70 sm:h-9 sm:w-9"
+        className="h-10 rounded-full border border-white/25 bg-slate-950/90 px-3 text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-md hover:bg-slate-950 focus-visible:ring-white/70 disabled:bg-slate-950/70 sm:h-9"
         aria-label="Download image"
         title="Download image"
       >
         <Download className="h-4 w-4" />
+        <span className="ml-1 hidden text-xs font-semibold sm:inline">Download</span>
       </Button>
     </span>
   );
@@ -581,7 +602,7 @@ function MarkdownImage({
               <DialogTitle className="truncate text-sm sm:text-base">{label}</DialogTitle>
             </DialogHeader>
 
-            <div className="flex min-h-0 items-center justify-center overflow-auto rounded-[1.2rem] bg-black/55 p-2 sm:p-4">
+            <div className="flex min-h-0 items-center justify-center overflow-auto rounded-[1.2rem] bg-black/50 p-2 sm:p-4">
               <img
                 src={src}
                 alt={alt}
@@ -808,45 +829,41 @@ function SimulationCard({ attrs }: { attrs: MediaAttributes }) {
   const frameHeight = getFrameHeight(attrs.height);
 
   return (
-    <div className="not-prose my-5">
-      <div className="group relative overflow-hidden rounded-[1.65rem] bg-gradient-to-br from-primary/35 via-white/10 to-primary-glow/25 p-px shadow-[0_24px_70px_-38px_hsl(var(--primary)/0.75)]">
-        <div className="relative overflow-hidden rounded-[1.6rem] bg-card/88 p-3 backdrop-blur sm:p-4">
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(220px,0.85fr)] md:items-stretch">
+    <div className="not-prose my-4">
+      <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-primary/30 via-primary-glow/10 to-card p-px shadow-[0_18px_52px_-34px_hsl(var(--primary)/0.75)]">
+        <div className="nebula-panel rounded-[1.45rem] p-3 sm:p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="relative block aspect-[16/10] min-h-[190px] overflow-hidden rounded-[1.35rem] bg-black/35 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-[230px] md:min-h-[260px]"
+              className="group relative aspect-video w-full shrink-0 overflow-hidden rounded-[1.15rem] bg-black/40 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:h-36 sm:w-64 md:h-40 md:w-72"
               aria-label={`Open ${title}`}
             >
               <MediaThumbnail
                 src={attrs.thumbnail}
                 alt={title}
                 icon="sim"
-                className="h-full w-full rounded-[1.35rem] object-cover transition-transform duration-500 group-hover:scale-[1.025] sm:h-full sm:w-full"
+                className="h-full w-full rounded-[1.15rem] object-cover transition-transform duration-300 group-hover:scale-[1.02] sm:h-full sm:w-full"
               />
-              <span className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
-              <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md sm:text-sm">
-                <Play className="h-4 w-4 fill-current" />
+              <span className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
+              <span className="absolute bottom-2 left-2 flex items-center gap-2 rounded-full bg-slate-950/90 px-3 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur-md">
+                <Play className="h-3.5 w-3.5 fill-current" />
                 Try it
               </span>
             </button>
 
-            <div className="flex min-w-0 flex-col justify-between gap-4 px-1 pb-1 md:py-2">
-              <div className="space-y-3">
-                <h4 className="text-xl font-semibold leading-tight text-foreground sm:text-2xl">
+            <div className="flex min-w-0 flex-1 flex-col gap-3 sm:gap-4">
+              <div className="min-w-0">
+                <h4 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">
                   {title}
                 </h4>
-                {subtitle && (
-                  <p className="text-sm leading-6 text-muted-foreground sm:text-[0.95rem]">
-                    {subtitle}
-                  </p>
-                )}
+                {subtitle && <p className="mt-2 text-sm leading-6 text-muted-foreground">{subtitle}</p>}
               </div>
 
               <Button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="nebula-primary-button h-12 w-full rounded-full border-0 text-base text-primary-foreground shadow-[0_18px_42px_-22px_hsl(var(--primary)/0.9)] sm:w-fit sm:px-6"
+                className="nebula-primary-button h-11 w-full rounded-full border-0 text-primary-foreground sm:w-fit sm:px-5"
               >
                 <Play className="h-4 w-4 fill-current" />
                 Try it
