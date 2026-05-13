@@ -3,6 +3,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ImgHTMLAttributes,
   type RefObject,
   type SyntheticEvent,
 } from 'react';
@@ -10,7 +11,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
-import { Box, ExternalLink, Film, Play } from 'lucide-react';
+import { Box, Check, Copy, Download, ExternalLink, Film, Maximize2, Play } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -188,7 +190,7 @@ const splitMediaParts = (content: string): MediaPart[] => {
 };
 
 const getFrameHeight = (height?: string) => {
-  if (!height) return 'min(72vh, 720px)';
+  if (!height) return 'min(72dvh, 720px)';
 
   const numericHeight = Number(height);
   if (Number.isFinite(numericHeight)) {
@@ -199,7 +201,7 @@ const getFrameHeight = (height?: string) => {
     return height;
   }
 
-  return 'min(72vh, 720px)';
+  return 'min(72dvh, 720px)';
 };
 
 const getStoredVideoMuted = () => {
@@ -330,6 +332,293 @@ const getProviderEmbed = (url: string, muted: boolean, autoplay: boolean) => {
   return null;
 };
 
+const sanitizeFileName = (value: string) =>
+  value
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, '-')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 90);
+
+const getImageFileName = (src: string, fallback: string) => {
+  try {
+    const url = new URL(src);
+    const fileName = decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() ?? '');
+    const sanitizedFileName = sanitizeFileName(fileName);
+    if (sanitizedFileName) return sanitizedFileName;
+  } catch {
+    // Fall back to the alt text when the source is not a full URL.
+  }
+
+  return sanitizeFileName(fallback) || 'image';
+};
+
+const getExtensionForMimeType = (mimeType: string) => {
+  if (mimeType.includes('jpeg')) return 'jpg';
+  if (mimeType.includes('png')) return 'png';
+  if (mimeType.includes('webp')) return 'webp';
+  if (mimeType.includes('gif')) return 'gif';
+  if (mimeType.includes('svg')) return 'svg';
+  return '';
+};
+
+const ensureFileExtension = (fileName: string, mimeType: string) => {
+  if (/\.[a-z0-9]{2,5}$/i.test(fileName)) return fileName;
+
+  const extension = getExtensionForMimeType(mimeType);
+  return extension ? `${fileName}.${extension}` : fileName;
+};
+
+const fetchImageBlob = async (src: string) => {
+  const response = await fetch(src);
+  if (!response.ok) {
+    throw new Error(`Image request failed with ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  if (!blob.type.startsWith('image/')) {
+    throw new Error('The downloaded asset is not an image.');
+  }
+
+  return blob;
+};
+
+const convertImageBlobToPng = async (blob: Blob) => {
+  if (blob.type === 'image/png') return blob;
+  if (typeof createImageBitmap === 'undefined') return blob;
+
+  const bitmap = await createImageBitmap(blob);
+  const canvas = document.createElement('canvas');
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  canvas.getContext('2d')?.drawImage(bitmap, 0, 0);
+  bitmap.close();
+
+  const pngBlob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((nextBlob) => {
+      if (nextBlob) {
+        resolve(nextBlob);
+      } else {
+        reject(new Error('Could not prepare image for clipboard.'));
+      }
+    }, 'image/png');
+  });
+
+  return pngBlob;
+};
+
+const copyImageToClipboard = async (src: string) => {
+  if (typeof window === 'undefined' || !navigator.clipboard) {
+    throw new Error('Clipboard is not available.');
+  }
+
+  if ('ClipboardItem' in window && navigator.clipboard.write) {
+    const sourceBlob = await fetchImageBlob(src);
+    const clipboardBlob = await convertImageBlobToPng(sourceBlob);
+
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        [clipboardBlob.type || 'image/png']: clipboardBlob,
+      }),
+    ]);
+
+    return 'image';
+  }
+
+  if (navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(src);
+    return 'url';
+  }
+
+  throw new Error('Clipboard writes are not supported.');
+};
+
+const downloadImage = async (src: string, fileName: string) => {
+  const blob = await fetchImageBlob(src);
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = objectUrl;
+  anchor.download = ensureFileExtension(fileName, blob.type);
+  anchor.rel = 'noopener noreferrer';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 250);
+};
+
+const directDownloadImage = (src: string, fileName: string) => {
+  const anchor = document.createElement('a');
+  anchor.href = src;
+  anchor.download = fileName;
+  anchor.target = '_blank';
+  anchor.rel = 'noopener noreferrer';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+};
+
+function MarkdownImage({
+  src,
+  alt = '',
+  title,
+  className,
+  style,
+  ...props
+}: ImgHTMLAttributes<HTMLImageElement>) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  if (!src) return null;
+
+  const label = alt || title || 'Image';
+  const fileName = getImageFileName(src, label);
+
+  const handleCopy = async () => {
+    setIsCopying(true);
+    try {
+      const result = await copyImageToClipboard(src);
+      setCopied(true);
+      toast.success(result === 'image' ? 'Image copied' : 'Image link copied');
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      try {
+        await navigator.clipboard.writeText(src);
+        setCopied(true);
+        toast.success('Image link copied');
+        window.setTimeout(() => setCopied(false), 1600);
+      } catch {
+        toast.error('Could not copy this image');
+      }
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await downloadImage(src, fileName);
+      toast.success('Image download started');
+    } catch {
+      directDownloadImage(src, fileName);
+      toast.message('Opening image download');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const controls = (
+    <span className="flex items-center gap-2">
+      <Button
+        type="button"
+        size="icon"
+        variant="secondary"
+        disabled={isCopying}
+        onClick={(event) => {
+          event.stopPropagation();
+          void handleCopy();
+        }}
+        className="h-10 w-10 rounded-full border border-white/14 bg-black/58 text-white shadow-lg backdrop-blur-md hover:bg-black/72 focus-visible:ring-white/70 sm:h-9 sm:w-9"
+        aria-label="Copy image"
+        title="Copy image"
+      >
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      </Button>
+
+      <Button
+        type="button"
+        size="icon"
+        variant="secondary"
+        disabled={isDownloading}
+        onClick={(event) => {
+          event.stopPropagation();
+          void handleDownload();
+        }}
+        className="h-10 w-10 rounded-full border border-white/14 bg-black/58 text-white shadow-lg backdrop-blur-md hover:bg-black/72 focus-visible:ring-white/70 sm:h-9 sm:w-9"
+        aria-label="Download image"
+        title="Download image"
+      >
+        <Download className="h-4 w-4" />
+      </Button>
+    </span>
+  );
+
+  return (
+    <>
+      <span className="not-prose group relative my-4 block w-full overflow-hidden rounded-[1.2rem] bg-black/20 shadow-[0_18px_48px_-32px_rgba(0,0,0,0.7)]">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="block w-full cursor-zoom-in overflow-hidden rounded-[1.2rem] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-label={`Open ${label} fullscreen`}
+        >
+          <img
+            {...props}
+            src={src}
+            alt={alt}
+            title={title}
+            loading="lazy"
+            className={cn('h-auto max-h-[72dvh] w-full max-w-full object-contain', className)}
+            style={{ maxWidth: '100%', height: 'auto', ...style }}
+          />
+          <span className="pointer-events-none absolute bottom-2 left-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white opacity-100 backdrop-blur-md sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+            <Maximize2 className="h-4 w-4" />
+          </span>
+        </button>
+
+        <span className="absolute right-2 top-2 z-10">{controls}</span>
+      </span>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        {open && (
+          <DialogContent className="nebula-glass flex max-h-[96dvh] w-[96vw] max-w-7xl flex-col overflow-hidden border-0 p-3 sm:p-4">
+            <DialogHeader className="pr-10">
+              <DialogTitle className="truncate text-sm sm:text-base">{label}</DialogTitle>
+            </DialogHeader>
+
+            <div className="flex min-h-0 items-center justify-center overflow-auto rounded-[1.2rem] bg-black/55 p-2 sm:p-4">
+              <img
+                src={src}
+                alt={alt}
+                title={title}
+                loading="eager"
+                className="h-auto max-h-[78dvh] w-auto max-w-full object-contain"
+              />
+            </div>
+
+            <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void handleCopy()}
+                disabled={isCopying}
+                className="rounded-full"
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                Copy
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void handleDownload()}
+                disabled={isDownloading}
+                className="nebula-primary-button rounded-full border-0 text-primary-foreground"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
+    </>
+  );
+}
+
 function MarkdownChunk({ children }: { children: string }) {
   if (!children.trim()) return null;
 
@@ -373,17 +662,13 @@ function MarkdownChunk({ children }: { children: string }) {
           </a>
         ),
         img: ({ src, alt, title, node, className: imageClassName, style, ...props }) => (
-          <img
+          <MarkdownImage
             {...props}
             src={src}
             alt={alt || ''}
             title={title}
-            loading="lazy"
-            className={cn(
-              'my-4 h-auto max-w-full rounded-[1.2rem] object-contain shadow-[0_18px_48px_-32px_rgba(0,0,0,0.7)]',
-              imageClassName
-            )}
-            style={{ maxWidth: '100%', height: 'auto', ...style }}
+            className={imageClassName}
+            style={style}
           />
         ),
         h1: ({ children, node, ...props }) => (
@@ -519,47 +804,69 @@ function SimulationCard({ attrs }: { attrs: MediaAttributes }) {
   if (!url) return null;
 
   const title = attrs.title || 'TenTen Simulator';
-  const subtitle = attrs.subtitle || 'Interactive simulation';
+  const subtitle = attrs.subtitle;
   const frameHeight = getFrameHeight(attrs.height);
 
   return (
-    <div className="not-prose my-4">
-      <div className="nebula-panel overflow-hidden rounded-[1.5rem] p-4 sm:p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <MediaThumbnail src={attrs.thumbnail} alt={title} icon="sim" />
+    <div className="not-prose my-5">
+      <div className="group relative overflow-hidden rounded-[1.65rem] bg-gradient-to-br from-primary/35 via-white/10 to-primary-glow/25 p-px shadow-[0_24px_70px_-38px_hsl(var(--primary)/0.75)]">
+        <div className="relative overflow-hidden rounded-[1.6rem] bg-card/88 p-3 backdrop-blur sm:p-4">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(220px,0.85fr)] md:items-stretch">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="relative block aspect-[16/10] min-h-[190px] overflow-hidden rounded-[1.35rem] bg-black/35 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-[230px] md:min-h-[260px]"
+              aria-label={`Open ${title}`}
+            >
+              <MediaThumbnail
+                src={attrs.thumbnail}
+                alt={title}
+                icon="sim"
+                className="h-full w-full rounded-[1.35rem] object-cover transition-transform duration-500 group-hover:scale-[1.025] sm:h-full sm:w-full"
+              />
+              <span className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
+              <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md sm:text-sm">
+                <Play className="h-4 w-4 fill-current" />
+                Try it
+              </span>
+            </button>
 
-          <div className="min-w-0 flex-1">
-            {attrs.id && (
-              <p className="mb-2 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                {attrs.id}
-              </p>
-            )}
-            <h4 className="text-base font-semibold text-foreground sm:text-lg">{title}</h4>
-            {subtitle && <p className="mt-2 text-sm leading-6 text-muted-foreground">{subtitle}</p>}
+            <div className="flex min-w-0 flex-col justify-between gap-4 px-1 pb-1 md:py-2">
+              <div className="space-y-3">
+                <h4 className="text-xl font-semibold leading-tight text-foreground sm:text-2xl">
+                  {title}
+                </h4>
+                {subtitle && (
+                  <p className="text-sm leading-6 text-muted-foreground sm:text-[0.95rem]">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="nebula-primary-button h-12 w-full rounded-full border-0 text-base text-primary-foreground shadow-[0_18px_42px_-22px_hsl(var(--primary)/0.9)] sm:w-fit sm:px-6"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                Try it
+              </Button>
+            </div>
           </div>
-
-          <Button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="nebula-primary-button shrink-0 rounded-full border-0 text-primary-foreground"
-          >
-            <Play className="h-4 w-4" />
-            Try it
-          </Button>
         </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         {open && (
-          <DialogContent className="nebula-glass max-h-[94vh] w-[96vw] max-w-6xl overflow-hidden border-0 p-4 sm:p-6">
+          <DialogContent className="nebula-glass max-h-[94dvh] w-[96vw] max-w-6xl overflow-hidden border-0 p-4 sm:p-6">
             <DialogHeader className="pr-8">
               <DialogTitle>{title}</DialogTitle>
-              <DialogDescription>{subtitle}</DialogDescription>
+              {subtitle && <DialogDescription>{subtitle}</DialogDescription>}
             </DialogHeader>
 
             <div
               className="overflow-hidden rounded-[1.25rem] bg-black/40 outline outline-1 outline-white/10"
-              style={{ height: frameHeight, maxHeight: '72vh' }}
+              style={{ height: frameHeight, maxHeight: '72dvh' }}
             >
               <iframe
                 src={url}
@@ -777,11 +1084,6 @@ function VideoCard({ attrs }: { attrs: MediaAttributes }) {
               <Film className="h-4 w-4 text-muted-foreground" />
               <h4 className="truncate text-base font-semibold text-foreground">{title}</h4>
             </div>
-            {attrs.id && (
-              <p className="mt-1 text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
-                {attrs.id}
-              </p>
-            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
