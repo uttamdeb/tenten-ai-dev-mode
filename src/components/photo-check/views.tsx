@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { bn, ORDER, PARTS, QUESTIONS, SECTIONS, SHORT_QUESTIONS, STEM, type Question } from "./exam";
-import { DebugBlock, Header, Thumb, TimerText } from "./parts";
+import { DebugBlock, DropZone, Header, Thumb, TimerText, type ZoomFn } from "./parts";
 import { decision, isWarned, type Photo, type SavedPhoto, type Settings, type UploadState } from "./types";
 
 type SrcOf = (p: Photo | SavedPhoto) => string;
@@ -54,25 +54,131 @@ export function TesterBar(props: { endpoint: string; tokenNote: string | null; o
 
 // ---------- exam page ----------
 
+function navLabel(q: Question) {
+  return q.kind === "cq" ? `${q.group} · প্রশ্ন ${q.n}` : `প্রশ্ন ${q.n}`;
+}
+
+/** Desktop: every question with where its answer stands, beside the paper. */
+function QuestionNav(props: { answers: Record<string, SavedPhoto[]>; drafts: Record<string, Photo[]>; onJump: (key: string) => void }) {
+  const answered = ORDER.filter((k) => (props.answers[k] || []).length).length;
+  return (
+    <aside className="qnav">
+      <div className="qnav-card">
+        <div className="qnav-title">প্রশ্নসমূহ</div>
+        <div className="qnav-sub">
+          {bn(ORDER.length)}টির মধ্যে {bn(answered)}টি প্রশ্নের উত্তর আপলোড হয়েছে
+        </div>
+        {SECTIONS.map((sec) => (
+          <div className="qnav-sec" key={sec.title}>
+            <div className="qnav-sec-title">{sec.title}</div>
+            {sec.groups.flatMap((g) => g.questions).map((q) => {
+              const n = (props.answers[q.key] || []).length;
+              const d = (props.drafts[q.key] || []).length;
+              return (
+                <button className="qnav-item" key={q.key} onClick={() => props.onJump(q.key)}>
+                  <span>{navLabel(q)}</span>
+                  {n ? (
+                    <span className="qnav-st done">
+                      <CheckIcon className="ic xs" /> {bn(n)}টি ছবি
+                    </span>
+                  ) : d ? (
+                    <span className="qnav-st draft">{bn(d)}টি আপলোড বাকি</span>
+                  ) : (
+                    <span className="qnav-st">উত্তর নেই</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
 export function ExamView(props: {
   answers: Record<string, SavedPhoto[]>;
   drafts: Record<string, Photo[]>;
   timerEnd: number;
+  desktop: boolean;
   srcOf: SrcOf;
   bar: React.ReactNode;
   onExit: () => void;
   onSubmit: () => void;
   onOpen: (key: string) => void;
   onChange: (key: string) => void;
-  onZoom: (src: string) => void;
+  onZoom: ZoomFn;
 }) {
   const [menu, setMenu] = useState(false);
   const answered = ORDER.filter((k) => (props.answers[k] || []).length).length;
   const jump = (key: string) => {
     setMenu(false);
     const el = document.getElementById(`pc-q-${key}`);
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 70, behavior: "smooth" });
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - (props.desktop ? 90 : 70), behavior: "smooth" });
   };
+  const paper = (
+    <main className="exam">
+      {SECTIONS.map((sec) => (
+        <section key={sec.title}>
+          <div className="sec-head">
+            <h2>{sec.title}</h2>
+            <p>{sec.note}</p>
+            {sec.hint && (
+              <p className="hint">
+                <Info className="ic" /> {sec.hint}
+              </p>
+            )}
+          </div>
+          {sec.groups.map((g, gi) => (
+            <div key={g.name ?? gi}>
+              <div className="grp">{g.name}</div>
+              {g.questions.map((q) => {
+                const saved = props.answers[q.key] || [];
+                const draft = props.drafts[q.key] || [];
+                const group = saved.map((s) => props.srcOf(s));
+                return (
+                  <article className="card qcard" id={`pc-q-${q.key}`} key={q.key}>
+                    <div className="q-label">{q.label}</div>
+                    <QuestionBody q={q} />
+                    {saved.length ? (
+                      <div className="answered">
+                        <div className="answered-top">
+                          <span className="ok-text">
+                            <CheckIcon className="ic sm" /> {bn(saved.length)}টি ছবি আপলোড হয়েছে
+                          </span>
+                          <button className="link" onClick={() => props.onChange(q.key)}>
+                            পরিবর্তন করো
+                          </button>
+                        </div>
+                        <div className="thumbs">
+                          {saved.map((s, i) => (
+                            <Thumb key={s.recordId} src={group[i]} group={group} warn={isWarned(s.check)} label={`ছবি ${i + 1}`} onZoom={props.onZoom} />
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button className="btn-dashed" onClick={() => props.onOpen(q.key)}>
+                          <CloudUpload className="ic" /> উত্তর আপলোড করো
+                        </button>
+                        {draft.length ? (
+                          <p className="draft-note">{bn(draft.length)}টি ছবি যোগ করা আছে, এখনও আপলোড হয়নি</p>
+                        ) : (
+                          <p className="hint center">
+                            <Info className="ic" /> খাতায় লিখে ছবি তুলে ফাইল আপলোড করো
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          ))}
+        </section>
+      ))}
+    </main>
+  );
   return (
     <>
       {props.bar}
@@ -81,88 +187,59 @@ export function ExamView(props: {
           <X className="ic" />
         </button>
         <TimerText end={props.timerEnd} className="big" />
-        <button className="qcount" onClick={() => setMenu((m) => !m)}>
-          প্রশ্ন {answered}/{ORDER.length} <ChevronDown className="ic" />
-        </button>
+        {props.desktop ? (
+          <span className="qcount">
+            প্রশ্ন {answered}/{ORDER.length}
+          </span>
+        ) : (
+          <button className="qcount" onClick={() => setMenu((m) => !m)}>
+            প্রশ্ন {answered}/{ORDER.length} <ChevronDown className="ic" />
+          </button>
+        )}
         <button className="btn-submit" disabled={!answered} onClick={props.onSubmit}>
           সাবমিট করো
         </button>
       </header>
-      {menu && (
-        <div className="menu">
-          {ORDER.map((k) => {
-            const q = QUESTIONS[k];
-            const n = (props.answers[k] || []).length;
-            return (
-              <button key={k} onClick={() => jump(k)}>
-                <span>{q.kind === "cq" ? q.sub : `সংক্ষিপ্ত · ${q.label}`}</span>
-                {n > 0 && <span className="ok">{bn(n)}টি ছবি</span>}
-              </button>
-            );
-          })}
+      {props.desktop ? (
+        <div className="desk-exam">
+          <QuestionNav answers={props.answers} drafts={props.drafts} onJump={jump} />
+          {paper}
         </div>
-      )}
-      <main className="exam">
-        {SECTIONS.map((sec) => (
-          <section key={sec.title}>
-            <div className="sec-head">
-              <h2>{sec.title}</h2>
-              <p>{sec.note}</p>
-              {sec.hint && (
-                <p className="hint">
-                  <Info className="ic" /> {sec.hint}
-                </p>
-              )}
+      ) : (
+        <>
+          {menu && (
+            <div className="menu">
+              {ORDER.map((k) => {
+                const q = QUESTIONS[k];
+                const n = (props.answers[k] || []).length;
+                return (
+                  <button key={k} onClick={() => jump(k)}>
+                    <span>{q.kind === "cq" ? q.sub : `সংক্ষিপ্ত · ${q.label}`}</span>
+                    {n > 0 && <span className="ok">{bn(n)}টি ছবি</span>}
+                  </button>
+                );
+              })}
             </div>
-            {sec.groups.map((g, gi) => (
-              <div key={g.name ?? gi}>
-                <div className="grp">{g.name}</div>
-                {g.questions.map((q) => {
-                  const saved = props.answers[q.key] || [];
-                  const draft = props.drafts[q.key] || [];
-                  return (
-                    <article className="card qcard" id={`pc-q-${q.key}`} key={q.key}>
-                      <div className="q-label">{q.label}</div>
-                      <QuestionBody q={q} />
-                      {saved.length ? (
-                        <div className="answered">
-                          <div className="answered-top">
-                            <span className="ok-text">
-                              <CheckIcon className="ic sm" /> {bn(saved.length)}টি ছবি আপলোড হয়েছে
-                            </span>
-                            <button className="link" onClick={() => props.onChange(q.key)}>
-                              পরিবর্তন করো
-                            </button>
-                          </div>
-                          <div className="thumbs">
-                            {saved.map((s, i) => (
-                              <Thumb key={s.recordId} src={props.srcOf(s)} warn={isWarned(s.check)} label={`ছবি ${i + 1}`} onZoom={props.onZoom} />
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <button className="btn-dashed" onClick={() => props.onOpen(q.key)}>
-                            <CloudUpload className="ic" /> উত্তর আপলোড করো
-                          </button>
-                          {draft.length ? (
-                            <p className="draft-note">{bn(draft.length)}টি ছবি যোগ করা আছে, এখনও আপলোড হয়নি</p>
-                          ) : (
-                            <p className="hint center">
-                              <Info className="ic" /> খাতায় লিখে ছবি তুলে ফাইল আপলোড করো
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </article>
-                  );
-                })}
-              </div>
-            ))}
-          </section>
-        ))}
-      </main>
+          )}
+          {paper}
+        </>
+      )}
     </>
+  );
+}
+
+/** Desktop: the question stays in view on the left while its photos are handled on the right. */
+function Split({ q, children }: { q: Question; children: React.ReactNode }) {
+  return (
+    <div className="split">
+      <aside className="split-q">
+        <article className="card">
+          <div className="q-label">{q.label}</div>
+          <QuestionBody q={q} />
+        </article>
+      </aside>
+      <section className="split-main">{children}</section>
+    </div>
   );
 }
 
@@ -172,17 +249,80 @@ export function QuestionView(props: {
   q: Question;
   draft: Photo[];
   timerEnd: number;
+  desktop: boolean;
   srcOf: SrcOf;
   onBack: () => void;
   onReview: () => void;
   onCamera: () => void;
   onGallery: () => void;
-  onZoom: (src: string) => void;
+  onFiles: (files: File[]) => void;
+  onZoom: ZoomFn;
 }) {
   const { q, draft } = props;
+  const group = draft.map((p) => props.srcOf(p));
+  const thumbs = draft.length ? (
+    <>
+      <div className="thumbs" style={{ marginTop: 10 }}>
+        {draft.map((p, i) => (
+          <Thumb key={p.lid} src={group[i]} group={group} warn={isWarned(p.check)} label={`ছবি ${i + 1}`} onZoom={props.onZoom} />
+        ))}
+      </div>
+      <p className="muted small" style={{ marginTop: 6 }}>
+        {bn(draft.length)}টি ছবি যোগ করা হয়েছে, এখনও আপলোড হয়নি
+      </p>
+    </>
+  ) : (
+    <p className="muted small" style={{ marginTop: 6 }}>
+      এখনও কোনো ছবি যোগ করা হয়নি
+    </p>
+  );
+  const note = (
+    <div className="note-green">
+      <Info className="ic" />
+      <div>
+        <b>সব পৃষ্ঠাই এই প্রশ্নের</b>
+        <p>উত্তর পৃষ্ঠাগুলো ক্রমানুসারে তোলো। আপলোডের আগে সব ছবি দেখে নিতে পারবে।</p>
+      </div>
+    </div>
+  );
+  const header = <Header title={q.title} sub={q.sub} onBack={props.onBack} timerEnd={props.timerEnd} />;
+
+  if (props.desktop) {
+    return (
+      <>
+        {header}
+        <Split q={q}>
+          <article className="card">
+            <h3 className="h-add">উত্তরের ছবি যোগ করো</h3>
+            <p className="muted">একই প্রশ্নের জন্য একাধিক ছবি একসাথে আপলোড করতে পারবে।</p>
+            <DropZone onFiles={props.onFiles} onBrowse={props.onGallery} />
+            {thumbs}
+          </article>
+          {note}
+          <div className="foot">
+            {draft.length > 0 && (
+              <button className="btn primary" onClick={props.onReview}>
+                <ArrowRight className="ic" /> {bn(draft.length)}টি ছবি দেখে নাও
+              </button>
+            )}
+            <div className="btn-row">
+              <button className={`btn ${draft.length ? "btn-line" : "primary"}`} onClick={props.onGallery}>
+                <ImageIcon className="ic" /> কম্পিউটার থেকে ছবি বাছাই করো
+              </button>
+              <button className="btn btn-line" onClick={props.onCamera}>
+                <Camera className="ic" /> ওয়েবক্যামে ছবি তোলো
+              </button>
+            </div>
+            <p className="foot-note">ছবি যোগ করা মানে পরীক্ষা সাবমিট করা নয়।</p>
+          </div>
+        </Split>
+      </>
+    );
+  }
+
   return (
     <>
-      <Header title={q.title} sub={q.sub} onBack={props.onBack} timerEnd={props.timerEnd} />
+      {header}
       <main className="page">
         <article className="card">
           <div className="q-label">{q.label}</div>
@@ -190,30 +330,9 @@ export function QuestionView(props: {
           <hr className="divider" />
           <h3 className="h-add">উত্তরের ছবি যোগ করো</h3>
           <p className="muted">একই প্রশ্নের জন্য একাধিক ছবি একসাথে আপলোড করতে পারবে।</p>
-          {draft.length ? (
-            <>
-              <div className="thumbs" style={{ marginTop: 10 }}>
-                {draft.map((p, i) => (
-                  <Thumb key={p.lid} src={props.srcOf(p)} warn={isWarned(p.check)} label={`ছবি ${i + 1}`} onZoom={props.onZoom} />
-                ))}
-              </div>
-              <p className="muted small" style={{ marginTop: 6 }}>
-                {bn(draft.length)}টি ছবি যোগ করা হয়েছে, এখনও আপলোড হয়নি
-              </p>
-            </>
-          ) : (
-            <p className="muted small" style={{ marginTop: 6 }}>
-              এখনও কোনো ছবি যোগ করা হয়নি
-            </p>
-          )}
+          {thumbs}
         </article>
-        <div className="note-green">
-          <Info className="ic" />
-          <div>
-            <b>সব পৃষ্ঠাই এই প্রশ্নের</b>
-            <p>উত্তর পৃষ্ঠাগুলো ক্রমানুসারে তোলো। আপলোডের আগে সব ছবি দেখে নিতে পারবে।</p>
-          </div>
-        </div>
+        {note}
       </main>
       <footer className="foot">
         {draft.length > 0 && (
@@ -221,10 +340,10 @@ export function QuestionView(props: {
             <ArrowRight className="ic" /> {bn(draft.length)}টি ছবি দেখে নাও
           </button>
         )}
-        <button className={`btn ${draft.length ? "outline" : "primary"}`} onClick={props.onCamera}>
+        <button className={`btn ${draft.length ? "btn-line" : "primary"}`} onClick={props.onCamera}>
           <Camera className="ic" /> ছবি তোলো
         </button>
-        <button className="btn outline" onClick={props.onGallery}>
+        <button className="btn btn-line" onClick={props.onGallery}>
           <ImageIcon className="ic" /> গ্যালারি থেকে ছবি বাছাই করো
         </button>
         <p className="foot-note">ছবি যোগ করা মানে পরীক্ষা সাবমিট করা নয়।</p>
@@ -242,6 +361,7 @@ export function ReviewView(props: {
   draft: Photo[];
   timerEnd: number;
   debug: boolean;
+  desktop: boolean;
   srcOf: SrcOf;
   onBack: () => void;
   onRetake: (lid: string) => void;
@@ -249,12 +369,15 @@ export function ReviewView(props: {
   onCrop: (lid: string) => void;
   onReorder: (from: number, to: number) => void;
   onMore: () => void;
+  onCamera: () => void;
+  onFiles: (files: File[]) => void;
   onUpload: () => void;
-  onZoom: (src: string) => void;
+  onZoom: ZoomFn;
 }) {
-  const { q, draft } = props;
+  const { q, draft, desktop } = props;
   const listRef = useRef<HTMLDivElement>(null);
   const pending = draft.some((p) => decision(p.check).kind === "pending");
+  const group = draft.map((p) => props.srcOf(p));
 
   // Drag a row by its handle; the rows it passes make room, and the order changes on release.
   const startDrag = (index: number) => (e: React.PointerEvent<HTMLSpanElement>) => {
@@ -300,81 +423,124 @@ export function ReviewView(props: {
     handle.addEventListener("pointercancel", end);
   };
 
+  const list = (
+    <>
+      <h2 className="rv-title">এক প্রশ্নের উত্তর · {bn(draft.length)}টি ছবি</h2>
+      <p className="rv-sub">এই ক্রমেই ছবি যুক্ত হবে। পাশের ⠿ ধরে টেনে ক্রম বদলাও। লেখা স্পষ্ট আছে কি না দেখে নাও।</p>
+      <div className="rows" ref={listRef}>
+        {draft.map((p, i) => {
+          const d = decision(p.check);
+          return (
+            <div className={`row ${d.kind === "warn" ? "warn" : ""}`} key={p.lid}>
+              <div className="row-main">
+                <Thumb src={group[i]} group={group} warn={d.kind === "warn"} label={`ছবি ${i + 1}`} onZoom={props.onZoom}>
+                  <button className="crop-btn" aria-label="ক্রপ ও ঘোরাও" title="ক্রপ ও ঘোরাও" onClick={() => props.onCrop(p.lid)}>
+                    <Crop className="ic" />
+                  </button>
+                </Thumb>
+                <div className="row-body">
+                  <div className="row-title">ছবি {i + 1}</div>
+                  {d.kind === "pending" ? (
+                    <div className="st pending">
+                      <span className="spin" /> ছবি যাচাই হচ্ছে…
+                    </div>
+                  ) : d.kind === "warn" ? (
+                    <div className="st">{q.short}</div>
+                  ) : (
+                    <div className="st">{q.short} · আপলোডের জন্য প্রস্তুত</div>
+                  )}
+                  {d.kind === "warn" && d.message && desktop && (
+                    <div className="warnbox">
+                      <AlertTriangle className="ic" />
+                      <span>{d.message}</span>
+                    </div>
+                  )}
+                  <div className="row-actions">
+                    <button className="act" onClick={() => props.onRetake(p.lid)}>
+                      {desktop ? <ImageIcon className="ic sm" /> : <Camera className="ic sm" />} {desktop ? "ছবি বদলাও" : "আবার তোলো"}
+                    </button>
+                    {desktop && (
+                      <button className="act" onClick={() => props.onCrop(p.lid)}>
+                        <Crop className="ic sm" /> ক্রপ ও ঘোরাও
+                      </button>
+                    )}
+                    <button className="act gray" onClick={() => props.onRemove(p.lid)}>
+                      <Trash2 className="ic sm" /> বাদ দাও
+                    </button>
+                  </div>
+                </div>
+                <span className="grip" aria-label="ক্রম বদলাও" title="টেনে ক্রম বদলাও" onPointerDown={startDrag(i)}>
+                  <GripVertical className="ic" />
+                </span>
+              </div>
+              {d.kind === "warn" && d.message && !desktop && (
+                <div className="warnbox">
+                  <AlertTriangle className="ic" />
+                  <span>{d.message}</span>
+                </div>
+              )}
+              {props.debug && <DebugBlock photo={p} />}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+  const uploadButton = (
+    <button className="btn primary" disabled={!draft.length || pending} onClick={props.onUpload}>
+      {!draft.length ? (
+        "কোনো ছবি নেই"
+      ) : pending ? (
+        <>
+          <span className="spin" /> ছবি যাচাই হচ্ছে…
+        </>
+      ) : (
+        <>
+          <CloudUpload className="ic" /> {bn(draft.length)}টি ছবি একসাথে আপলোড করো
+        </>
+      )}
+    </button>
+  );
+  const note = (
+    <p className="foot-note">
+      এটি শুধু {q.short}-এর উত্তর যুক্ত করবে, পরীক্ষা সাবমিট করবে না।
+      <br />
+      ফিরে গেলে ছবি থাকবে; সব ছবি বাদ দিতে নিশ্চিত করতে হবে।
+    </p>
+  );
+  const header = <Header title="ছবি দেখে নাও" sub={q.sub} onBack={props.onBack} timerEnd={props.timerEnd} />;
+
+  if (desktop) {
+    return (
+      <>
+        {header}
+        <Split q={q}>
+          {list}
+          <DropZone compact onFiles={props.onFiles} onBrowse={props.onMore} />
+          <button className="link webcam-link" onClick={props.onCamera}>
+            <Camera className="ic sm" /> ওয়েবক্যামে ছবি তোলো
+          </button>
+          <div className="foot">
+            {uploadButton}
+            {note}
+          </div>
+        </Split>
+      </>
+    );
+  }
+
   return (
     <>
-      <Header title="ছবি দেখে নাও" sub={q.sub} onBack={props.onBack} timerEnd={props.timerEnd} />
+      {header}
       <main className="page" style={{ paddingTop: 0 }}>
-        <h2 className="rv-title">এক প্রশ্নের উত্তর · {bn(draft.length)}টি ছবি</h2>
-        <p className="rv-sub">এই ক্রমেই ছবি যুক্ত হবে। পাশের ⠿ ধরে টেনে ক্রম বদলাও। লেখা স্পষ্ট আছে কি না দেখে নাও।</p>
-        <div className="rows" ref={listRef}>
-          {draft.map((p, i) => {
-            const d = decision(p.check);
-            return (
-              <div className={`row ${d.kind === "warn" ? "warn" : ""}`} key={p.lid}>
-                <div className="row-main">
-                  <Thumb src={props.srcOf(p)} warn={d.kind === "warn"} label={`ছবি ${i + 1}`} onZoom={props.onZoom}>
-                    <button className="crop-btn" aria-label="ক্রপ ও ঘোরাও" onClick={() => props.onCrop(p.lid)}>
-                      <Crop className="ic" />
-                    </button>
-                  </Thumb>
-                  <div className="row-body">
-                    <div className="row-title">ছবি {i + 1}</div>
-                    {d.kind === "pending" ? (
-                      <div className="st pending">
-                        <span className="spin" /> ছবি যাচাই হচ্ছে…
-                      </div>
-                    ) : d.kind === "warn" ? (
-                      <div className="st">{q.short}</div>
-                    ) : (
-                      <div className="st">{q.short} · আপলোডের জন্য প্রস্তুত</div>
-                    )}
-                    <div className="row-actions">
-                      <button className="act" onClick={() => props.onRetake(p.lid)}>
-                        <Camera className="ic sm" /> আবার তোলো
-                      </button>
-                      <button className="act gray" onClick={() => props.onRemove(p.lid)}>
-                        <Trash2 className="ic sm" /> বাদ দাও
-                      </button>
-                    </div>
-                  </div>
-                  <span className="grip" aria-label="ক্রম বদলাও" onPointerDown={startDrag(i)}>
-                    <GripVertical className="ic" />
-                  </span>
-                </div>
-                {d.kind === "warn" && d.message && (
-                  <div className="warnbox">
-                    <AlertTriangle className="ic" />
-                    <span>{d.message}</span>
-                  </div>
-                )}
-                {props.debug && <DebugBlock photo={p} />}
-              </div>
-            );
-          })}
-        </div>
+        {list}
         <button className="add-more" onClick={props.onMore}>
           <Plus className="ic" /> আরও ছবি যোগ করো
         </button>
       </main>
       <footer className="foot">
-        <button className="btn primary" disabled={!draft.length || pending} onClick={props.onUpload}>
-          {!draft.length ? (
-            "কোনো ছবি নেই"
-          ) : pending ? (
-            <>
-              <span className="spin" /> ছবি যাচাই হচ্ছে…
-            </>
-          ) : (
-            <>
-              <CloudUpload className="ic" /> {bn(draft.length)}টি ছবি একসাথে আপলোড করো
-            </>
-          )}
-        </button>
-        <p className="foot-note">
-          এটি শুধু {q.short}-এর উত্তর যুক্ত করবে, পরীক্ষা সাবমিট করবে না।
-          <br />
-          ফিরে গেলে ছবি থাকবে; সব ছবি বাদ দিতে নিশ্চিত করতে হবে।
-        </p>
+        {uploadButton}
+        {note}
       </footer>
     </>
   );
@@ -382,7 +548,7 @@ export function ReviewView(props: {
 
 // ---------- upload ----------
 
-export function UploadView(props: { upload: UploadState; photos: Photo[]; timerEnd: number; srcOf: SrcOf; onBack: () => void; onDone: () => void; onRetry: () => void; onZoom: (src: string) => void }) {
+export function UploadView(props: { upload: UploadState; photos: Photo[]; timerEnd: number; srcOf: SrcOf; onBack: () => void; onDone: () => void; onRetry: () => void; onZoom: ZoomFn }) {
   const u = props.upload;
   const q = QUESTIONS[u.q];
   const n = u.lids.length;
@@ -413,7 +579,7 @@ export function UploadView(props: { upload: UploadState; photos: Photo[]; timerE
             const st = u.state[i];
             return (
               <div className="up-row" key={p.lid}>
-                <Thumb src={props.srcOf(p)} warn={isWarned(p.check)} onZoom={props.onZoom} />
+                <Thumb src={props.srcOf(p)} group={props.photos.map(props.srcOf)} warn={isWarned(p.check)} onZoom={props.onZoom} />
                 <div>
                   <b>
                     ছবি {i + 1} · {q.short}
@@ -475,7 +641,7 @@ export function SubmitView(props: {
   onBack: () => void;
   onChange: (key: string) => void;
   onFinal: () => void;
-  onZoom: (src: string) => void;
+  onZoom: ZoomFn;
 }) {
   const answered = ORDER.filter((k) => (props.answers[k] || []).length);
   const photos = answered.reduce((n, k) => n + props.answers[k].length, 0);
@@ -507,7 +673,7 @@ export function SubmitView(props: {
           </div>
         )}
       </div>
-      <main className="page">
+      <main className="page wide">
         {SECTIONS.map((sec) => {
           const keys = sec.groups.flatMap((g) => g.questions.map((q) => q.key)).filter((k) => (props.answers[k] || []).length);
           return (
@@ -534,7 +700,7 @@ export function SubmitView(props: {
                       <div className="grid3">
                         {list.map((s, i) => (
                           <figure key={s.recordId}>
-                            <Thumb src={props.srcOf(s)} warn={isWarned(s.check)} onZoom={props.onZoom} />
+                            <Thumb src={props.srcOf(s)} group={list.map(props.srcOf)} warn={isWarned(s.check)} onZoom={props.onZoom} />
                             <figcaption>পৃষ্ঠা {bn(i + 1)}</figcaption>
                           </figure>
                         ))}
@@ -558,7 +724,7 @@ export function SubmitView(props: {
         <button className="btn primary" disabled={props.busy} onClick={props.onFinal}>
           চূড়ান্ত সাবমিট করো
         </button>
-        <button className="btn outline" onClick={props.onBack}>
+        <button className="btn btn-line" onClick={props.onBack}>
           পরীক্ষায় ফিরে যাও
         </button>
       </footer>
@@ -576,7 +742,7 @@ export function DoneView(props: { onResults: () => void; onNew: () => void }) {
           <button className="btn primary" onClick={props.onResults}>
             Results
           </button>
-          <button className="btn outline" onClick={props.onNew}>
+          <button className="btn btn-line" onClick={props.onNew}>
             নতুন টেস্ট শুরু করো
           </button>
         </div>
@@ -589,6 +755,7 @@ export function DoneView(props: { onResults: () => void; onNew: () => void }) {
 
 export function SettingsSheet(props: {
   settings: Settings;
+  desktop: boolean;
   tokenInfo: string;
   onChange: (patch: Partial<Settings>) => void;
   onSaveToken: (token: string) => void;
@@ -647,7 +814,7 @@ export function SettingsSheet(props: {
             ["en", "en"],
           ], "language")}
         </div>
-        <div className="field">
+        <div className="field" hidden={props.desktop}>
           <span className="lbl">Take photos with</span>
           {seg(s.capture, [
             ["inapp", "In-app camera"],
@@ -666,10 +833,10 @@ export function SettingsSheet(props: {
           </label>
         </div>
         <div className="btns">
-          <button className="btn outline" onClick={props.onResults}>
+          <button className="btn btn-line" onClick={props.onResults}>
             Results page
           </button>
-          <button className="btn outline" onClick={props.onNewSession}>
+          <button className="btn btn-line" onClick={props.onNewSession}>
             Start a new test session
           </button>
           <button className="btn primary" onClick={props.onClose}>

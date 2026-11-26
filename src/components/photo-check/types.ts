@@ -24,6 +24,9 @@ export interface SentInfo {
   original: number;
 }
 
+/** How a photo came in: the camera, the file picker, dropped on the page, or pasted. */
+export type PhotoSource = "camera" | "gallery" | "drop" | "paste";
+
 export interface Photo {
   lid: string;
   q: string;
@@ -33,7 +36,7 @@ export interface Photo {
   url: string;
   recordId?: string;
   storagePath?: string | null;
-  source: "camera" | "gallery";
+  source: PhotoSource;
   edited: boolean;
   sent?: SentInfo;
   check: Check;
@@ -43,7 +46,7 @@ export interface Photo {
 export interface SavedPhoto {
   recordId: string;
   storagePath: string | null;
-  source: "camera" | "gallery";
+  source: PhotoSource;
   edited: boolean;
   sent?: SentInfo;
   check: Check;

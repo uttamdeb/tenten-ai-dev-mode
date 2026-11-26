@@ -20,7 +20,8 @@ import {
 import { CameraView } from "./CameraView";
 import { CropView } from "./CropView";
 import { bn, ORDER, QUESTIONS } from "./exam";
-import { ConfirmSheet, Zoom, type ConfirmRequest } from "./parts";
+import { ConfirmSheet, Zoom, type ConfirmRequest, type ZoomFn } from "./parts";
+import { useIsDesktop } from "./useIsDesktop";
 import { slimCheck, type CameraState, type Check, type Photo, type SavedPhoto, type Settings, type UploadState, type View } from "./types";
 import { DoneView, ExamView, QuestionView, ReviewView, SettingsSheet, SubmitView, TesterBar, UploadView } from "./views";
 import "./photo-check.css";
@@ -147,7 +148,9 @@ export function PhotoCheckApp() {
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
   const [settings, setSettings] = useState<Settings>(loadSettings);
-  const [zoom, setZoom] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<{ list: string[]; index: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const desktop = useIsDesktop();
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -211,6 +214,11 @@ export function PhotoCheckApp() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  const openZoom: ZoomFn = (src, group) => {
+    const list = group && group.includes(src) ? group.filter(Boolean) : [src];
+    setZoom({ list, index: Math.max(0, list.indexOf(src)) });
+  };
 
   const confirm = (req: Omit<ConfirmRequest, "resolve">) => new Promise<boolean>((resolve) => setConfirmReq({ ...req, resolve }));
 
@@ -292,11 +300,56 @@ export function PhotoCheckApp() {
   };
 
   const addFiles = (files: File[], source: Photo["source"]) => {
-    if (!state.q) return;
-    const photos = files.map((f) => newPhoto(state.q as string, f, source));
-    dispatch({ type: "add", q: state.q, photos });
+    const q = stateRef.current.q;
+    if (!q || !files.length) return;
+    const photos = files.map((f) => newPhoto(q, f, source));
+    dispatch({ type: "add", q, photos });
     queueCheck(photos);
   };
+  const addAndReview = (files: File[], source: Photo["source"]) => {
+    addFiles(files, source);
+    if (stateRef.current.view !== "review") go("review");
+  };
+
+  // Photos dropped anywhere on the add-photos or review page, or pasted there, join the answer.
+  // A file dropped elsewhere must not make the browser open it instead of the app.
+  useEffect(() => {
+    const accepts = () => stateRef.current.view === "question" || stateRef.current.view === "review";
+    const images = (list: FileList | null | undefined) => Array.from(list || []).filter((f) => f.type.startsWith("image/"));
+    const onDragOver = (e: DragEvent) => {
+      if (!e.dataTransfer?.types.includes("Files")) return;
+      e.preventDefault();
+      if (accepts()) setDragging(true);
+    };
+    const onDragLeave = (e: DragEvent) => {
+      if (!e.relatedTarget) setDragging(false);
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!e.dataTransfer?.types.includes("Files")) return;
+      e.preventDefault();
+      setDragging(false);
+      if (accepts()) addAndReview(images(e.dataTransfer.files), "drop");
+    };
+    const onPaste = (e: ClipboardEvent) => {
+      if (!accepts()) return;
+      const files = images(e.clipboardData?.files);
+      if (!files.length) return;
+      e.preventDefault();
+      addAndReview(files, "paste");
+    };
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("dragleave", onDragLeave);
+    window.addEventListener("drop", onDrop);
+    window.addEventListener("paste", onPaste);
+    return () => {
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("dragleave", onDragLeave);
+      window.removeEventListener("drop", onDrop);
+      window.removeEventListener("paste", onPaste);
+    };
+    // The handlers read the latest state through refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const placeCapture = (blob: Blob, source: Photo["source"], cam: CameraState | null) => {
     const q = stateRef.current.q;
@@ -425,6 +478,7 @@ export function PhotoCheckApp() {
       back = () => navigate("/");
       body = (
         <ExamView
+          desktop={desktop}
           answers={state.answers}
           drafts={Object.fromEntries(ORDER.map((k) => [k, draftOf(k)]))}
           timerEnd={state.timerEnd}
@@ -449,7 +503,7 @@ export function PhotoCheckApp() {
             }
             go("review", { q: key });
           }}
-          onZoom={setZoom}
+          onZoom={openZoom}
         />
       );
       break;
@@ -474,13 +528,10 @@ export function PhotoCheckApp() {
           onBack={back}
           onReview={() => go("review")}
           onCamera={() => openCamera({ mode: "add" })}
-          onGallery={() =>
-            pickGallery((files) => {
-              addFiles(files, "gallery");
-              go("review");
-            })
-          }
-          onZoom={setZoom}
+          desktop={desktop}
+          onGallery={() => pickGallery((files) => addAndReview(files, "gallery"))}
+          onFiles={(files) => addAndReview(files, "drop")}
+          onZoom={openZoom}
         />
       );
       break;
@@ -505,6 +556,7 @@ export function PhotoCheckApp() {
       body = (
         <CameraView
           q={q}
+          desktop={desktop}
           camera={state.camera}
           draft={draft}
           timerEnd={state.timerEnd}
@@ -522,7 +574,7 @@ export function PhotoCheckApp() {
           }
           onReview={() => go("review")}
           onBack={back}
-          onZoom={setZoom}
+          onZoom={openZoom}
         />
       );
       break;
@@ -537,16 +589,23 @@ export function PhotoCheckApp() {
           debug={settings.debug}
           srcOf={srcOf}
           onBack={back}
-          onRetake={(lid) => openCamera({ mode: "replace", lid })}
+          desktop={desktop}
+          onRetake={(lid) =>
+            desktop
+              ? pickGallery((files) => placeCapture(files[0], "gallery", { mode: "replace", lid, start: 0, justAdded: false }))
+              : openCamera({ mode: "replace", lid })
+          }
           onRemove={(lid) => {
             drop(state.photos[lid]);
             dispatch({ type: "remove", q: q.key, lid });
           }}
           onCrop={(lid) => go("crop", { cropLid: lid })}
           onReorder={(from, to) => dispatch({ type: "reorder", q: q.key, from, to })}
-          onMore={() => openCamera({ mode: "add" })}
+          onMore={() => (desktop ? pickGallery((files) => addFiles(files, "gallery")) : openCamera({ mode: "add" }))}
+          onCamera={() => openCamera({ mode: "add" })}
+          onFiles={(files) => addFiles(files, "drop")}
           onUpload={startUpload}
-          onZoom={setZoom}
+          onZoom={openZoom}
         />
       );
       break;
@@ -593,7 +652,7 @@ export function PhotoCheckApp() {
             dispatch({ type: "upload", upload: null });
             go("review", { q: state.upload?.q ?? state.q });
           }}
-          onZoom={setZoom}
+          onZoom={openZoom}
         />
       );
       break;
@@ -623,7 +682,7 @@ export function PhotoCheckApp() {
             }
             go("done");
           }}
-          onZoom={setZoom}
+          onZoom={openZoom}
         />
       );
       break;
@@ -638,7 +697,7 @@ export function PhotoCheckApp() {
   };
 
   return (
-    <div className="pc-root">
+    <div className={`pc-root ${desktop ? "desk" : ""}`}>
       <div className="pc-app">{body}</div>
       <input
         ref={galleryRef}
@@ -662,10 +721,16 @@ export function PhotoCheckApp() {
           if (files.length) pickRef.current(files);
         }}
       />
-      {zoom && <Zoom src={zoom} onClose={() => setZoom(null)} />}
+      {zoom && <Zoom list={zoom.list} index={zoom.index} onIndex={(index) => setZoom({ ...zoom, index })} onClose={() => setZoom(null)} />}
+      {dragging && (
+        <div className="drop-overlay">
+          <div>ছবি এখানে ছেড়ে দাও</div>
+        </div>
+      )}
       {confirmReq && <ConfirmSheet req={confirmReq} onDone={() => setConfirmReq(null)} />}
       {showSettings && (
         <SettingsSheet
+          desktop={desktop}
           settings={settings}
           tokenInfo={tokenInfo}
           onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
