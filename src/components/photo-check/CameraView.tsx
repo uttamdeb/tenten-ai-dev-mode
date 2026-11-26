@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check as CheckIcon, Image as ImageIcon, Zap, ZapOff } from "lucide-react";
 import { toast } from "sonner";
 import { bn, type Question } from "./exam";
-import { Header, Thumb } from "./parts";
+import { Header, Thumb, type ZoomFn } from "./parts";
 import { isWarned, type CameraState, type Photo } from "./types";
 
 interface Props {
   q: Question;
+  desktop: boolean;
   camera: CameraState;
   draft: Photo[];
   timerEnd: number;
@@ -15,7 +16,7 @@ interface Props {
   onGallery: () => void;
   onReview: () => void;
   onBack: () => void;
-  onZoom: (src: string) => void;
+  onZoom: ZoomFn;
 }
 
 interface ImageCaptureLike {
@@ -23,7 +24,7 @@ interface ImageCaptureLike {
 }
 
 /** The in-app camera: a full still when the browser offers one, else the preview frame. */
-export function CameraView({ q, camera, draft, timerEnd, srcOf, onCapture, onGallery, onReview, onBack, onZoom }: Props) {
+export function CameraView({ q, desktop, camera, draft, timerEnd, srcOf, onCapture, onGallery, onReview, onBack, onZoom }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const captureRef = useRef<ImageCaptureLike | null>(null);
@@ -119,6 +120,20 @@ export function CameraView({ q, camera, draft, timerEnd, srcOf, onCapture, onGal
     onCapture(blob);
   };
 
+  // Desktop: Space takes the photo.
+  const shootRef = useRef(shoot);
+  shootRef.current = shoot;
+  useEffect(() => {
+    if (!desktop) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || e.repeat || (e.target as HTMLElement)?.closest("input, textarea, button")) return;
+      e.preventDefault();
+      shootRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [desktop]);
+
   const taken = draft.slice(camera.start);
   const replace = camera.mode === "replace";
 
@@ -151,7 +166,7 @@ export function CameraView({ q, camera, draft, timerEnd, srcOf, onCapture, onGal
           <div className="strip">
             {taken.map((p, i) => (
               <div key={p.lid} style={{ textAlign: "center" }}>
-                <Thumb src={srcOf(p)} warn={isWarned(p.check)} onZoom={onZoom} />
+                <Thumb src={srcOf(p)} group={taken.map(srcOf)} warn={isWarned(p.check)} onZoom={onZoom} />
                 <div style={{ fontSize: 11, color: "#a8afb8" }}>{camera.start + i + 1}</div>
               </div>
             ))}
@@ -164,7 +179,7 @@ export function CameraView({ q, camera, draft, timerEnd, srcOf, onCapture, onGal
       <div className="cam-controls">
         <button className="cam-side" onClick={onGallery}>
           <ImageIcon className="ic" />
-          <span>গ্যালারি</span>
+          <span>{desktop ? "কম্পিউটার থেকে" : "গ্যালারি"}</span>
         </button>
         <button className="shutter" aria-label="ছবি তোলো" disabled={busy || !!failed} onClick={shoot}>
           <span />
@@ -174,7 +189,7 @@ export function CameraView({ q, camera, draft, timerEnd, srcOf, onCapture, onGal
           <span>ছবি দেখো</span>
         </button>
       </div>
-      <div className="shutter-label">ছবি তোলো</div>
+      <div className="shutter-label">{desktop ? "ছবি তোলো · Space" : "ছবি তোলো"}</div>
       <div className="cam-foot">
         {taken.length ? (
           <>
