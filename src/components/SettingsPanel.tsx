@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText, BookOpen, Database } from "lucide-react";
+import { Settings, GitBranch, Server, X, FlaskConical, Video, Key, FileText, BookOpen, Database, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -109,6 +110,7 @@ const getSegmentIdValue = (segmentId: number): string => {
 };
 
 export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }: SettingsPanelProps) {
+  const navigate = useNavigate();
   const [config, setConfig] = useState<ApiConfiguration>(currentConfig);
   const [isEvalMode, setIsEvalMode] = useState(false);
   const [isTokenGenerator, setIsTokenGenerator] = useState(false);
@@ -382,6 +384,25 @@ export function SettingsPanel({ isOpen, onClose, currentConfig, onConfigChange }
                 </div>
                 <Badge variant="outline">
                   Vectorize
+                </Badge>
+              </div>
+
+              <div 
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                  "border-border hover:border-primary/50"
+                )}
+                onClick={() => navigate("/photo-check")}
+              >
+                <div className="flex items-center gap-3">
+                  <Camera className="h-5 w-5 text-emerald-500" />
+                  <div>
+                    <div className="font-medium">TenTen Answer Photo Check</div>
+                    <div className="text-sm text-muted-foreground">Student photo screens with TenTen's real photo check decisions</div>
+                  </div>
+                </div>
+                <Badge variant="outline">
+                  Photo
                 </Badge>
               </div>
             </div>
