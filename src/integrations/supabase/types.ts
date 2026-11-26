@@ -127,6 +127,138 @@ export type Database = {
           },
         ]
       }
+      photo_check_submissions: {
+        Row: {
+          answers: Json
+          created_at: string
+          endpoint: string | null
+          id: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          session_id: string
+          user_id?: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      photo_checks: {
+        Row: {
+          answer_order: number | null
+          bytes: number | null
+          confidence: number | null
+          created_at: string
+          edited: boolean
+          endpoint: string
+          error: string | null
+          height: number | null
+          http_status: number | null
+          id: string
+          input_tokens: number | null
+          language: string | null
+          latency_ms: number | null
+          message: string | null
+          mime: string | null
+          model: string | null
+          original_bytes: number | null
+          probabilities: Json | null
+          question_key: string | null
+          reason: string | null
+          resized: boolean
+          response: Json | null
+          session_id: string | null
+          should_warn: boolean | null
+          source: string | null
+          status: string | null
+          storage_path: string | null
+          trace_id: string | null
+          uploaded_at: string | null
+          user_id: string
+          verdict: string | null
+          width: number | null
+        }
+        Insert: {
+          answer_order?: number | null
+          bytes?: number | null
+          confidence?: number | null
+          created_at?: string
+          edited?: boolean
+          endpoint: string
+          error?: string | null
+          height?: number | null
+          http_status?: number | null
+          id?: string
+          input_tokens?: number | null
+          language?: string | null
+          latency_ms?: number | null
+          message?: string | null
+          mime?: string | null
+          model?: string | null
+          original_bytes?: number | null
+          probabilities?: Json | null
+          question_key?: string | null
+          reason?: string | null
+          resized?: boolean
+          response?: Json | null
+          session_id?: string | null
+          should_warn?: boolean | null
+          source?: string | null
+          status?: string | null
+          storage_path?: string | null
+          trace_id?: string | null
+          uploaded_at?: string | null
+          user_id?: string
+          verdict?: string | null
+          width?: number | null
+        }
+        Update: {
+          answer_order?: number | null
+          bytes?: number | null
+          confidence?: number | null
+          created_at?: string
+          edited?: boolean
+          endpoint?: string
+          error?: string | null
+          height?: number | null
+          http_status?: number | null
+          id?: string
+          input_tokens?: number | null
+          language?: string | null
+          latency_ms?: number | null
+          message?: string | null
+          mime?: string | null
+          model?: string | null
+          original_bytes?: number | null
+          probabilities?: Json | null
+          question_key?: string | null
+          reason?: string | null
+          resized?: boolean
+          response?: Json | null
+          session_id?: string | null
+          should_warn?: boolean | null
+          source?: string | null
+          status?: string | null
+          storage_path?: string | null
+          trace_id?: string | null
+          uploaded_at?: string | null
+          user_id?: string
+          verdict?: string | null
+          width?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

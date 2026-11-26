@@ -21,6 +21,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { BookOpen } from "lucide-react";
 import { useKeyboardInsets } from "@/hooks/useKeyboardInsets";
+import { fetchTenTenToken } from "@/utils/tentenAuth";
 import type { Json } from "@/integrations/supabase/types";
 import type { UserProfile } from "@/hooks/useUserProfile";
 
@@ -72,14 +73,6 @@ interface ChatMessageRow {
   updated_at: string;
   webhook_request: Record<string, Json> | null;
   webhook_response: Record<string, Json> | null;
-}
-
-interface TokenRefreshResponse {
-  data?: {
-    token?: {
-      access_token?: string;
-    };
-  };
 }
 
 interface StoredMessagePayload {
@@ -274,58 +267,16 @@ export function ChatInterface() {
 
   const refreshAuthToken = async () => {
     try {
-      let loginUrl = '';
-      let credentials = {};
-
-      // Determine which endpoint and credentials to use based on mode
-      if (config.mode === 'tenten-git' || config.mode === 'tenten-video') {
-        // Use endpoint and credentials based on gitEndpoint
-        if (config.gitEndpoint === 'prod') {
-          // Prod endpoint - use prod credentials
-          loginUrl = 'https://api.10minuteschool.com/auth/v1/login';
-          credentials = {
-            username: "+8801521326202",
-            loginType: "phone",
-            password: "123456"
-          };
-        } else {
-          // Stage or Local endpoint - use stage credentials
-          loginUrl = 'https://local-api.10minuteschool.net/auth/v1/login';
-          credentials = {
-            username: "admin@10ms.com",
-            loginType: "email",
-            password: "#11111111"
-          };
-        }
-      } else {
-        // N8N mode doesn't need token refresh
+      // N8N mode doesn't need token refresh
+      if (config.mode !== 'tenten-git' && config.mode !== 'tenten-video') {
         return;
       }
 
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json, text/plain, */*',
-        },
-        body: JSON.stringify(credentials)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Token refresh failed: ${response.status}`);
-      }
-
-      const data = await response.json() as TokenRefreshResponse;
-      const newToken = data?.data?.token?.access_token;
-
-      if (newToken) {
-        // Update the authorization token in config - this will persist to localStorage
-        const updatedConfig = { ...config, authorizationToken: newToken };
-        updateConfig(updatedConfig);
-        console.log('Authorization token refreshed successfully');
-      } else {
-        console.warn('No access token found in response');
-      }
+      const newToken = await fetchTenTenToken(config.gitEndpoint);
+      // Update the authorization token in config - this will persist to localStorage
+      const updatedConfig = { ...config, authorizationToken: newToken };
+      updateConfig(updatedConfig);
+      console.log('Authorization token refreshed successfully');
     } catch (error) {
       console.error('Error refreshing auth token:', error);
       // Don't show error to user, just log it

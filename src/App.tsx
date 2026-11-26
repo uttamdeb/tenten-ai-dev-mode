@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import PhotoCheck from "./pages/PhotoCheck";
+import PhotoCheckResults from "./pages/PhotoCheckResults";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,16 @@ const App = () => (
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/photo-check" element={
+              <ProtectedRoute>
+                <PhotoCheck />
+              </ProtectedRoute>
+            } />
+            <Route path="/photo-check/results" element={
+              <ProtectedRoute>
+                <PhotoCheckResults />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
